@@ -323,6 +323,247 @@ func TestAgentLoop_GetStartupInfo(t *testing.T) {
 	}
 }
 
+// TestCreateToolRegistry_ExecDisabled verifies exec tool is NOT registered when disabled
+func TestCreateToolRegistry_ExecDisabled(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "agent-test-*")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	cfg := &config.Config{
+		Agents: config.AgentsConfig{
+			Defaults: config.AgentDefaults{
+				Workspace:         tmpDir,
+				Model:             "test-model",
+				MaxTokens:         4096,
+				MaxToolIterations: 10,
+			},
+		},
+		Tools: config.ToolsConfig{
+			Exec: config.ExecToolsConfig{
+				Enabled: false,
+			},
+		},
+	}
+
+	msgBus := bus.NewMessageBus()
+	provider := &mockProvider{}
+	al := NewAgentLoop(cfg, msgBus, provider)
+
+	info := al.GetStartupInfo()
+	toolsInfo := info["tools"].(map[string]interface{})
+	toolsList := toolsInfo["names"].([]string)
+
+	for _, name := range toolsList {
+		if name == "exec" {
+			t.Error("exec tool should NOT be registered when Exec.Enabled is false")
+		}
+	}
+}
+
+// TestCreateToolRegistry_ExecEnabled verifies exec tool IS registered when enabled
+func TestCreateToolRegistry_ExecEnabled(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "agent-test-*")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	cfg := &config.Config{
+		Agents: config.AgentsConfig{
+			Defaults: config.AgentDefaults{
+				Workspace:         tmpDir,
+				Model:             "test-model",
+				MaxTokens:         4096,
+				MaxToolIterations: 10,
+			},
+		},
+		Tools: config.ToolsConfig{
+			Exec: config.ExecToolsConfig{
+				Enabled: true,
+			},
+		},
+	}
+
+	msgBus := bus.NewMessageBus()
+	provider := &mockProvider{}
+	al := NewAgentLoop(cfg, msgBus, provider)
+
+	info := al.GetStartupInfo()
+	toolsInfo := info["tools"].(map[string]interface{})
+	toolsList := toolsInfo["names"].([]string)
+
+	found := false
+	for _, name := range toolsList {
+		if name == "exec" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("exec tool should be registered when Exec.Enabled is true")
+	}
+}
+
+// TestCreateToolRegistry_I2CDisabled verifies I2C tool is NOT registered when disabled
+func TestCreateToolRegistry_I2CDisabled(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "agent-test-*")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	cfg := &config.Config{
+		Agents: config.AgentsConfig{
+			Defaults: config.AgentDefaults{
+				Workspace:         tmpDir,
+				Model:             "test-model",
+				MaxTokens:         4096,
+				MaxToolIterations: 10,
+			},
+		},
+		Tools: config.ToolsConfig{
+			I2C: config.I2CToolsConfig{Enabled: false},
+		},
+	}
+
+	msgBus := bus.NewMessageBus()
+	provider := &mockProvider{}
+	al := NewAgentLoop(cfg, msgBus, provider)
+
+	info := al.GetStartupInfo()
+	toolsInfo := info["tools"].(map[string]interface{})
+	toolsList := toolsInfo["names"].([]string)
+
+	for _, name := range toolsList {
+		if name == "i2c" {
+			t.Error("i2c tool should NOT be registered when I2C.Enabled is false")
+		}
+	}
+}
+
+// TestCreateToolRegistry_I2CEnabled verifies I2C tool IS registered when enabled
+func TestCreateToolRegistry_I2CEnabled(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "agent-test-*")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	cfg := &config.Config{
+		Agents: config.AgentsConfig{
+			Defaults: config.AgentDefaults{
+				Workspace:         tmpDir,
+				Model:             "test-model",
+				MaxTokens:         4096,
+				MaxToolIterations: 10,
+			},
+		},
+		Tools: config.ToolsConfig{
+			I2C: config.I2CToolsConfig{Enabled: true},
+		},
+	}
+
+	msgBus := bus.NewMessageBus()
+	provider := &mockProvider{}
+	al := NewAgentLoop(cfg, msgBus, provider)
+
+	info := al.GetStartupInfo()
+	toolsInfo := info["tools"].(map[string]interface{})
+	toolsList := toolsInfo["names"].([]string)
+
+	found := false
+	for _, name := range toolsList {
+		if name == "i2c" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("i2c tool should be registered when I2C.Enabled is true")
+	}
+}
+
+// TestCreateToolRegistry_SPIDisabled verifies SPI tool is NOT registered when disabled
+func TestCreateToolRegistry_SPIDisabled(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "agent-test-*")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	cfg := &config.Config{
+		Agents: config.AgentsConfig{
+			Defaults: config.AgentDefaults{
+				Workspace:         tmpDir,
+				Model:             "test-model",
+				MaxTokens:         4096,
+				MaxToolIterations: 10,
+			},
+		},
+		Tools: config.ToolsConfig{
+			SPI: config.SPIToolsConfig{Enabled: false},
+		},
+	}
+
+	msgBus := bus.NewMessageBus()
+	provider := &mockProvider{}
+	al := NewAgentLoop(cfg, msgBus, provider)
+
+	info := al.GetStartupInfo()
+	toolsInfo := info["tools"].(map[string]interface{})
+	toolsList := toolsInfo["names"].([]string)
+
+	for _, name := range toolsList {
+		if name == "spi" {
+			t.Error("spi tool should NOT be registered when SPI.Enabled is false")
+		}
+	}
+}
+
+// TestCreateToolRegistry_SPIEnabled verifies SPI tool IS registered when enabled
+func TestCreateToolRegistry_SPIEnabled(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "agent-test-*")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	cfg := &config.Config{
+		Agents: config.AgentsConfig{
+			Defaults: config.AgentDefaults{
+				Workspace:         tmpDir,
+				Model:             "test-model",
+				MaxTokens:         4096,
+				MaxToolIterations: 10,
+			},
+		},
+		Tools: config.ToolsConfig{
+			SPI: config.SPIToolsConfig{Enabled: true},
+		},
+	}
+
+	msgBus := bus.NewMessageBus()
+	provider := &mockProvider{}
+	al := NewAgentLoop(cfg, msgBus, provider)
+
+	info := al.GetStartupInfo()
+	toolsInfo := info["tools"].(map[string]interface{})
+	toolsList := toolsInfo["names"].([]string)
+
+	found := false
+	for _, name := range toolsList {
+		if name == "spi" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("spi tool should be registered when SPI.Enabled is true")
+	}
+}
+
 // TestAgentLoop_Stop verifies Stop() sets running to false
 func TestAgentLoop_Stop(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "agent-test-*")

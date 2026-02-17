@@ -70,8 +70,10 @@ func createToolRegistry(workspace string, restrict bool, cfg *config.Config, msg
 	registry.Register(tools.NewEditFileTool(workspace, restrict))
 	registry.Register(tools.NewAppendFileTool(workspace, restrict))
 
-	// Shell execution
-	registry.Register(tools.NewExecTool(workspace, restrict))
+	// Shell execution (disabled by default for security)
+	if cfg.Tools.Exec.Enabled {
+		registry.Register(tools.NewExecTool(workspace, restrict))
+	}
 
 	if searchTool := tools.NewWebSearchTool(tools.WebSearchToolOptions{
 		BraveAPIKey:          cfg.Tools.Web.Brave.APIKey,
@@ -84,9 +86,13 @@ func createToolRegistry(workspace string, restrict bool, cfg *config.Config, msg
 	}
 	registry.Register(tools.NewWebFetchTool(50000))
 
-	// Hardware tools (I2C, SPI) - Linux only, returns error on other platforms
-	registry.Register(tools.NewI2CTool())
-	registry.Register(tools.NewSPITool())
+	// Hardware tools (I2C, SPI) - disabled by default for security
+	if cfg.Tools.I2C.Enabled {
+		registry.Register(tools.NewI2CTool())
+	}
+	if cfg.Tools.SPI.Enabled {
+		registry.Register(tools.NewSPITool())
+	}
 
 	// Message tool - available to both agent and subagent
 	// Subagent uses it to communicate directly with user

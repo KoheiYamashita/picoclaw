@@ -114,6 +114,15 @@
     }
   },
   "tools": {
+    "exec": {
+      "enabled": false
+    },
+    "i2c": {
+      "enabled": false
+    },
+    "spi": {
+      "enabled": false
+    },
     "web": {
       "search": {
         "api_key": "YOUR_BRAVE_API_KEY",

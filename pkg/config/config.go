@@ -211,8 +211,23 @@ type WebToolsConfig struct {
 	DuckDuckGo DuckDuckGoConfig `json:"duckduckgo"`
 }
 
+type ExecToolsConfig struct {
+	Enabled bool `json:"enabled" env:"PICOCLAW_TOOLS_EXEC_ENABLED"`
+}
+
+type I2CToolsConfig struct {
+	Enabled bool `json:"enabled" env:"PICOCLAW_TOOLS_I2C_ENABLED"`
+}
+
+type SPIToolsConfig struct {
+	Enabled bool `json:"enabled" env:"PICOCLAW_TOOLS_SPI_ENABLED"`
+}
+
 type ToolsConfig struct {
-	Web WebToolsConfig `json:"web"`
+	Web  WebToolsConfig  `json:"web"`
+	Exec ExecToolsConfig `json:"exec"`
+	I2C  I2CToolsConfig  `json:"i2c"`
+	SPI  SPIToolsConfig  `json:"spi"`
 }
 
 func DefaultConfig() *Config {
@@ -311,6 +326,15 @@ func DefaultConfig() *Config {
 			Port: 18790,
 		},
 		Tools: ToolsConfig{
+			Exec: ExecToolsConfig{
+				Enabled: false,
+			},
+			I2C: I2CToolsConfig{
+				Enabled: false,
+			},
+			SPI: SPIToolsConfig{
+				Enabled: false,
+			},
 			Web: WebToolsConfig{
 				Brave: BraveConfig{
 					Enabled:    false,
