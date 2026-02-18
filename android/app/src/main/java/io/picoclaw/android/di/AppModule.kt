@@ -23,6 +23,7 @@ import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 val appModule = module {
@@ -52,7 +53,13 @@ val appModule = module {
     }
 
     // WebSocketClient
-    single { WebSocketClient(get(), get()) }
+    single {
+        val prefs = androidContext().getSharedPreferences("picoclaw", android.content.Context.MODE_PRIVATE)
+        val clientId = prefs.getString("client_id", null) ?: UUID.randomUUID().toString().also {
+            prefs.edit().putString("client_id", it).apply()
+        }
+        WebSocketClient(get(), get(), clientId)
+    }
 
     // ImageFileStorage
     single { ImageFileStorage(androidContext()) }

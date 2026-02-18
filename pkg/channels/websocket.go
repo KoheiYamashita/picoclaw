@@ -166,7 +166,10 @@ func (c *WebSocketChannel) handleWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	clientID := uuid.New().String()
+	clientID := r.URL.Query().Get("client_id")
+	if clientID == "" {
+		clientID = uuid.New().String()
+	}
 
 	logger.InfoCF("websocket", "New WebSocket connection", map[string]interface{}{
 		"client_id":   clientID,
@@ -176,6 +179,10 @@ func (c *WebSocketChannel) handleWS(w http.ResponseWriter, r *http.Request) {
 	chatID := fmt.Sprintf("ws:%s", clientID)
 
 	c.mu.Lock()
+	if oldConn, ok := c.chatConns[chatID]; ok {
+		delete(c.clients, oldConn)
+		oldConn.Close()
+	}
 	c.clients[conn] = clientID
 	c.chatConns[chatID] = conn
 	c.mu.Unlock()

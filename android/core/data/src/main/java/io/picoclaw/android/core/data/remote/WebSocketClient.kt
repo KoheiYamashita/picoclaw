@@ -25,7 +25,8 @@ import kotlinx.serialization.json.Json
 
 class WebSocketClient(
     private val client: HttpClient,
-    private val scope: CoroutineScope
+    private val scope: CoroutineScope,
+    private val clientId: String
 ) {
 
     private val _connectionState = MutableStateFlow(ConnectionState.DISCONNECTED)
@@ -47,7 +48,8 @@ class WebSocketClient(
             while (isActive) {
                 try {
                     _connectionState.value = ConnectionState.CONNECTING
-                    client.webSocket(wsUrl) {
+                    val url = "$wsUrl?client_id=$clientId"
+                    client.webSocket(url) {
                         session = this
                         _connectionState.value = ConnectionState.CONNECTED
                         retryDelay = INITIAL_DELAY
