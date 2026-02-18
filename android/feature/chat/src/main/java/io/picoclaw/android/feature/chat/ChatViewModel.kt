@@ -8,8 +8,10 @@ import io.picoclaw.android.core.domain.usecase.LoadMoreMessagesUseCase
 import io.picoclaw.android.core.domain.usecase.ObserveConnectionUseCase
 import io.picoclaw.android.core.domain.usecase.ObserveMessagesUseCase
 import io.picoclaw.android.core.domain.usecase.SendMessageUseCase
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -25,6 +27,9 @@ class ChatViewModel(
 
     private val _uiState = MutableStateFlow(ChatUiState())
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
+
+    private val _scrollToBottom = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val scrollToBottom = _scrollToBottom.asSharedFlow()
 
     init {
         connectChat()
@@ -51,6 +56,7 @@ class ChatViewModel(
                 val state = _uiState.value
                 val text = state.inputText.trim()
                 if (text.isEmpty() && state.pendingImages.isEmpty()) return
+                _scrollToBottom.tryEmit(Unit)
                 _uiState.update { it.copy(inputText = "", pendingImages = emptyList()) }
                 viewModelScope.launch {
                     try {

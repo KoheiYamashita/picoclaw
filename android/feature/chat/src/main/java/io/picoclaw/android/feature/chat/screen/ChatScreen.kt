@@ -99,6 +99,22 @@ fun ChatScreen(
         if (shouldLoadMore) viewModel.onEvent(ChatEvent.OnLoadMore)
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.scrollToBottom.collect {
+            listState.animateScrollToItem(0)
+        }
+    }
+
+    val isNearBottom by remember {
+        derivedStateOf { listState.firstVisibleItemIndex <= 3 }
+    }
+
+    LaunchedEffect(uiState.messages.size) {
+        if (isNearBottom) {
+            listState.animateScrollToItem(0)
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("PicoClaw") })
