@@ -31,6 +31,7 @@ type UsageInfo struct {
 type Message struct {
 	Role       string     `json:"role"`
 	Content    string     `json:"content"`
+	Media      []string   `json:"media,omitempty"`
 	ToolCalls  []ToolCall `json:"tool_calls,omitempty"`
 	ToolCallID string     `json:"tool_call_id,omitempty"`
 }

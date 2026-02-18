@@ -65,7 +65,7 @@ func (p *HTTPProvider) Chat(ctx context.Context, messages []Message, tools []Too
 
 	requestBody := map[string]interface{}{
 		"model":    model,
-		"messages": messages,
+		"messages": p.buildAPIMessages(messages),
 	}
 
 	if len(tools) > 0 {
@@ -122,6 +122,51 @@ func (p *HTTPProvider) Chat(ctx context.Context, messages []Message, tools []Too
 	}
 
 	return p.parseResponse(body)
+}
+
+// buildAPIMessages converts internal Message slice to OpenAI API format.
+// If a user message has Media, content becomes an array of text + image_url objects.
+func (p *HTTPProvider) buildAPIMessages(messages []Message) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0, len(messages))
+
+	for _, msg := range messages {
+		m := map[string]interface{}{
+			"role": msg.Role,
+		}
+
+		// Only user messages with media get the array-style content
+		if msg.Role == "user" && len(msg.Media) > 0 {
+			parts := make([]map[string]interface{}, 0, 1+len(msg.Media))
+			if msg.Content != "" {
+				parts = append(parts, map[string]interface{}{
+					"type": "text",
+					"text": msg.Content,
+				})
+			}
+			for _, dataURL := range msg.Media {
+				parts = append(parts, map[string]interface{}{
+					"type": "image_url",
+					"image_url": map[string]string{
+						"url": dataURL,
+					},
+				})
+			}
+			m["content"] = parts
+		} else {
+			m["content"] = msg.Content
+		}
+
+		if len(msg.ToolCalls) > 0 {
+			m["tool_calls"] = msg.ToolCalls
+		}
+		if msg.ToolCallID != "" {
+			m["tool_call_id"] = msg.ToolCallID
+		}
+
+		result = append(result, m)
+	}
+
+	return result
 }
 
 func (p *HTTPProvider) parseResponse(body []byte) (*LLMResponse, error) {

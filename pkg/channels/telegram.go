@@ -244,11 +244,9 @@ func (c *TelegramChannel) handleMessage(ctx context.Context, message *telego.Mes
 		photoPath := c.downloadPhoto(ctx, photo.FileID)
 		if photoPath != "" {
 			localFiles = append(localFiles, photoPath)
-			mediaPaths = append(mediaPaths, photoPath)
-			if content != "" {
-				content += "\n"
+			if dataURL := utils.EncodeFileToDataURL(photoPath); dataURL != "" {
+				mediaPaths = append(mediaPaths, dataURL)
 			}
-			content += "[image: photo]"
 		}
 	}
 
@@ -311,7 +309,7 @@ func (c *TelegramChannel) handleMessage(ctx context.Context, message *telego.Mes
 		}
 	}
 
-	if content == "" {
+	if content == "" && len(mediaPaths) == 0 {
 		content = "[empty message]"
 	}
 

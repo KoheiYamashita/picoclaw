@@ -353,21 +353,20 @@ func (c *DiscordChannel) handleMessage(s *discordgo.Session, m *discordgo.Messag
 					"url":      attachment.URL,
 					"filename": attachment.Filename,
 				})
-				mediaPaths = append(mediaPaths, attachment.URL)
-				content = appendContent(content, fmt.Sprintf("[attachment: %s]", attachment.URL))
 			}
 		} else {
-			mediaPaths = append(mediaPaths, attachment.URL)
-			content = appendContent(content, fmt.Sprintf("[attachment: %s]", attachment.URL))
+			localPath := c.downloadAttachment(attachment.URL, attachment.Filename)
+			if localPath != "" {
+				localFiles = append(localFiles, localPath)
+				if dataURL := utils.EncodeFileToDataURL(localPath); dataURL != "" {
+					mediaPaths = append(mediaPaths, dataURL)
+				}
+			}
 		}
 	}
 
 	if content == "" && len(mediaPaths) == 0 {
 		return
-	}
-
-	if content == "" {
-		content = "[media only]"
 	}
 
 	logger.DebugCF("discord", "Received message", map[string]any{

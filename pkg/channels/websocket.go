@@ -2,12 +2,9 @@ package channels
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
-	"path/filepath"
 	"sync"
 
 	"github.com/google/uuid"
@@ -235,19 +232,10 @@ func (c *WebSocketChannel) readPump(conn *websocket.Conn, clientID, chatID strin
 		content := incoming.Content
 		var media []string
 
-		// Save images to temp files (same pattern as Telegram).
-		for i, imgData := range incoming.Images {
-			path, err := c.saveImage(imgData)
-			if err != nil {
-				logger.ErrorCF("websocket", "Failed to save image", map[string]interface{}{
-					"client_id": clientID,
-					"index":     i,
-					"error":     err.Error(),
-				})
-				continue
-			}
-			media = append(media, path)
-			content += fmt.Sprintf("\n[image: photo_%d]", i)
+		// Convert base64 images directly to data URLs.
+		for _, imgData := range incoming.Images {
+			dataURL := "data:image/png;base64," + imgData
+			media = append(media, dataURL)
 		}
 
 		logger.DebugCF("websocket", "Received message", map[string]interface{}{
@@ -260,30 +248,3 @@ func (c *WebSocketChannel) readPump(conn *websocket.Conn, clientID, chatID strin
 	}
 }
 
-func (c *WebSocketChannel) saveImage(base64Data string) (string, error) {
-	data, err := base64.StdEncoding.DecodeString(base64Data)
-	if err != nil {
-		// Try URL-safe base64.
-		data, err = base64.URLEncoding.DecodeString(base64Data)
-		if err != nil {
-			return "", fmt.Errorf("failed to decode base64: %w", err)
-		}
-	}
-
-	tmpDir := filepath.Join(os.TempDir(), "picoclaw", "ws_images")
-	if err := os.MkdirAll(tmpDir, 0755); err != nil {
-		return "", fmt.Errorf("failed to create temp dir: %w", err)
-	}
-
-	f, err := os.CreateTemp(tmpDir, "ws_img_*.png")
-	if err != nil {
-		return "", fmt.Errorf("failed to create temp file: %w", err)
-	}
-	defer f.Close()
-
-	if _, err := f.Write(data); err != nil {
-		return "", fmt.Errorf("failed to write image: %w", err)
-	}
-
-	return f.Name(), nil
-}

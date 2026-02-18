@@ -220,10 +220,14 @@ func (cb *ContextBuilder) BuildMessages(history []providers.Message, summary str
 
 	messages = append(messages, history...)
 
-	messages = append(messages, providers.Message{
+	userMsg := providers.Message{
 		Role:    "user",
 		Content: currentMessage,
-	})
+	}
+	if len(media) > 0 {
+		userMsg.Media = media
+	}
+	messages = append(messages, userMsg)
 
 	return messages
 }

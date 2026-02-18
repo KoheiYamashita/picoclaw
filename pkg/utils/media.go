@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/base64"
 	"io"
 	"net/http"
 	"os"
@@ -11,6 +12,61 @@ import (
 	"github.com/google/uuid"
 	"github.com/sipeed/picoclaw/pkg/logger"
 )
+
+const maxImageFileSize = 50 * 1024 * 1024 // 50MB
+
+// EncodeFileToDataURL reads a local file and returns a base64 data URL string.
+// Supported: JPEG, PNG, WEBP, GIF. Max 50MB.
+// Returns empty string on error.
+func EncodeFileToDataURL(path string) string {
+	ext := strings.ToLower(filepath.Ext(path))
+	var mime string
+	switch ext {
+	case ".jpg", ".jpeg":
+		mime = "image/jpeg"
+	case ".png":
+		mime = "image/png"
+	case ".webp":
+		mime = "image/webp"
+	case ".gif":
+		mime = "image/gif"
+	default:
+		logger.WarnCF("media", "Unsupported image extension", map[string]interface{}{
+			"path": path,
+			"ext":  ext,
+		})
+		return ""
+	}
+
+	info, err := os.Stat(path)
+	if err != nil {
+		logger.ErrorCF("media", "Failed to stat image file", map[string]interface{}{
+			"path":  path,
+			"error": err.Error(),
+		})
+		return ""
+	}
+	if info.Size() > maxImageFileSize {
+		logger.WarnCF("media", "Image file too large, skipping", map[string]interface{}{
+			"path":     path,
+			"size_mb":  info.Size() / (1024 * 1024),
+			"max_mb":   maxImageFileSize / (1024 * 1024),
+		})
+		return ""
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		logger.ErrorCF("media", "Failed to read image file", map[string]interface{}{
+			"path":  path,
+			"error": err.Error(),
+		})
+		return ""
+	}
+
+	encoded := base64.StdEncoding.EncodeToString(data)
+	return "data:" + mime + ";base64," + encoded
+}
 
 // IsAudioFile checks if a file is an audio file based on its filename extension and content type.
 func IsAudioFile(filename, contentType string) bool {

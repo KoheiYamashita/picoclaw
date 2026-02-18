@@ -331,8 +331,9 @@ func (c *LINEChannel) processEvent(event lineEvent) {
 		localPath := c.downloadContent(msg.ID, "image.jpg")
 		if localPath != "" {
 			localFiles = append(localFiles, localPath)
-			mediaPaths = append(mediaPaths, localPath)
-			content = "[image]"
+			if dataURL := utils.EncodeFileToDataURL(localPath); dataURL != "" {
+				mediaPaths = append(mediaPaths, dataURL)
+			}
 		}
 	case "audio":
 		localPath := c.downloadContent(msg.ID, "audio.m4a")
@@ -356,7 +357,7 @@ func (c *LINEChannel) processEvent(event lineEvent) {
 		content = fmt.Sprintf("[%s]", msg.Type)
 	}
 
-	if strings.TrimSpace(content) == "" {
+	if strings.TrimSpace(content) == "" && len(mediaPaths) == 0 {
 		return
 	}
 

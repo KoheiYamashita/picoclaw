@@ -251,7 +251,6 @@ func (c *SlackChannel) handleMessageEvent(ev *slackevents.MessageEvent) {
 				continue
 			}
 			localFiles = append(localFiles, localPath)
-			mediaPaths = append(mediaPaths, localPath)
 
 			if utils.IsAudioFile(file.Name, file.Mimetype) && c.transcriber != nil && c.transcriber.IsAvailable() {
 				ctx, cancel := context.WithTimeout(c.ctx, 30*time.Second)
@@ -264,13 +263,15 @@ func (c *SlackChannel) handleMessageEvent(ev *slackevents.MessageEvent) {
 				} else {
 					content += fmt.Sprintf("\n[voice transcription: %s]", result.Text)
 				}
+			} else if dataURL := utils.EncodeFileToDataURL(localPath); dataURL != "" {
+				mediaPaths = append(mediaPaths, dataURL)
 			} else {
 				content += fmt.Sprintf("\n[file: %s]", file.Name)
 			}
 		}
 	}
 
-	if strings.TrimSpace(content) == "" {
+	if strings.TrimSpace(content) == "" && len(mediaPaths) == 0 {
 		return
 	}
 
