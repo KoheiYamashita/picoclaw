@@ -4,7 +4,6 @@ import io.picoclaw.android.core.data.local.entity.MessageEntity
 import io.picoclaw.android.core.data.remote.dto.WsIncoming
 import io.picoclaw.android.core.data.remote.dto.WsOutgoing
 import io.picoclaw.android.core.domain.model.ChatMessage
-import io.picoclaw.android.core.domain.model.ImageAttachment
 import io.picoclaw.android.core.domain.model.ImageData
 import io.picoclaw.android.core.domain.model.MessageSender
 import io.picoclaw.android.core.domain.model.MessageStatus
@@ -65,10 +64,10 @@ object MessageMapper {
         )
     }
 
-    fun toWsIncoming(text: String, images: List<ImageAttachment>): WsIncoming {
+    fun toWsIncoming(text: String, base64Images: List<String>): WsIncoming {
         return WsIncoming(
             content = text,
-            images = if (images.isNotEmpty()) images.map { it.base64 } else null
+            images = base64Images.ifEmpty { null }
         )
     }
 }

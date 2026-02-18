@@ -48,10 +48,10 @@ class ChatRepositoryImpl(
     }
 
     override suspend fun sendMessage(text: String, images: List<ImageAttachment>) {
-        val imageDataList = images.map { imageFileStorage.saveBase64ToFile(it.base64) }
-        val entity = MessageMapper.toEntity(text, imageDataList, MessageStatus.SENDING)
+        val results = images.map { imageFileStorage.saveFromUri(it.uri) }
+        val entity = MessageMapper.toEntity(text, results.map { it.imageData }, MessageStatus.SENDING)
         messageDao.insert(entity)
-        val wsDto = MessageMapper.toWsIncoming(text, images)
+        val wsDto = MessageMapper.toWsIncoming(text, results.map { it.base64 })
         val success = webSocketClient.send(wsDto)
         messageDao.update(entity.copy(status = if (success) MessageStatus.SENT.name else MessageStatus.FAILED.name))
     }

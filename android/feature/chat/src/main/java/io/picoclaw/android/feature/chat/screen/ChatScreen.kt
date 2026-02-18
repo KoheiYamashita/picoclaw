@@ -1,8 +1,6 @@
 package io.picoclaw.android.feature.chat.screen
 
-import android.graphics.BitmapFactory
 import android.net.Uri
-import android.util.Base64
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
@@ -32,7 +30,6 @@ import io.picoclaw.android.feature.chat.component.ImagePreviewRow
 import io.picoclaw.android.feature.chat.component.MessageInput
 import io.picoclaw.android.feature.chat.component.MessageList
 import org.koin.androidx.compose.koinViewModel
-import java.io.ByteArrayOutputStream
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,16 +48,9 @@ fun ChatScreen(
     ) { success ->
         if (success) {
             cameraImageUri?.let { uri ->
-                uriToBase64(context, uri)?.let { base64 ->
-                    viewModel.onEvent(
-                        ChatEvent.OnImageAdded(
-                            ImageAttachment(
-                                uri = uri.toString(),
-                                base64 = base64
-                            )
-                        )
-                    )
-                }
+                viewModel.onEvent(
+                    ChatEvent.OnImageAdded(ImageAttachment(uri = uri.toString()))
+                )
             }
         }
     }
@@ -69,18 +59,10 @@ fun ChatScreen(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
         uri?.let {
-            uriToBase64(context, it)?.let { base64 ->
-                val mimeType = context.contentResolver.getType(it) ?: "image/png"
-                viewModel.onEvent(
-                    ChatEvent.OnImageAdded(
-                        ImageAttachment(
-                            uri = it.toString(),
-                            base64 = base64,
-                            mimeType = mimeType
-                        )
-                    )
-                )
-            }
+            val mimeType = context.contentResolver.getType(it) ?: "image/jpeg"
+            viewModel.onEvent(
+                ChatEvent.OnImageAdded(ImageAttachment(uri = it.toString(), mimeType = mimeType))
+            )
         }
     }
 
@@ -140,18 +122,5 @@ fun ChatScreen(
                 }
             )
         }
-    }
-}
-
-private fun uriToBase64(context: android.content.Context, uri: Uri): String? {
-    return try {
-        context.contentResolver.openInputStream(uri)?.use { input ->
-            val bitmap = BitmapFactory.decodeStream(input)
-            val output = ByteArrayOutputStream()
-            bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, output)
-            Base64.encodeToString(output.toByteArray(), Base64.NO_WRAP)
-        }
-    } catch (_: Exception) {
-        null
     }
 }
