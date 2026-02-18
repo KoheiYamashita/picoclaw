@@ -2,6 +2,7 @@ package io.picoclaw.android.feature.chat.component
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
@@ -49,13 +50,18 @@ fun MessageBubble(
             modifier = Modifier.widthIn(max = 300.dp)
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
-                message.images.forEach { filePath ->
+                message.images.forEach { imageData ->
+                    val ratio = if (imageData.width > 0 && imageData.height > 0) {
+                        imageData.width.toFloat() / imageData.height.toFloat()
+                    } else 1f
+
                     AsyncImage(
-                        model = File(filePath),
+                        model = File(imageData.path),
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 8.dp),
+                            .padding(bottom = 8.dp)
+                            .aspectRatio(ratio),
                         contentScale = ContentScale.FillWidth
                     )
                 }

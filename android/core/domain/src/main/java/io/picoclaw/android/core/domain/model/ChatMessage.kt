@@ -4,7 +4,7 @@ data class ChatMessage(
     val id: String,
     val content: String,
     val sender: MessageSender,
-    val images: List<String> = emptyList(),
+    val images: List<ImageData> = emptyList(),
     val timestamp: Long,
     val status: MessageStatus
 )

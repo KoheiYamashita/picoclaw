@@ -5,18 +5,25 @@ import io.picoclaw.android.core.data.remote.dto.WsIncoming
 import io.picoclaw.android.core.data.remote.dto.WsOutgoing
 import io.picoclaw.android.core.domain.model.ChatMessage
 import io.picoclaw.android.core.domain.model.ImageAttachment
+import io.picoclaw.android.core.domain.model.ImageData
 import io.picoclaw.android.core.domain.model.MessageSender
 import io.picoclaw.android.core.domain.model.MessageStatus
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.util.UUID
+
+@Serializable
+private data class ImageEntry(val path: String, val width: Int, val height: Int)
 
 object MessageMapper {
 
     fun toDomain(entity: MessageEntity): ChatMessage {
         val images = entity.imagePathList?.let {
             try {
-                Json.decodeFromString<List<String>>(it)
+                Json.decodeFromString<List<ImageEntry>>(it).map { e ->
+                    ImageData(e.path, e.width, e.height)
+                }
             } catch (_: Exception) {
                 emptyList()
             }
@@ -43,9 +50,9 @@ object MessageMapper {
         )
     }
 
-    fun toEntity(text: String, imagePaths: List<String>, status: MessageStatus): MessageEntity {
-        val pathJson = if (imagePaths.isNotEmpty()) {
-            Json.encodeToString(imagePaths)
+    fun toEntity(text: String, images: List<ImageData>, status: MessageStatus): MessageEntity {
+        val pathJson = if (images.isNotEmpty()) {
+            Json.encodeToString(images.map { ImageEntry(it.path, it.width, it.height) })
         } else null
 
         return MessageEntity(
