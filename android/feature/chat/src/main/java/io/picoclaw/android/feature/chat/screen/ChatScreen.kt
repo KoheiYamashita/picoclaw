@@ -1,8 +1,11 @@
 package io.picoclaw.android.feature.chat.screen
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -53,6 +56,24 @@ fun ChatScreen(
                 )
             }
         }
+    }
+
+    val launchCamera = {
+        val imagesDir = File(context.cacheDir, "images").apply { mkdirs() }
+        val imageFile = File(imagesDir, "camera_${System.currentTimeMillis()}.jpg")
+        val uri = FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            imageFile
+        )
+        cameraImageUri = uri
+        cameraLauncher.launch(uri)
+    }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) launchCamera()
     }
 
     val galleryLauncher = rememberLauncherForActivityResult(
@@ -107,15 +128,13 @@ fun ChatScreen(
                 onTextChanged = { viewModel.onEvent(ChatEvent.OnInputChanged(it)) },
                 onSendClick = { viewModel.onEvent(ChatEvent.OnSendClick) },
                 onCameraClick = {
-                    val imagesDir = File(context.cacheDir, "images").apply { mkdirs() }
-                    val imageFile = File(imagesDir, "camera_${System.currentTimeMillis()}.jpg")
-                    val uri = FileProvider.getUriForFile(
-                        context,
-                        "${context.packageName}.fileprovider",
-                        imageFile
-                    )
-                    cameraImageUri = uri
-                    cameraLauncher.launch(uri)
+                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+                        == PackageManager.PERMISSION_GRANTED
+                    ) {
+                        launchCamera()
+                    } else {
+                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                    }
                 },
                 onGalleryClick = {
                     galleryLauncher.launch("image/*")
