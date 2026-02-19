@@ -67,6 +67,7 @@ type processOptions struct {
 	EnableSummary   bool     // Whether to trigger summarization
 	SendResponse    bool     // Whether to send response via bus
 	NoHistory       bool     // If true, don't load session history (for heartbeat)
+	InputMode       string   // "voice" or "text"
 }
 
 // createToolRegistry creates a tool registry with common tools.
@@ -367,6 +368,14 @@ func (al *AgentLoop) processMessage(ctx context.Context, msg bus.InboundMessage)
 		return response, nil
 	}
 
+	// Extract input_mode from metadata
+	inputMode := "text"
+	if msg.Metadata != nil {
+		if mode, ok := msg.Metadata["input_mode"]; ok && mode != "" {
+			inputMode = mode
+		}
+	}
+
 	// Process as user message
 	return al.runAgentLoop(ctx, processOptions{
 		SessionKey:      msg.SessionKey,
@@ -377,6 +386,7 @@ func (al *AgentLoop) processMessage(ctx context.Context, msg bus.InboundMessage)
 		DefaultResponse: "I've completed processing but have no response to give.",
 		EnableSummary:   true,
 		SendResponse:    false,
+		InputMode:       inputMode,
 	})
 }
 
@@ -463,6 +473,7 @@ func (al *AgentLoop) runAgentLoop(ctx context.Context, opts processOptions) (str
 		opts.Media,
 		opts.Channel,
 		opts.ChatID,
+		opts.InputMode,
 	)
 
 	// 3. Save user message to session
@@ -657,6 +668,7 @@ func (al *AgentLoop) runLLMIteration(ctx context.Context, messages []providers.M
 					nil,
 					opts.Channel,
 					opts.ChatID,
+					opts.InputMode,
 				)
 
 				// Important: If we are in the middle of a tool loop (iteration > 1),
@@ -720,6 +732,7 @@ func (al *AgentLoop) runLLMIteration(ctx context.Context, messages []providers.M
 					nil,
 					opts.Channel,
 					opts.ChatID,
+					opts.InputMode,
 				)
 
 				continue

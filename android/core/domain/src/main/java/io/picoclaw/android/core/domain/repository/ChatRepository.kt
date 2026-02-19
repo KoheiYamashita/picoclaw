@@ -9,7 +9,7 @@ interface ChatRepository {
     val messages: StateFlow<List<ChatMessage>>
     val connectionState: StateFlow<ConnectionState>
     val statusLabel: StateFlow<String?>
-    suspend fun sendMessage(text: String, images: List<ImageAttachment> = emptyList())
+    suspend fun sendMessage(text: String, images: List<ImageAttachment> = emptyList(), inputMode: String? = null)
     fun loadMore()
     fun connect()
     fun disconnect()

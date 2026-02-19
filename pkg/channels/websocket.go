@@ -16,9 +16,10 @@ import (
 
 // wsIncoming is the JSON message sent from APK to picoclaw.
 type wsIncoming struct {
-	Content  string   `json:"content"`
-	SenderID string   `json:"sender_id,omitempty"`
-	Images   []string `json:"images,omitempty"`
+	Content   string   `json:"content"`
+	SenderID  string   `json:"sender_id,omitempty"`
+	Images    []string `json:"images,omitempty"`
+	InputMode string   `json:"input_mode,omitempty"`
 }
 
 // wsOutgoing is the JSON message sent from picoclaw to APK.
@@ -252,7 +253,14 @@ func (c *WebSocketChannel) readPump(conn *websocket.Conn, clientID, chatID strin
 			"images":    len(incoming.Images),
 		})
 
-		c.HandleMessage(senderID, chatID, content, media, nil)
+		inputMode := incoming.InputMode
+		if inputMode == "" {
+			inputMode = "text"
+		}
+		metadata := map[string]string{
+			"input_mode": inputMode,
+		}
+		c.HandleMessage(senderID, chatID, content, media, metadata)
 	}
 }
 

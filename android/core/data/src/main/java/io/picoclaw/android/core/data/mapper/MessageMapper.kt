@@ -66,10 +66,11 @@ object MessageMapper {
         )
     }
 
-    fun toWsIncoming(text: String, base64Images: List<String>): WsIncoming {
+    fun toWsIncoming(text: String, base64Images: List<String>, inputMode: String? = null): WsIncoming {
         return WsIncoming(
             content = text,
-            images = base64Images.ifEmpty { null }
+            images = base64Images.ifEmpty { null },
+            inputMode = inputMode
         )
     }
 }

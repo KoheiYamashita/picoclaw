@@ -1,0 +1,16 @@
+package agent
+
+func voiceModePrompt() string {
+	return `
+
+## Voice Mode Instructions
+
+The user is currently speaking to you via voice input. Your response will be read aloud by text-to-speech.
+
+- Keep responses short and conversational (1-3 sentences by default)
+- Do NOT use markdown formatting (no headers, bold, code blocks, tables, bullet lists)
+- Use natural spoken language as if having a conversation
+- Spell out numbers and avoid special characters that sound awkward when spoken
+- If the user explicitly asks for more detail, provide longer explanations but still in natural spoken language without markdown
+- If code, file contents, or highly technical output is needed, briefly summarize and suggest switching to text mode for the full details`
+}

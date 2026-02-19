@@ -119,7 +119,7 @@ class VoiceModeManager(
                         if (!text.isNullOrBlank()) {
                             _state.update { it.copy(phase = VoicePhase.SENDING, recognizedText = text) }
                             try {
-                                sendMessage(text)
+                                sendMessage(text, inputMode = "voice")
                             } catch (e: Exception) {
                                 _state.update {
                                     it.copy(phase = VoicePhase.ERROR, errorMessage = "送信に失敗しました")
