@@ -8,6 +8,7 @@ import io.picoclaw.android.core.domain.usecase.ObserveMessagesUseCase
 import io.picoclaw.android.core.domain.usecase.ObserveStatusUseCase
 import io.picoclaw.android.core.domain.usecase.SendMessageUseCase
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
@@ -21,6 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.onTimeout
 import kotlinx.coroutines.selects.select
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class VoiceModeManager(
     private val sttWrapper: SpeechRecognizerWrapper,
     private val ttsWrapper: TextToSpeechWrapper,
