@@ -8,7 +8,11 @@ import io.picoclaw.android.core.data.local.AppDatabase
 import io.picoclaw.android.core.data.local.ImageFileStorage
 import io.picoclaw.android.core.data.remote.WebSocketClient
 import io.picoclaw.android.core.data.repository.ChatRepositoryImpl
+import io.picoclaw.android.core.data.repository.TtsCatalogRepositoryImpl
+import io.picoclaw.android.core.data.repository.TtsSettingsRepositoryImpl
 import io.picoclaw.android.core.domain.repository.ChatRepository
+import io.picoclaw.android.core.domain.repository.TtsCatalogRepository
+import io.picoclaw.android.core.domain.repository.TtsSettingsRepository
 import io.picoclaw.android.core.domain.usecase.ConnectChatUseCase
 import io.picoclaw.android.core.domain.usecase.DisconnectChatUseCase
 import io.picoclaw.android.core.domain.usecase.LoadMoreMessagesUseCase
@@ -17,6 +21,10 @@ import io.picoclaw.android.core.domain.usecase.ObserveMessagesUseCase
 import io.picoclaw.android.core.domain.usecase.ObserveStatusUseCase
 import io.picoclaw.android.core.domain.usecase.SendMessageUseCase
 import io.picoclaw.android.feature.chat.ChatViewModel
+import io.picoclaw.android.feature.chat.SettingsViewModel
+import io.picoclaw.android.feature.chat.voice.SpeechRecognizerWrapper
+import io.picoclaw.android.feature.chat.voice.TextToSpeechWrapper
+import io.picoclaw.android.feature.chat.voice.VoiceModeManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -67,6 +75,10 @@ val appModule = module {
 
     // Repository
     single<ChatRepository> { ChatRepositoryImpl(get(), get(), get(), get()) }
+    single<TtsSettingsRepository> { TtsSettingsRepositoryImpl(androidContext()) }
+    single<TtsCatalogRepository> {
+        TtsCatalogRepositoryImpl(androidContext(), get<TtsSettingsRepository>().ttsConfig, get())
+    }
 
     // UseCases
     factory { SendMessageUseCase(get()) }
@@ -77,6 +89,12 @@ val appModule = module {
     factory { ConnectChatUseCase(get()) }
     factory { DisconnectChatUseCase(get()) }
 
+    // Voice
+    factory { SpeechRecognizerWrapper(androidContext()) }
+    single { TextToSpeechWrapper(androidContext(), get<TtsSettingsRepository>().ttsConfig) }
+    single { VoiceModeManager(get(), get(), get(), get(), get()) }
+
     // ViewModel
-    viewModel { ChatViewModel(get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { ChatViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { SettingsViewModel(get(), get(), get()) }
 }

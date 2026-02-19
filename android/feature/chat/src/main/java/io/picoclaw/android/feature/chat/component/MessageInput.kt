@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,6 +29,7 @@ fun MessageInput(
     onSendClick: () -> Unit,
     onCameraClick: () -> Unit,
     onGalleryClick: () -> Unit,
+    onMicClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -41,6 +43,9 @@ fun MessageInput(
         }
         IconButton(onClick = onGalleryClick) {
             Icon(Icons.Default.Image, contentDescription = "Gallery")
+        }
+        IconButton(onClick = onMicClick) {
+            Icon(Icons.Default.Mic, contentDescription = "Voice")
         }
         OutlinedTextField(
             value = text,

@@ -439,8 +439,36 @@ func (al *AgentLoop) runAgentLoop(ctx context.Context, opts processOptions) (str
 		})
 	}
 
+	// Start heartbeat goroutine - resend current status every 10s
+	var currentStatus atomic.Value
+	currentStatus.Store("思考中...")
+	heartbeatCtx, heartbeatCancel := context.WithCancel(ctx)
+	defer heartbeatCancel()
+
+	if !constants.IsInternalChannel(opts.Channel) {
+		go func() {
+			ticker := time.NewTicker(10 * time.Second)
+			defer ticker.Stop()
+			for {
+				select {
+				case <-heartbeatCtx.Done():
+					return
+				case <-ticker.C:
+					if status, ok := currentStatus.Load().(string); ok && status != "" {
+						al.bus.PublishOutbound(bus.OutboundMessage{
+							Channel: opts.Channel,
+							ChatID:  opts.ChatID,
+							Content: status,
+							Type:    "status",
+						})
+					}
+				}
+			}
+		}()
+	}
+
 	// 5. Run LLM iteration loop
-	finalContent, iteration, err := al.runLLMIteration(ctx, messages, opts)
+	finalContent, iteration, err := al.runLLMIteration(ctx, messages, opts, &currentStatus)
 	if err != nil {
 		return "", err
 	}
@@ -485,7 +513,7 @@ func (al *AgentLoop) runAgentLoop(ctx context.Context, opts processOptions) (str
 
 // runLLMIteration executes the LLM call loop with tool handling.
 // Returns the final content, iteration count, and any error.
-func (al *AgentLoop) runLLMIteration(ctx context.Context, messages []providers.Message, opts processOptions) (string, int, error) {
+func (al *AgentLoop) runLLMIteration(ctx context.Context, messages []providers.Message, opts processOptions, currentStatus *atomic.Value) (string, int, error) {
 	iteration := 0
 	var finalContent string
 
@@ -747,6 +775,7 @@ func (al *AgentLoop) runLLMIteration(ctx context.Context, messages []providers.M
 			// Emit tool use status indicator
 			if !constants.IsInternalChannel(opts.Channel) {
 				if label := statusLabel(tc.Name, tc.Arguments); label != "" {
+					currentStatus.Store(label)
 					al.bus.PublishOutbound(bus.OutboundMessage{
 						Channel: opts.Channel,
 						ChatID:  opts.ChatID,

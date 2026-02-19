@@ -9,6 +9,7 @@ import io.picoclaw.android.core.domain.usecase.ObserveConnectionUseCase
 import io.picoclaw.android.core.domain.usecase.ObserveMessagesUseCase
 import io.picoclaw.android.core.domain.usecase.ObserveStatusUseCase
 import io.picoclaw.android.core.domain.usecase.SendMessageUseCase
+import io.picoclaw.android.feature.chat.voice.VoiceModeManager
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,7 +25,8 @@ class ChatViewModel(
     private val observeStatus: ObserveStatusUseCase,
     private val loadMoreMessages: LoadMoreMessagesUseCase,
     private val connectChat: ConnectChatUseCase,
-    private val disconnectChat: DisconnectChatUseCase
+    private val disconnectChat: DisconnectChatUseCase,
+    private val voiceModeManager: VoiceModeManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ChatUiState())
@@ -51,6 +53,12 @@ class ChatViewModel(
         viewModelScope.launch {
             observeStatus().collect { label ->
                 _uiState.update { it.copy(statusLabel = label) }
+            }
+        }
+
+        viewModelScope.launch {
+            voiceModeManager.state.collect { voiceState ->
+                _uiState.update { it.copy(voiceModeState = voiceState) }
             }
         }
     }
@@ -91,11 +99,18 @@ class ChatViewModel(
             is ChatEvent.OnErrorDismissed -> {
                 _uiState.update { it.copy(error = null) }
             }
+            is ChatEvent.OnVoiceModeStart -> {
+                voiceModeManager.start(viewModelScope)
+            }
+            is ChatEvent.OnVoiceModeStop -> {
+                voiceModeManager.stop()
+            }
         }
     }
 
     override fun onCleared() {
         super.onCleared()
+        voiceModeManager.destroy()
         disconnectChat()
     }
 }

@@ -3,6 +3,7 @@ package io.picoclaw.android.feature.chat
 import io.picoclaw.android.core.domain.model.ChatMessage
 import io.picoclaw.android.core.domain.model.ConnectionState
 import io.picoclaw.android.core.domain.model.ImageAttachment
+import io.picoclaw.android.feature.chat.voice.VoiceModeState
 
 data class ChatUiState(
     val messages: List<ChatMessage> = emptyList(),
@@ -12,5 +13,6 @@ data class ChatUiState(
     val isLoadingMore: Boolean = false,
     val canLoadMore: Boolean = true,
     val error: String? = null,
-    val statusLabel: String? = null
+    val statusLabel: String? = null,
+    val voiceModeState: VoiceModeState = VoiceModeState()
 )

@@ -10,4 +10,6 @@ sealed interface ChatEvent {
     data object OnLoadMore : ChatEvent
     data class OnError(val message: String) : ChatEvent
     data object OnErrorDismissed : ChatEvent
+    data object OnVoiceModeStart : ChatEvent
+    data object OnVoiceModeStop : ChatEvent
 }

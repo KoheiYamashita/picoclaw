@@ -32,4 +32,5 @@ dependencies {
     ksp(libs.room.compiler)
 
     implementation(libs.coroutines.android)
+    implementation(libs.datastore.preferences)
 }

@@ -70,6 +70,7 @@ dependencies {
     implementation(libs.activity.compose)
     implementation(libs.core.ktx)
     implementation(libs.lifecycle.runtime.compose)
+    implementation(libs.navigation.compose)
 
     implementation(libs.koin.android)
     implementation(libs.koin.compose)

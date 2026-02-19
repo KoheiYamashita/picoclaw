@@ -3,14 +3,20 @@ package io.picoclaw.android.feature.chat.screen
 import android.Manifest
 import android.content.pm.PackageManager
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -33,12 +39,14 @@ import io.picoclaw.android.feature.chat.component.ImagePreviewRow
 import io.picoclaw.android.feature.chat.component.MessageInput
 import io.picoclaw.android.feature.chat.component.MessageList
 import io.picoclaw.android.feature.chat.component.StatusIndicator
+import io.picoclaw.android.feature.chat.voice.VoiceModeOverlay
 import org.koin.androidx.compose.koinViewModel
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
+    onNavigateToSettings: () -> Unit = {},
     viewModel: ChatViewModel = koinViewModel()
 ) {
     val context = LocalContext.current
@@ -88,6 +96,34 @@ fun ChatScreen(
         }
     }
 
+    // RECORD_AUDIO permission
+    var pendingVoiceStart by remember { mutableStateOf(false) }
+
+    val micPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            viewModel.onEvent(ChatEvent.OnVoiceModeStart)
+        }
+        pendingVoiceStart = false
+    }
+
+    val onMicClick = {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO)
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+            viewModel.onEvent(ChatEvent.OnVoiceModeStart)
+        } else {
+            pendingVoiceStart = true
+            micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
+
+    // Back handler for voice mode
+    BackHandler(enabled = uiState.voiceModeState.isActive) {
+        viewModel.onEvent(ChatEvent.OnVoiceModeStop)
+    }
+
     val shouldLoadMore by remember {
         derivedStateOf {
             val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()
@@ -116,49 +152,64 @@ fun ChatScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("PicoClaw") })
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            ConnectionBanner(connectionState = uiState.connectionState)
-
-            MessageList(
-                messages = uiState.messages,
-                listState = listState,
-                isLoadingMore = uiState.isLoadingMore,
-                modifier = Modifier.weight(1f)
-            )
-
-            StatusIndicator(label = uiState.statusLabel)
-
-            ImagePreviewRow(
-                images = uiState.pendingImages,
-                onRemove = { viewModel.onEvent(ChatEvent.OnImageRemoved(it)) }
-            )
-
-            MessageInput(
-                text = uiState.inputText,
-                onTextChanged = { viewModel.onEvent(ChatEvent.OnInputChanged(it)) },
-                onSendClick = { viewModel.onEvent(ChatEvent.OnSendClick) },
-                onCameraClick = {
-                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
-                        == PackageManager.PERMISSION_GRANTED
-                    ) {
-                        launchCamera()
-                    } else {
-                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("PicoClaw") },
+                    actions = {
+                        IconButton(onClick = onNavigateToSettings) {
+                            Icon(Icons.Default.Settings, contentDescription = "Settings")
+                        }
                     }
-                },
-                onGalleryClick = {
-                    galleryLauncher.launch("image/*")
-                }
-            )
+                )
+            }
+        ) { padding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+            ) {
+                ConnectionBanner(connectionState = uiState.connectionState)
+
+                MessageList(
+                    messages = uiState.messages,
+                    listState = listState,
+                    isLoadingMore = uiState.isLoadingMore,
+                    modifier = Modifier.weight(1f)
+                )
+
+                StatusIndicator(label = uiState.statusLabel)
+
+                ImagePreviewRow(
+                    images = uiState.pendingImages,
+                    onRemove = { viewModel.onEvent(ChatEvent.OnImageRemoved(it)) }
+                )
+
+                MessageInput(
+                    text = uiState.inputText,
+                    onTextChanged = { viewModel.onEvent(ChatEvent.OnInputChanged(it)) },
+                    onSendClick = { viewModel.onEvent(ChatEvent.OnSendClick) },
+                    onCameraClick = {
+                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+                            == PackageManager.PERMISSION_GRANTED
+                        ) {
+                            launchCamera()
+                        } else {
+                            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                        }
+                    },
+                    onGalleryClick = {
+                        galleryLauncher.launch("image/*")
+                    },
+                    onMicClick = onMicClick
+                )
+            }
         }
+
+        VoiceModeOverlay(
+            state = uiState.voiceModeState,
+            onClose = { viewModel.onEvent(ChatEvent.OnVoiceModeStop) }
+        )
     }
 }
