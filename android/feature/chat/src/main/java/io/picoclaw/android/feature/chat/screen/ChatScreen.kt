@@ -146,7 +146,7 @@ fun ChatScreen(
         derivedStateOf { listState.firstVisibleItemIndex <= 3 }
     }
 
-    LaunchedEffect(uiState.messages.size) {
+    LaunchedEffect(uiState.messages.firstOrNull()?.id) {
         if (isNearBottom) {
             listState.animateScrollToItem(0)
         }
