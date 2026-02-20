@@ -314,8 +314,8 @@ func (cb *ContextBuilder) GetSkillsInfo() map[string]interface{} {
 // to a preceding message with 'tool_calls'" after compression or cancellation.
 func sanitizeToolMessages(history []providers.Message) []providers.Message {
 	// Pass 1: collect IDs present in each direction
-	toolCallIDs := make(map[string]bool)  // IDs declared by assistant tool_calls
-	toolRespIDs := make(map[string]bool)  // IDs present as tool responses
+	toolCallIDs := make(map[string]bool) // IDs declared by assistant tool_calls
+	toolRespIDs := make(map[string]bool) // IDs present as tool responses
 
 	for _, msg := range history {
 		if msg.Role == "assistant" && len(msg.ToolCalls) > 0 {
