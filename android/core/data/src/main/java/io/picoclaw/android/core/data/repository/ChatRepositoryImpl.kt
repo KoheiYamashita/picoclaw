@@ -47,6 +47,7 @@ class ChatRepositoryImpl(
             webSocketClient.incomingMessages.collect { dto ->
                 when (dto.type) {
                     "status" -> _statusLabel.value = dto.content
+                    "status_end" -> _statusLabel.value = null
                     else -> {
                         _statusLabel.value = null
                         val entity = MessageMapper.toEntity(dto)

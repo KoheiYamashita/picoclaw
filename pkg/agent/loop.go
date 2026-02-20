@@ -233,6 +233,13 @@ func (al *AgentLoop) Run(ctx context.Context) error {
 
 			go func(m bus.InboundMessage, sk string) {
 				defer func() {
+					// Clear status indicator on completion (normal, error, or cancel)
+					if !constants.IsInternalChannel(m.Channel) {
+						al.bus.PublishOutbound(bus.OutboundMessage{
+							Channel: m.Channel, ChatID: m.ChatID,
+							Type: "status_end",
+						})
+					}
 					close(done)
 					al.procsMu.Lock()
 					if cur, ok := al.activeProcs[sk]; ok && cur.done == done {
