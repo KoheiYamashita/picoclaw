@@ -50,8 +50,10 @@ import io.picoclaw.android.feature.chat.component.ImagePreviewRow
 import io.picoclaw.android.feature.chat.component.MessageInput
 import io.picoclaw.android.feature.chat.component.MessageList
 import io.picoclaw.android.feature.chat.component.StatusIndicator
+import io.picoclaw.android.feature.chat.voice.CameraCaptureManager
 import io.picoclaw.android.feature.chat.voice.VoiceModeOverlay
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,8 +65,31 @@ fun ChatScreen(
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
+    val cameraCaptureManager: CameraCaptureManager = koinInject()
 
     var cameraImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    val voiceCameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            viewModel.onEvent(ChatEvent.OnVoiceCameraToggle)
+        }
+    }
+
+    val onVoiceCameraToggle = {
+        if (uiState.voiceModeState.isCameraActive) {
+            viewModel.onEvent(ChatEvent.OnVoiceCameraToggle)
+        } else {
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_GRANTED
+            ) {
+                viewModel.onEvent(ChatEvent.OnVoiceCameraToggle)
+            } else {
+                voiceCameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+            }
+        }
+    }
 
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
@@ -263,7 +288,9 @@ fun ChatScreen(
         VoiceModeOverlay(
             state = uiState.voiceModeState,
             onClose = { viewModel.onEvent(ChatEvent.OnVoiceModeStop) },
-            onInterrupt = { viewModel.onEvent(ChatEvent.OnVoiceModeInterrupt) }
+            onInterrupt = { viewModel.onEvent(ChatEvent.OnVoiceModeInterrupt) },
+            onCameraToggle = onVoiceCameraToggle,
+            cameraCaptureManager = cameraCaptureManager
         )
     }
 }

@@ -108,6 +108,9 @@ class ChatViewModel(
             is ChatEvent.OnVoiceModeInterrupt -> {
                 voiceModeManager.interrupt()
             }
+            is ChatEvent.OnVoiceCameraToggle -> {
+                voiceModeManager.toggleCamera()
+            }
         }
     }
 

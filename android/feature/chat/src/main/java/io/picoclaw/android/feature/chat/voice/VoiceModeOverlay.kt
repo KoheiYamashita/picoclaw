@@ -1,5 +1,6 @@
 package io.picoclaw.android.feature.chat.voice
 
+import androidx.camera.view.PreviewView
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -14,6 +15,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -21,16 +24,20 @@ import androidx.compose.material3.Text
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import io.picoclaw.android.core.domain.model.VoicePhase
 import io.picoclaw.android.core.ui.theme.DeepBlack
 import io.picoclaw.android.core.ui.theme.GradientCyan
@@ -44,6 +51,8 @@ fun VoiceModeOverlay(
     state: VoiceModeState,
     onClose: () -> Unit,
     onInterrupt: () -> Unit,
+    onCameraToggle: () -> Unit,
+    cameraCaptureManager: CameraCaptureManager,
     modifier: Modifier = Modifier
 ) {
     AnimatedVisibility(
@@ -152,6 +161,48 @@ fun VoiceModeOverlay(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.error,
                         textAlign = TextAlign.Center
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                AnimatedVisibility(visible = state.isCameraActive) {
+                    val lifecycleOwner = LocalLifecycleOwner.current
+
+                    Box(
+                        modifier = Modifier
+                            .width(160.dp)
+                            .height(120.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                    ) {
+                        AndroidView(
+                            factory = { ctx ->
+                                PreviewView(ctx).also { preview ->
+                                    cameraCaptureManager.bind(lifecycleOwner, preview)
+                                }
+                            },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+
+                    DisposableEffect(Unit) {
+                        onDispose {
+                            cameraCaptureManager.unbind()
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                IconButton(onClick = onCameraToggle) {
+                    Icon(
+                        painter = painterResource(
+                            if (state.isCameraActive) LucideR.drawable.lucide_ic_camera_off
+                            else LucideR.drawable.lucide_ic_camera
+                        ),
+                        contentDescription = if (state.isCameraActive) "Turn off camera" else "Turn on camera",
+                        modifier = Modifier.size(28.dp),
+                        tint = if (state.isCameraActive) GradientCyan else TextSecondary
                     )
                 }
             }

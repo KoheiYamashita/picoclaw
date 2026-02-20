@@ -24,6 +24,7 @@ import io.picoclaw.android.feature.chat.ChatViewModel
 import io.picoclaw.android.feature.chat.SettingsViewModel
 import io.picoclaw.android.feature.chat.voice.SpeechRecognizerWrapper
 import io.picoclaw.android.feature.chat.voice.TextToSpeechWrapper
+import io.picoclaw.android.feature.chat.voice.CameraCaptureManager
 import io.picoclaw.android.feature.chat.voice.VoiceModeManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -92,7 +93,8 @@ val appModule = module {
     // Voice
     factory { SpeechRecognizerWrapper(androidContext()) }
     single { TextToSpeechWrapper(androidContext(), get<TtsSettingsRepository>().ttsConfig) }
-    single { VoiceModeManager(get(), get(), get(), get(), get()) }
+    single { CameraCaptureManager(androidContext()) }
+    single { VoiceModeManager(get(), get(), get(), get(), get(), get()) }
 
     // ViewModel
     viewModel { ChatViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }

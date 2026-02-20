@@ -13,4 +13,5 @@ sealed interface ChatEvent {
     data object OnVoiceModeStart : ChatEvent
     data object OnVoiceModeStop : ChatEvent
     data object OnVoiceModeInterrupt : ChatEvent
+    data object OnVoiceCameraToggle : ChatEvent
 }

@@ -28,7 +28,8 @@ class VoiceModeManager(
     private val ttsWrapper: TextToSpeechWrapper,
     private val sendMessage: SendMessageUseCase,
     private val observeMessages: ObserveMessagesUseCase,
-    private val observeStatus: ObserveStatusUseCase
+    private val observeStatus: ObserveStatusUseCase,
+    private val cameraCaptureManager: CameraCaptureManager
 ) {
 
     private val _state = MutableStateFlow(VoiceModeState())
@@ -37,11 +38,15 @@ class VoiceModeManager(
     private var loopJob: Job? = null
     private var parentScope: CoroutineScope? = null
 
+    fun toggleCamera() {
+        _state.update { it.copy(isCameraActive = !it.isCameraActive) }
+    }
+
     fun start(scope: CoroutineScope) {
         if (loopJob?.isActive == true) return
         parentScope = scope
         _state.update {
-            VoiceModeState(isActive = true, phase = VoicePhase.LISTENING)
+            VoiceModeState(isActive = true, phase = VoicePhase.LISTENING, isCameraActive = it.isCameraActive)
         }
         loopJob = scope.launch {
             voiceLoop()
@@ -53,6 +58,7 @@ class VoiceModeManager(
         loopJob = null
         parentScope = null
         ttsWrapper.stop()
+        cameraCaptureManager.unbind()
         _state.value = VoiceModeState()
     }
 
@@ -65,7 +71,7 @@ class VoiceModeManager(
         loopJob = null
 
         _state.update {
-            VoiceModeState(isActive = true, phase = VoicePhase.LISTENING)
+            VoiceModeState(isActive = true, phase = VoicePhase.LISTENING, isCameraActive = it.isCameraActive)
         }
         loopJob = scope.launch { voiceLoop() }
     }
@@ -119,7 +125,10 @@ class VoiceModeManager(
                         if (!text.isNullOrBlank()) {
                             _state.update { it.copy(phase = VoicePhase.SENDING, recognizedText = text) }
                             try {
-                                sendMessage(text, inputMode = "voice")
+                                val images = if (_state.value.isCameraActive) {
+                                    listOfNotNull(cameraCaptureManager.captureFrame())
+                                } else emptyList()
+                                sendMessage(text, images = images, inputMode = "voice")
                             } catch (e: Exception) {
                                 _state.update {
                                     it.copy(phase = VoicePhase.ERROR, errorMessage = "送信に失敗しました")

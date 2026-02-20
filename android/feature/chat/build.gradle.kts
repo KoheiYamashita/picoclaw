@@ -42,6 +42,11 @@ dependencies {
 
     implementation(libs.coil.compose)
 
+    implementation(libs.camerax.core)
+    implementation(libs.camerax.camera2)
+    implementation(libs.camerax.lifecycle)
+    implementation(libs.camerax.view)
+
     implementation(libs.markdown.renderer.m3)
 
     debugImplementation(libs.compose.ui.tooling)

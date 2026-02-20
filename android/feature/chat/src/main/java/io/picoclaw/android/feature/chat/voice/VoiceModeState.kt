@@ -9,5 +9,6 @@ data class VoiceModeState(
     val responseText: String = "",
     val statusText: String? = null,
     val errorMessage: String? = null,
-    val amplitudeNormalized: Float = 0f
+    val amplitudeNormalized: Float = 0f,
+    val isCameraActive: Boolean = false
 )
