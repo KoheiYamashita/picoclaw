@@ -16,6 +16,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,10 +24,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -34,7 +39,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,6 +58,7 @@ import io.picoclaw.android.core.ui.theme.GradientCyan
 import io.picoclaw.android.core.ui.theme.TextPrimary
 import io.picoclaw.android.core.ui.theme.TextSecondary
 import io.picoclaw.android.feature.chat.voice.CameraCaptureManager
+import io.picoclaw.android.feature.chat.voice.ChatTurn
 import io.picoclaw.android.feature.chat.voice.VoiceModeState
 import com.composables.icons.lucide.R as LucideR
 import kotlin.math.PI
@@ -77,6 +85,8 @@ fun AssistantPillBar(
 
     val interruptable = state.phase != VoicePhase.LISTENING &&
         state.phase != VoicePhase.IDLE
+
+    var historyExpanded by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -135,14 +145,6 @@ fun AssistantPillBar(
                         )
                     )
                 )
-                .then(
-                    if (interruptable) {
-                        Modifier.clickable(
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() }
-                        ) { onInterrupt() }
-                    } else Modifier
-                )
                 .animateContentSize()
         ) {
             Column(
@@ -152,17 +154,45 @@ fun AssistantPillBar(
             ) {
                 // Expanded content: response text area
                 AnimatedVisibility(
-                    visible = isExpanded && (state.responseText.isNotEmpty() || state.errorMessage != null)
+                    visible = state.chatHistory.isNotEmpty() || (isExpanded && (state.responseText.isNotEmpty() || state.errorMessage != null))
                 ) {
-                    Column(modifier = Modifier.padding(bottom = 12.dp)) {
-                        if (state.responseText.isNotEmpty()) {
-                            Text(
-                                text = state.responseText,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = TextPrimary,
-                                maxLines = 6,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                    Column(
+                        modifier = Modifier
+                            .padding(bottom = 12.dp)
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) { historyExpanded = !historyExpanded }
+                    ) {
+                        if (historyExpanded) {
+                            Column(
+                                modifier = Modifier
+                                    .heightIn(max = 240.dp)
+                                    .verticalScroll(rememberScrollState()),
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                for (turn in state.chatHistory) {
+                                    ChatBubble(turn)
+                                }
+                                if (state.responseText.isNotEmpty() &&
+                                    (state.chatHistory.isEmpty() || state.chatHistory.last().text != state.responseText)
+                                ) {
+                                    ChatBubble(ChatTurn("assistant", state.responseText))
+                                }
+                            }
+                        } else {
+                            val displayText = state.responseText.ifEmpty {
+                                state.chatHistory.lastOrNull { it.role == "assistant" }?.text.orEmpty()
+                            }
+                            if (displayText.isNotEmpty()) {
+                                Text(
+                                    text = displayText,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = TextPrimary,
+                                    maxLines = 6,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
                         }
                         if (state.errorMessage != null) {
                             Text(
@@ -190,7 +220,16 @@ fun AssistantPillBar(
 
                 // Bottom row: waveform + controls
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .then(
+                            if (interruptable) {
+                                Modifier.clickable(
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() }
+                                ) { onInterrupt() }
+                            } else Modifier
+                        ),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // Mic icon
@@ -245,6 +284,31 @@ fun AssistantPillBar(
                 }
             }
         }
+    }
+}
+
+private val UserBubbleBackground = Color(0xFF2563EB)
+private val AssistantBubbleBackground = Color(0xFF1E1E3A)
+
+@Composable
+private fun ChatBubble(turn: ChatTurn) {
+    val isUser = turn.role == "user"
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start
+    ) {
+        Text(
+            text = turn.text,
+            style = MaterialTheme.typography.bodySmall,
+            color = if (isUser) Color.White else TextPrimary,
+            modifier = Modifier
+                .widthIn(max = 260.dp)
+                .background(
+                    color = if (isUser) UserBubbleBackground else AssistantBubbleBackground,
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .padding(horizontal = 10.dp, vertical = 6.dp)
+        )
     }
 }
 

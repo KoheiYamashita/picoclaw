@@ -11,6 +11,7 @@ import io.picoclaw.android.feature.chat.voice.CameraCaptureManager
 import io.picoclaw.android.feature.chat.voice.SpeechRecognizerWrapper
 import io.picoclaw.android.feature.chat.voice.SttResult
 import io.picoclaw.android.feature.chat.voice.TextToSpeechWrapper
+import io.picoclaw.android.feature.chat.voice.ChatTurn
 import io.picoclaw.android.feature.chat.voice.VoiceModeState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -50,7 +51,7 @@ class AssistantManager(
         if (loopJob?.isActive == true) return
         parentScope = scope
         _state.update {
-            VoiceModeState(isActive = true, phase = VoicePhase.LISTENING, isCameraActive = it.isCameraActive)
+            VoiceModeState(isActive = true, phase = VoicePhase.LISTENING, isCameraActive = it.isCameraActive, chatHistory = it.chatHistory)
         }
         loopJob = scope.launch {
             voiceLoop()
@@ -75,7 +76,7 @@ class AssistantManager(
         loopJob = null
 
         _state.update {
-            VoiceModeState(isActive = true, phase = VoicePhase.LISTENING, isCameraActive = it.isCameraActive)
+            VoiceModeState(isActive = true, phase = VoicePhase.LISTENING, isCameraActive = it.isCameraActive, chatHistory = it.chatHistory)
         }
         loopJob = scope.launch { voiceLoop() }
     }
@@ -123,7 +124,7 @@ class AssistantManager(
                 select<Unit> {
                     userTextChannel.onReceive { text ->
                         if (!text.isNullOrBlank()) {
-                            _state.update { it.copy(phase = VoicePhase.SENDING, recognizedText = text) }
+                            _state.update { it.copy(phase = VoicePhase.SENDING, recognizedText = text, chatHistory = it.chatHistory + ChatTurn("user", text)) }
                             try {
                                 val base64Images = if (_state.value.isCameraActive) {
                                     captureAndEncode()
@@ -209,11 +210,15 @@ class AssistantManager(
     private suspend fun speakAndDrain(firstContent: String, speechQueue: Channel<String>) {
         _state.update { it.copy(phase = VoicePhase.SPEAKING, responseText = firstContent) }
         ttsWrapper.speak(firstContent)
+        val chunks = mutableListOf(firstContent)
         while (true) {
             val next = speechQueue.tryReceive().getOrNull() ?: break
             _state.update { it.copy(responseText = next) }
             ttsWrapper.speak(next)
+            chunks.add(next)
         }
+        val fullResponse = chunks.joinToString("\n")
+        _state.update { it.copy(chatHistory = it.chatHistory + ChatTurn("assistant", fullResponse)) }
     }
 
     private suspend fun drainSpeechQueue(speechQueue: Channel<String>) {
