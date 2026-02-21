@@ -56,6 +56,7 @@
             android:name=".assistant.AssistantActivity"
             android:exported="true"
             android:excludeFromRecents="true"
+            android:taskAffinity=""
             android:launchMode="singleTask"
             android:theme="@android:style/Theme.NoDisplay">
             <intent-filter>
