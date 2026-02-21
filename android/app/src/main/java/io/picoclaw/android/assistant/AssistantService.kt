@@ -16,12 +16,28 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.ComposeView
@@ -68,6 +84,7 @@ class AssistantService : LifecycleService(), SavedStateRegistryOwner {
     private lateinit var cameraCaptureManager: CameraCaptureManager
     private lateinit var screenCaptureManager: ScreenCaptureManager
 
+    private var showAccessibilityGuide by mutableStateOf(false)
     private var overlayView: View? = null
     private val windowManager by lazy { getSystemService(WINDOW_SERVICE) as WindowManager }
 
@@ -180,10 +197,7 @@ class AssistantService : LifecycleService(), SavedStateRegistryOwner {
             }
             assistantManager.toggleScreenCapture()
         } else {
-            // Open accessibility settings so the user can enable the service
-            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            startActivity(intent)
+            showAccessibilityGuide = true
         }
     }
 
@@ -243,6 +257,65 @@ class AssistantService : LifecycleService(), SavedStateRegistryOwner {
                                 wrapper.contentTop = coordinates.positionInWindow().y.toInt()
                             }
                         )
+                    }
+
+                    if (showAccessibilityGuide) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.5f))
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null
+                                ) { showAccessibilityGuide = false },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Surface(
+                                shape = MaterialTheme.shapes.extraLarge,
+                                tonalElevation = 6.dp,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 24.dp)
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null
+                                    ) {}
+                            ) {
+                                Column(modifier = Modifier.padding(24.dp)) {
+                                    Text(
+                                        text = "画面キャプチャの設定",
+                                        style = MaterialTheme.typography.headlineSmall
+                                    )
+                                    Text(
+                                        text = "画面キャプチャを使用するには、ユーザー補助の設定で" +
+                                            " PicoClaw を有効にしてください。\n\n" +
+                                            "有効にできない場合は、アプリ情報から" +
+                                            "「制限付き設定を許可」を実行してから" +
+                                            "再度お試しください。",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        modifier = Modifier.padding(top = 16.dp)
+                                    )
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(top = 24.dp),
+                                        horizontalArrangement = Arrangement.End
+                                    ) {
+                                        TextButton(onClick = { showAccessibilityGuide = false }) {
+                                            Text("キャンセル")
+                                        }
+                                        TextButton(onClick = {
+                                            showAccessibilityGuide = false
+                                            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                            startActivity(intent)
+                                        }) {
+                                            Text("設定を開く")
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
