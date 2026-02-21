@@ -352,7 +352,7 @@ private fun WaveformBar(
                     (0.2f + 0.15f * ((wave + 1f) / 2f)) * size.height
                 }
                 VoicePhase.SPEAKING -> {
-                    val wave = sin(normalizedX * 5f * PI.toFloat() + animPhase * 1.5f)
+                    val wave = sin(normalizedX * 5f * PI.toFloat() + animPhase * 2f)
                     (0.2f + 0.4f * ((wave + 1f) / 2f)) * size.height
                 }
                 else -> 0.1f * size.height
