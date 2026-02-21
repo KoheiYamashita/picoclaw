@@ -2,6 +2,7 @@ package io.picoclaw.android.assistant
 
 import android.app.Notification
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.graphics.PixelFormat
 import android.os.IBinder
 import android.view.Gravity
@@ -87,7 +88,12 @@ class AssistantService : LifecycleService(), SavedStateRegistryOwner {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
 
-        startForeground(NOTIFICATION_ID, buildNotification())
+        startForeground(
+            NOTIFICATION_ID,
+            buildNotification(),
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+                or ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+        )
 
         // Resolve wsUrl from the main WebSocketClient
         val mainWsClient: WebSocketClient by inject()

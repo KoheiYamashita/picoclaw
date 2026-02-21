@@ -6,10 +6,10 @@ plugins {
 
 android {
     namespace = "io.picoclaw.android.core.data"
-    compileSdk = 36
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 28
+        minSdk = libs.versions.android.minSdk.get().toInt()
     }
 
     compileOptions {

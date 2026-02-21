@@ -15,12 +15,12 @@ val keystoreProperties = Properties().apply {
 
 android {
     namespace = "io.picoclaw.android"
-    compileSdk = 36
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
         applicationId = "io.picoclaw.android"
-        minSdk = 28
-        targetSdk = 36
+        minSdk = libs.versions.android.minSdk.get().toInt()
+        targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0.0"
     }
