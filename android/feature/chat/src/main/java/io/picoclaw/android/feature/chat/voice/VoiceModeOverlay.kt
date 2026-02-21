@@ -1,6 +1,7 @@
 package io.picoclaw.android.feature.chat.voice
 
 import androidx.camera.view.PreviewView
+import androidx.camera.view.PreviewView.ImplementationMode
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -177,8 +178,9 @@ fun VoiceModeOverlay(
                     ) {
                         AndroidView(
                             factory = { ctx ->
-                                PreviewView(ctx).also { preview ->
-                                    cameraCaptureManager.bind(lifecycleOwner, preview)
+                                PreviewView(ctx).apply {
+                                    implementationMode = ImplementationMode.COMPATIBLE
+                                    cameraCaptureManager.bind(lifecycleOwner, this)
                                 }
                             },
                             modifier = Modifier.fillMaxSize()

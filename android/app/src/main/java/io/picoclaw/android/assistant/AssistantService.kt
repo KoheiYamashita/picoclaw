@@ -75,6 +75,7 @@ class AssistantService : LifecycleService(), SavedStateRegistryOwner {
             val permission = intent.getStringExtra(PermissionRequestActivity.EXTRA_PERMISSION)
             val granted = intent.getBooleanExtra(PermissionRequestActivity.EXTRA_GRANTED, false)
             if (permission == Manifest.permission.CAMERA && granted) {
+                startForeground(NOTIFICATION_ID, buildNotification(), computeForegroundTypes())
                 assistantManager.toggleCamera()
             }
         }
@@ -115,8 +116,7 @@ class AssistantService : LifecycleService(), SavedStateRegistryOwner {
         startForeground(
             NOTIFICATION_ID,
             buildNotification(),
-            ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
-                or ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+            computeForegroundTypes()
         )
 
         // Resolve wsUrl from the main WebSocketClient
@@ -152,6 +152,7 @@ class AssistantService : LifecycleService(), SavedStateRegistryOwner {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
             == PackageManager.PERMISSION_GRANTED
         ) {
+            startForeground(NOTIFICATION_ID, buildNotification(), computeForegroundTypes())
             assistantManager.toggleCamera()
         } else {
             startActivity(PermissionRequestActivity.intent(this, Manifest.permission.CAMERA))
@@ -231,6 +232,17 @@ class AssistantService : LifecycleService(), SavedStateRegistryOwner {
             windowManager.removeView(it)
             overlayView = null
         }
+    }
+
+    private fun computeForegroundTypes(): Int {
+        var types = ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE or
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+            types = types or ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
+        }
+        return types
     }
 
     private fun buildNotification(): Notification {
