@@ -83,5 +83,7 @@ dependencies {
 
     implementation(libs.coroutines.android)
 
+    implementation(libs.serialization.json)
+
     debugImplementation(libs.compose.ui.tooling)
 }
