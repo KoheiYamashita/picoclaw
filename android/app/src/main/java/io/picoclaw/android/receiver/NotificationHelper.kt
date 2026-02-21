@@ -12,16 +12,30 @@ object NotificationHelper {
     private const val CHANNEL_NAME = "Agent Messages"
     private const val NOTIFICATION_ID = 1001
 
+    const val ASSISTANT_CHANNEL_ID = "picoclaw_assistant"
+    private const val ASSISTANT_CHANNEL_NAME = "Assistant"
+
     fun createNotificationChannel(context: Context) {
-        val channel = NotificationChannel(
+        val manager = context.getSystemService(NotificationManager::class.java)
+
+        val messageChannel = NotificationChannel(
             CHANNEL_ID,
             CHANNEL_NAME,
             NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
             description = "Messages from PicoClaw agent"
         }
-        val manager = context.getSystemService(NotificationManager::class.java)
-        manager.createNotificationChannel(channel)
+        manager.createNotificationChannel(messageChannel)
+
+        val assistantChannel = NotificationChannel(
+            ASSISTANT_CHANNEL_ID,
+            ASSISTANT_CHANNEL_NAME,
+            NotificationManager.IMPORTANCE_LOW
+        ).apply {
+            description = "Assistant overlay service"
+            setShowBadge(false)
+        }
+        manager.createNotificationChannel(assistantChannel)
     }
 
     fun showMessageNotification(context: Context, content: String) {
