@@ -99,97 +99,103 @@ func (t *AndroidTool) Parameters() map[string]interface{} {
 		}
 		actions = filtered
 	}
-	return map[string]interface{}{
-		"type": "object",
-		"properties": map[string]interface{}{
-			"action": map[string]interface{}{
-				"type":        "string",
-				"enum":        actions,
-				"description": "The device action to perform",
-			},
-			"query": map[string]interface{}{
-				"type":        "string",
-				"description": "Search query for app name or package name (for search_apps)",
-			},
-			"package_name": map[string]interface{}{
-				"type":        "string",
-				"description": "Android package name (for app_info, launch_app)",
-			},
-			"x": map[string]interface{}{
-				"type":        "number",
-				"description": "X coordinate (for tap, swipe start)",
-			},
-			"y": map[string]interface{}{
-				"type":        "number",
-				"description": "Y coordinate (for tap, swipe start)",
-			},
-			"x2": map[string]interface{}{
-				"type":        "number",
-				"description": "End X coordinate (for swipe)",
-			},
-			"y2": map[string]interface{}{
-				"type":        "number",
-				"description": "End Y coordinate (for swipe)",
-			},
-			"duration_ms": map[string]interface{}{
-				"type":        "integer",
-				"description": "Swipe duration in milliseconds (default 300)",
-			},
-			"text": map[string]interface{}{
-				"type":        "string",
-				"description": "Text to input (for text action)",
-			},
-			"key": map[string]interface{}{
-				"type":        "string",
-				"enum":        []string{"back", "home", "recents"},
-				"description": "Key to press (for keyevent action)",
-			},
-			"intent_action": map[string]interface{}{
-				"type":        "string",
-				"description": "Intent action string (for broadcast, intent)",
-			},
-			"intent_data": map[string]interface{}{
-				"type":        "string",
-				"description": "Intent data URI (for intent)",
-			},
-			"intent_package": map[string]interface{}{
-				"type":        "string",
-				"description": "Target package for intent (for intent)",
-			},
-			"intent_type": map[string]interface{}{
-				"type":        "string",
-				"description": "MIME type for intent (for intent)",
-			},
-			"intent_extras": map[string]interface{}{
-				"type":        "object",
-				"description": "Extra key-value pairs for broadcast/intent",
-			},
-			"resource_id": map[string]interface{}{
-				"type":        "string",
-				"description": "View resource ID to start UI tree from (for get_ui_tree, e.g. com.example:id/button)",
-			},
-			"index": map[string]interface{}{
-				"type":        "integer",
-				"description": "Which match to use when resource_id has multiple hits (for get_ui_tree, default 0)",
-			},
-			"bounds_x": map[string]interface{}{
-				"type":        "number",
-				"description": "X coordinate to find the containing node (for get_ui_tree, alternative to resource_id)",
-			},
-			"bounds_y": map[string]interface{}{
-				"type":        "number",
-				"description": "Y coordinate to find the containing node (for get_ui_tree, alternative to resource_id)",
-			},
-			"max_depth": map[string]interface{}{
-				"type":        "integer",
-				"description": "Maximum traversal depth (for get_ui_tree, default 15)",
-			},
-			"max_nodes": map[string]interface{}{
-				"type":        "integer",
-				"description": "Maximum number of nodes to output (for get_ui_tree, default 300)",
-			},
+	props := map[string]interface{}{
+		"action": map[string]interface{}{
+			"type":        "string",
+			"enum":        actions,
+			"description": "The device action to perform",
 		},
-		"required": []string{"action"},
+		"query": map[string]interface{}{
+			"type":        "string",
+			"description": "Search query for app name or package name (for search_apps)",
+		},
+		"package_name": map[string]interface{}{
+			"type":        "string",
+			"description": "Android package name (for app_info, launch_app)",
+		},
+		"intent_action": map[string]interface{}{
+			"type":        "string",
+			"description": "Intent action string (for broadcast, intent)",
+		},
+		"intent_data": map[string]interface{}{
+			"type":        "string",
+			"description": "Intent data URI (for intent)",
+		},
+		"intent_package": map[string]interface{}{
+			"type":        "string",
+			"description": "Target package for intent (for intent)",
+		},
+		"intent_type": map[string]interface{}{
+			"type":        "string",
+			"description": "MIME type for intent (for intent)",
+		},
+		"intent_extras": map[string]interface{}{
+			"type":        "object",
+			"description": "Extra key-value pairs for broadcast/intent",
+		},
+	}
+
+	// UI-only parameters: only expose when UI actions are available
+	if t.clientType != "main" {
+		props["x"] = map[string]interface{}{
+			"type":        "number",
+			"description": "X coordinate (for tap, swipe start)",
+		}
+		props["y"] = map[string]interface{}{
+			"type":        "number",
+			"description": "Y coordinate (for tap, swipe start)",
+		}
+		props["x2"] = map[string]interface{}{
+			"type":        "number",
+			"description": "End X coordinate (for swipe)",
+		}
+		props["y2"] = map[string]interface{}{
+			"type":        "number",
+			"description": "End Y coordinate (for swipe)",
+		}
+		props["duration_ms"] = map[string]interface{}{
+			"type":        "integer",
+			"description": "Swipe duration in milliseconds (default 300)",
+		}
+		props["text"] = map[string]interface{}{
+			"type":        "string",
+			"description": "Text to input (for text action)",
+		}
+		props["key"] = map[string]interface{}{
+			"type":        "string",
+			"enum":        []string{"back", "home", "recents"},
+			"description": "Key to press (for keyevent action)",
+		}
+		props["resource_id"] = map[string]interface{}{
+			"type":        "string",
+			"description": "View resource ID to start UI tree from (for get_ui_tree, e.g. com.example:id/button)",
+		}
+		props["index"] = map[string]interface{}{
+			"type":        "integer",
+			"description": "Which match to use when resource_id has multiple hits (for get_ui_tree, default 0)",
+		}
+		props["bounds_x"] = map[string]interface{}{
+			"type":        "number",
+			"description": "X coordinate to find the containing node (for get_ui_tree, alternative to resource_id)",
+		}
+		props["bounds_y"] = map[string]interface{}{
+			"type":        "number",
+			"description": "Y coordinate to find the containing node (for get_ui_tree, alternative to resource_id)",
+		}
+		props["max_depth"] = map[string]interface{}{
+			"type":        "integer",
+			"description": "Maximum traversal depth (for get_ui_tree, default 15)",
+		}
+		props["max_nodes"] = map[string]interface{}{
+			"type":        "integer",
+			"description": "Maximum number of nodes to output (for get_ui_tree, default 300)",
+		}
+	}
+
+	return map[string]interface{}{
+		"type":       "object",
+		"properties": props,
+		"required":   []string{"action"},
 	}
 }
 
@@ -217,7 +223,7 @@ func (t *AndroidTool) Execute(ctx context.Context, args map[string]interface{}) 
 
 	// Safety guard: reject UI actions from chat-mode clients
 	if t.clientType == "main" && uiActions[action] {
-		return ErrorResult(fmt.Sprintf("action %q is not available in chat mode", action))
+		return ErrorResult(fmt.Sprintf("unknown action: %s", action))
 	}
 
 	params, err := t.validateAndBuildParams(action, args)
