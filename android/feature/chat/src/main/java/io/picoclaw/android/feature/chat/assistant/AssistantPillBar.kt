@@ -73,8 +73,10 @@ private val ErrorColor = Color(0xFFEF4444)
 @Composable
 fun AssistantPillBar(
     state: VoiceModeState,
+    isAtTop: Boolean,
     onClose: () -> Unit,
     onInterrupt: () -> Unit,
+    onPositionChange: (Boolean) -> Unit,
     onCameraToggle: () -> Unit,
     onScreenCaptureToggle: () -> Unit,
     cameraCaptureManager: CameraCaptureManager,
@@ -97,8 +99,8 @@ fun AssistantPillBar(
         // Camera preview above the pill bar
         AnimatedVisibility(
             visible = state.isCameraActive,
-            enter = expandVertically(expandFrom = Alignment.Bottom),
-            exit = shrinkVertically(shrinkTowards = Alignment.Bottom)
+            enter = expandVertically(expandFrom = if (isAtTop) Alignment.Top else Alignment.Bottom),
+            exit = shrinkVertically(shrinkTowards = if (isAtTop) Alignment.Top else Alignment.Bottom)
         ) {
             val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -283,6 +285,22 @@ fun AssistantPillBar(
                             contentDescription = if (state.isCameraActive) "Turn off camera" else "Turn on camera",
                             modifier = Modifier.size(18.dp),
                             tint = if (state.isCameraActive) GradientCyan else TextSecondary
+                        )
+                    }
+
+                    // Move position toggle
+                    IconButton(
+                        onClick = { onPositionChange(!isAtTop) },
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(
+                                if (isAtTop) LucideR.drawable.lucide_ic_chevron_down
+                                else LucideR.drawable.lucide_ic_chevron_up
+                            ),
+                            contentDescription = if (isAtTop) "Move to bottom" else "Move to top",
+                            modifier = Modifier.size(18.dp),
+                            tint = TextSecondary
                         )
                     }
 

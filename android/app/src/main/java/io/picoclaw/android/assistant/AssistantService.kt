@@ -87,6 +87,7 @@ class AssistantService : LifecycleService(), SavedStateRegistryOwner {
     private lateinit var screenCaptureManager: ScreenCaptureManager
 
     private var showAccessibilityGuide by mutableStateOf(false)
+    private var overlayAtTop by mutableStateOf(false)
     private var overlayView: View? = null
     private val windowManager by lazy { getSystemService(WINDOW_SERVICE) as WindowManager }
 
@@ -224,6 +225,14 @@ class AssistantService : LifecycleService(), SavedStateRegistryOwner {
         stopSelf()
     }
 
+    private fun moveOverlayTo(top: Boolean) {
+        val view = overlayView ?: return
+        val lp = view.layoutParams as? WindowManager.LayoutParams ?: return
+        lp.gravity = if (top) Gravity.TOP else Gravity.BOTTOM
+        windowManager.updateViewLayout(view, lp)
+        overlayAtTop = top
+    }
+
     private fun setOverlayVisible(visible: Boolean) {
         val view = overlayView ?: return
         val lp = view.layoutParams as? WindowManager.LayoutParams ?: return
@@ -252,15 +261,16 @@ class AssistantService : LifecycleService(), SavedStateRegistryOwner {
                 WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
             PixelFormat.TRANSLUCENT
         ).apply {
-            gravity = Gravity.BOTTOM
+            gravity = if (overlayAtTop) Gravity.TOP else Gravity.BOTTOM
         }
 
         val wrapper = object : FrameLayout(this@AssistantService) {
             @Volatile var contentTop = fixedHeightPx
+            @Volatile var contentBottom = Int.MAX_VALUE
             private var gestureInContent = false
             override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
                 if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
-                    gestureInContent = ev.y >= contentTop
+                    gestureInContent = ev.y >= contentTop && ev.y <= contentBottom
                 }
                 if (!gestureInContent) return false
                 return super.dispatchTouchEvent(ev)
@@ -276,17 +286,20 @@ class AssistantService : LifecycleService(), SavedStateRegistryOwner {
                     val state by assistantManager.state.collectAsState()
                     Box(
                         modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.BottomCenter
+                        contentAlignment = if (overlayAtTop) Alignment.TopCenter else Alignment.BottomCenter
                     ) {
                         AssistantPillBar(
                             state = state,
+                            isAtTop = overlayAtTop,
                             onClose = { shutdown() },
                             onInterrupt = { assistantManager.interrupt() },
+                            onPositionChange = { top -> moveOverlayTo(top) },
                             onCameraToggle = { handleCameraToggle() },
                             onScreenCaptureToggle = { handleScreenCaptureToggle() },
                             cameraCaptureManager = cameraCaptureManager,
                             modifier = Modifier.onGloballyPositioned { coordinates ->
                                 wrapper.contentTop = coordinates.positionInWindow().y.toInt()
+                                wrapper.contentBottom = (coordinates.positionInWindow().y + coordinates.size.height).toInt()
                             }
                         )
                     }
