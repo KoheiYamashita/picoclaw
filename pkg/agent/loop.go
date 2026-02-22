@@ -107,7 +107,7 @@ func createToolRegistry(workspace string, restrict bool, cfg *config.Config, msg
 		registry.Register(tools.NewSPITool())
 	}
 
-	// Android device control tool (assistant mode only)
+	// Android device control tool
 	if cfg.Tools.Android.Enabled {
 		androidTool := tools.NewAndroidTool()
 		androidTool.SetSendCallback(func(channel, chatID, content, msgType string) error {
@@ -992,11 +992,8 @@ func (al *AgentLoop) updateToolContexts(channel, chatID string, metadata map[str
 		}
 	}
 	if tool, ok := al.tools.Get("android"); ok {
-		if at, ok := tool.(*tools.AndroidTool); ok {
-			at.SetContext(channel, chatID)
-			if metadata != nil {
-				at.SetClientType(metadata["client_type"])
-			}
+		if ct, ok := tool.(tools.ContextualTool); ok {
+			ct.SetContext(channel, chatID)
 		}
 	}
 }

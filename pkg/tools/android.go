@@ -32,7 +32,6 @@ type AndroidTool struct {
 	sendCallback SendCallbackWithType
 	channel      string
 	chatID       string
-	clientType   string
 }
 
 func NewAndroidTool() *AndroidTool {
@@ -43,7 +42,7 @@ func (t *AndroidTool) Name() string { return "android" }
 
 func (t *AndroidTool) Description() string {
 	return `Control the Android device. Available actions:
-- list_apps: List installed apps
+- search_apps: Search installed apps by name or package name (requires query)
 - app_info: Get app details (requires package_name)
 - launch_app: Launch an app (requires package_name)
 - current_activity: Get the currently active app/window
@@ -53,8 +52,7 @@ func (t *AndroidTool) Description() string {
 - keyevent: Press a key (requires key: back/home/recents)
 - broadcast: Send a broadcast intent (requires intent_action; optional intent_extras)
 - intent: Start an activity via intent (requires intent_action; optional intent_data, intent_package, intent_type, intent_extras)
-
-Only available in assistant mode.`
+`
 }
 
 func (t *AndroidTool) Parameters() map[string]interface{} {
@@ -64,11 +62,15 @@ func (t *AndroidTool) Parameters() map[string]interface{} {
 			"action": map[string]interface{}{
 				"type": "string",
 				"enum": []string{
-					"list_apps", "app_info", "launch_app", "current_activity",
+					"search_apps", "app_info", "launch_app", "current_activity",
 					"tap", "swipe", "text", "keyevent",
 					"broadcast", "intent",
 				},
 				"description": "The device action to perform",
+			},
+			"query": map[string]interface{}{
+				"type":        "string",
+				"description": "Search query for app name or package name (for search_apps)",
 			},
 			"package_name": map[string]interface{}{
 				"type":        "string",
@@ -133,21 +135,11 @@ func (t *AndroidTool) SetContext(channel, chatID string) {
 	t.chatID = chatID
 }
 
-func (t *AndroidTool) SetClientType(clientType string) {
-	t.clientType = clientType
-}
-
 func (t *AndroidTool) SetSendCallback(cb SendCallbackWithType) {
 	t.sendCallback = cb
 }
 
 func (t *AndroidTool) Execute(ctx context.Context, args map[string]interface{}) *ToolResult {
-	if t.clientType == "" {
-		return ErrorResult("android tool: not available (no assistant session)")
-	}
-	if t.clientType != "assistant" {
-		return ErrorResult("android tool is only available in assistant mode")
-	}
 	if t.sendCallback == nil {
 		return ErrorResult("android tool: send callback not configured")
 	}
@@ -172,8 +164,12 @@ func (t *AndroidTool) validateAndBuildParams(action string, args map[string]inte
 	params := make(map[string]interface{})
 
 	switch action {
-	case "list_apps":
-		// No params needed
+	case "search_apps":
+		query, _ := args["query"].(string)
+		if query == "" {
+			return nil, fmt.Errorf("search_apps requires query")
+		}
+		params["query"] = query
 
 	case "app_info", "launch_app":
 		pkg, _ := args["package_name"].(string)

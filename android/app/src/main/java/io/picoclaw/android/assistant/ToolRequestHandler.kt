@@ -25,7 +25,7 @@ class ToolRequestHandler(
     suspend fun handle(request: ToolRequest): ToolResponse {
         return try {
             when (request.action) {
-                "list_apps" -> handleListApps(request)
+                "search_apps" -> handleSearchApps(request)
                 "app_info" -> handleAppInfo(request)
                 "launch_app" -> handleLaunchApp(request)
                 "current_activity" -> handleCurrentActivity(request)
@@ -63,21 +63,38 @@ class ToolRequestHandler(
         return null
     }
 
-    private fun handleListApps(request: ToolRequest): ToolResponse {
+    private fun handleSearchApps(request: ToolRequest): ToolResponse {
+        val query = request.params?.get("query")?.jsonPrimitive?.contentOrNull
+            ?: return ToolResponse(request.requestId, false, error = "query required")
+
         val pm = context.packageManager
-        val apps = pm.getInstalledApplications(PackageManager.GET_META_DATA)
-            .filter { pm.getLaunchIntentForPackage(it.packageName) != null }
+        val q = query.lowercase()
+        val matches = pm.getInstalledApplications(PackageManager.GET_META_DATA)
+            .filter { app ->
+                val label = pm.getApplicationLabel(app).toString().lowercase()
+                label.contains(q) || app.packageName.lowercase().contains(q)
+            }
             .map { app ->
                 val label = pm.getApplicationLabel(app).toString()
-                "${label} (${app.packageName})"
+                val launchable = pm.getLaunchIntentForPackage(app.packageName) != null
+                val isSystem = app.flags and ApplicationInfo.FLAG_SYSTEM != 0
+                buildString {
+                    append("$label (${app.packageName})")
+                    if (launchable) append(" [launchable]")
+                    if (isSystem) append(" [system]")
+                }
             }
             .sorted()
 
-        return ToolResponse(
-            requestId = request.requestId,
-            success = true,
-            result = "Installed apps (${apps.size}):\n${apps.joinToString("\n")}"
-        )
+        return if (matches.isEmpty()) {
+            ToolResponse(request.requestId, true, result = "No apps found matching \"$query\"")
+        } else {
+            ToolResponse(
+                requestId = request.requestId,
+                success = true,
+                result = "Found ${matches.size} app(s) matching \"$query\":\n${matches.joinToString("\n")}"
+            )
+        }
     }
 
     private fun handleAppInfo(request: ToolRequest): ToolResponse {

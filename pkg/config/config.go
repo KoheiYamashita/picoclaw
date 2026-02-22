@@ -380,7 +380,7 @@ func DefaultConfig() *Config {
 				Enabled: false,
 			},
 			Android: AndroidToolsConfig{
-				Enabled: false,
+				Enabled: true,
 			},
 			Web: WebToolsConfig{
 				Brave: BraveConfig{
