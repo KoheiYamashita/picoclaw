@@ -596,8 +596,15 @@ func (al *AgentLoop) runAgentLoop(ctx context.Context, opts processOptions) (str
 		return "", err
 	}
 
-	// If last tool had ForUser content and we already sent it, we might not need to send final response
-	// This is controlled by the tool's Silent flag and ForUser content
+	// Handle NO_REPLY token — suppress sending to user
+	if strings.TrimSpace(finalContent) == SilentReplyToken {
+		al.sessions.AddMessage(opts.SessionKey, "assistant", "[silent]")
+		al.sessions.Save(opts.SessionKey)
+		if opts.EnableSummary {
+			al.maybeSummarize(opts.SessionKey, opts.Channel, opts.ChatID)
+		}
+		return "", nil
+	}
 
 	// 5. Handle empty response
 	if finalContent == "" {

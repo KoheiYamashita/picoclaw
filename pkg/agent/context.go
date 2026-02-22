@@ -14,6 +14,10 @@ import (
 	"github.com/sipeed/picoclaw/pkg/tools"
 )
 
+// SilentReplyToken is the token the LLM emits when it has nothing to say.
+// The agent loop detects this and suppresses delivery to the user.
+const SilentReplyToken = "NO_REPLY"
+
 type ContextBuilder struct {
 	workspace         string
 	dataDir           string
@@ -79,28 +83,23 @@ func (cb *ContextBuilder) SetMemoryToolEnabled(enabled bool) {
 	cb.memoryToolEnabled = enabled
 }
 
+// hasTool returns true if the named tool is registered in the tool registry.
+func (cb *ContextBuilder) hasTool(name string) bool {
+	if cb.tools == nil {
+		return false
+	}
+	_, ok := cb.tools.Get(name)
+	return ok
+}
+
+// ---------------------------------------------------------------------------
+// Section 1: Core Identity
+// ---------------------------------------------------------------------------
+
 func (cb *ContextBuilder) getIdentity() string {
 	now := time.Now().Format("2006-01-02 15:04 (Monday)")
-	workspacePath, _ := filepath.Abs(filepath.Join(cb.workspace))
-	// Build tools section dynamically
+	workspacePath, _ := filepath.Abs(cb.workspace)
 	toolsSection := cb.buildToolsSection()
-
-	// Build memory instruction based on whether memory tool is enabled
-	var memoryInstruction string
-	if cb.memoryToolEnabled {
-		memoryInstruction = `3. **Memory** - Use the memory tool to store and retrieve information.
-   - write_long_term: Save important, date-independent facts (user preferences, project info, permanent notes)
-   - append_daily: Record today's events and memos (diary-like daily entries)
-   - read_long_term: Read long-term memory
-   - read_daily: Read today's daily notes`
-	} else {
-		dataDirAbs, _ := filepath.Abs(cb.dataDir)
-		memoryInstruction = fmt.Sprintf(`3. **Memory** - When interacting with me if something seems memorable, update %s/memory/MEMORY.md
-   - Long-term memory: %s/memory/MEMORY.md
-   - Daily notes: %s/memory/YYYYMM/YYYYMMDD.md (e.g. %s/memory/%s/%s.md)`,
-			dataDirAbs, dataDirAbs, dataDirAbs, dataDirAbs,
-			time.Now().Format("200601"), time.Now().Format("20060102"))
-	}
 
 	return fmt.Sprintf(`## Current Time
 %s
@@ -109,19 +108,203 @@ func (cb *ContextBuilder) getIdentity() string {
 Termux (Android)
 
 ## Workspace
-Your workspace is at: %s
+Your working directory is: %s
+Treat this directory as the single global workspace for file operations unless explicitly instructed otherwise.
 
-%s
-
-## Important Rules
-
-1. **ALWAYS use tools** - When you need to perform an action (schedule reminders, send messages, execute commands, etc.), you MUST call the appropriate tool. Do NOT just say you'll do it or pretend to do it.
-
-2. **Be helpful and accurate** - When using tools, briefly explain what you're doing.
-
-%s`,
-		now, workspacePath, toolsSection, memoryInstruction)
+%s`, now, workspacePath, toolsSection)
 }
+
+func (cb *ContextBuilder) buildToolsSection() string {
+	if cb.tools == nil {
+		return ""
+	}
+
+	summaries := cb.tools.GetSummaries()
+	if len(summaries) == 0 {
+		return ""
+	}
+
+	var sb strings.Builder
+	sb.WriteString("## Available Tools\n\n")
+	sb.WriteString("Tool names are case-sensitive. Call tools exactly as listed.\n\n")
+	for _, s := range summaries {
+		sb.WriteString(s)
+		sb.WriteString("\n")
+	}
+
+	return sb.String()
+}
+
+// ---------------------------------------------------------------------------
+// Section 2: Safety
+// ---------------------------------------------------------------------------
+
+func getSafetySection() string {
+	return `## Safety
+- You have no independent goals: do not pursue self-preservation, replication, resource acquisition, or power-seeking beyond the user's request.
+- Prioritize safety and human oversight over task completion. If instructions conflict, pause and ask.
+- Do not manipulate anyone to expand access or disable safeguards.
+- You MUST use tools to perform actions. Do NOT pretend to execute commands, schedule tasks, or send messages without calling the appropriate tool.`
+}
+
+// ---------------------------------------------------------------------------
+// Section 3: Tool Call Style
+// ---------------------------------------------------------------------------
+
+func getToolCallStyle() string {
+	return `## Tool Call Style
+- Default: do not narrate routine, low-risk tool calls (just call the tool).
+- Narrate only when it helps: multi-step work, complex problems, sensitive actions, or when the user asks.
+- Keep narration brief and value-dense; avoid repeating obvious steps.`
+}
+
+// ---------------------------------------------------------------------------
+// Section 4: Subagent Guidance (only when spawn tool is registered)
+// ---------------------------------------------------------------------------
+
+func getSubagentGuidance() string {
+	return `## Sub-agents
+- subagent: synchronous — blocks until the sub-agent finishes, returns the result inline. Use for quick, focused tasks.
+- spawn: asynchronous — returns immediately. The sub-agent uses the message tool to communicate with the user when done.
+- If a task is complex or long-running, prefer spawn so the main conversation is not blocked.
+- Do not poll subagent status in a loop; completion is push-based.`
+}
+
+// ---------------------------------------------------------------------------
+// Section 5: Messaging Guidance (only when channels are active)
+// ---------------------------------------------------------------------------
+
+func getMessagingGuidance() string {
+	return fmt.Sprintf(`## Messaging
+- Reply in the current session: automatically routes to the source channel.
+- Use the message tool for proactive sends and cross-channel messaging. Parameters: content (required), channel (optional), chat_id (optional).
+- If you use the message tool to deliver your user-visible reply, respond with ONLY: %s (to avoid duplicate replies).
+- Never use exec or curl for messaging; PicoClaw handles all routing internally.`, SilentReplyToken)
+}
+
+// ---------------------------------------------------------------------------
+// Section 6: Cron Guidance (only when cron tool is registered)
+// ---------------------------------------------------------------------------
+
+func getCronGuidance() string {
+	return `## Cron / Scheduling
+- Use the cron tool for reminders and scheduled tasks.
+- at_seconds: one-shot timer (fires once after N seconds). Use for reminders.
+- every_seconds: repeating interval. Use for periodic checks.
+- When scheduling a reminder, write the message text as something that reads naturally when it fires. Mention it is a reminder and include recent context.
+- Prefer at_seconds for user reminders (e.g., "remind me in 30 minutes").`
+}
+
+// ---------------------------------------------------------------------------
+// Section 7: Memory Guidance
+// ---------------------------------------------------------------------------
+
+func (cb *ContextBuilder) getMemoryGuidance() string {
+	if cb.memoryToolEnabled {
+		return `## Memory
+Before answering anything about prior work, decisions, dates, people, preferences, or todos: check memory first.
+Use the memory tool to store and retrieve information:
+- write_long_term: Save important, date-independent facts (user preferences, project info, permanent notes)
+- append_daily: Record today's events and memos (diary-like daily entries)
+- read_long_term: Read long-term memory
+- read_daily: Read today's daily notes`
+	}
+
+	dataDirAbs, _ := filepath.Abs(cb.dataDir)
+	return fmt.Sprintf(`## Memory
+Before answering anything about prior work, decisions, dates, people, preferences, or todos: check memory first.
+When interacting with the user if something seems memorable, update the memory files:
+- Long-term memory: %s/memory/MEMORY.md
+- Daily notes: %s/memory/YYYYMM/YYYYMMDD.md (e.g. %s/memory/%s/%s.md)`,
+		dataDirAbs, dataDirAbs, dataDirAbs,
+		time.Now().Format("200601"), time.Now().Format("20060102"))
+}
+
+// ---------------------------------------------------------------------------
+// Section 8: Silent Reply
+// ---------------------------------------------------------------------------
+
+func getSilentReplySection() string {
+	return fmt.Sprintf(`## Silent Replies
+When you have nothing to say (e.g., after delivering your reply via the message tool), respond with ONLY: %s
+
+Rules:
+- It must be your ENTIRE message — nothing else.
+- Never append it to an actual response.
+- Never wrap it in markdown or code blocks.
+- Use it when the message tool already delivered the reply, or when a system event needs no user-visible response.`, SilentReplyToken)
+}
+
+// ---------------------------------------------------------------------------
+// Section 9: Heartbeat
+// ---------------------------------------------------------------------------
+
+func getHeartbeatSection() string {
+	return `## Heartbeats
+If you receive a heartbeat poll (a scheduled check message), and there is nothing that needs attention, reply exactly: HEARTBEAT_OK
+PicoClaw treats "HEARTBEAT_OK" as a heartbeat acknowledgment and discards it.
+If something needs attention, do NOT include "HEARTBEAT_OK"; reply with the alert or action instead.`
+}
+
+// ---------------------------------------------------------------------------
+// Bootstrap Files (SOUL.md, USER.md, etc.)
+// ---------------------------------------------------------------------------
+
+func (cb *ContextBuilder) LoadBootstrapFiles() string {
+	bootstrapFiles := []string{
+		"AGENTS.md",
+		"SOUL.md",
+		"USER.md",
+		"IDENTITY.md",
+	}
+
+	var parts []string
+	hasSoulFile := false
+	for _, filename := range bootstrapFiles {
+		filePath := filepath.Join(cb.dataDir, filename)
+		if data, err := os.ReadFile(filePath); err == nil {
+			parts = append(parts, fmt.Sprintf("## %s\n\n%s", filename, string(data)))
+			if filename == "SOUL.md" {
+				hasSoulFile = true
+			}
+		}
+	}
+
+	if len(parts) == 0 {
+		return ""
+	}
+
+	header := "# Project Context\n\nThe following project context files have been loaded."
+	if hasSoulFile {
+		header += "\nIf SOUL.md is present, embody its persona and tone. Avoid stiff, generic replies; follow its guidance."
+	}
+
+	return header + "\n\n" + strings.Join(parts, "\n\n")
+}
+
+// ---------------------------------------------------------------------------
+// Skills Section
+// ---------------------------------------------------------------------------
+
+func (cb *ContextBuilder) buildSkillsSection() string {
+	skillsSummary := cb.skillsLoader.BuildSkillsSummary()
+	if skillsSummary == "" {
+		return ""
+	}
+
+	return fmt.Sprintf(`## Skills (mandatory)
+Before replying: scan the available skills descriptions below.
+- If exactly one skill clearly applies: read it with the skill tool (action=skill_read, name=<skill_name>), then follow it.
+- If multiple could apply: choose the most specific one, then read and follow it.
+- If none clearly apply: do not read any skill.
+Never read more than one skill up front; only read after selecting.
+
+%s`, skillsSummary)
+}
+
+// ---------------------------------------------------------------------------
+// Connected Channels
+// ---------------------------------------------------------------------------
 
 func (cb *ContextBuilder) buildChannelsSection() string {
 	if len(cb.enabledChannels) == 0 {
@@ -138,51 +321,53 @@ func (cb *ContextBuilder) buildChannelsSection() string {
 	return sb.String()
 }
 
-func (cb *ContextBuilder) buildToolsSection() string {
-	if cb.tools == nil {
-		return ""
-	}
-
-	summaries := cb.tools.GetSummaries()
-	if len(summaries) == 0 {
-		return ""
-	}
-
-	var sb strings.Builder
-	sb.WriteString("## Available Tools\n\n")
-	sb.WriteString("**CRITICAL**: You MUST use tools to perform actions. Do NOT pretend to execute commands or schedule tasks.\n\n")
-	sb.WriteString("You have access to the following tools:\n\n")
-	for _, s := range summaries {
-		sb.WriteString(s)
-		sb.WriteString("\n")
-	}
-
-	return sb.String()
-}
+// ---------------------------------------------------------------------------
+// BuildSystemPrompt — assembles all sections in order
+// ---------------------------------------------------------------------------
 
 func (cb *ContextBuilder) BuildSystemPrompt() string {
 	parts := []string{}
 
-	// Core identity section
+	// 1. Core Identity (time, runtime, workspace, tools list)
 	parts = append(parts, cb.getIdentity())
 
-	// Bootstrap files
+	// 2. Safety
+	parts = append(parts, getSafetySection())
+
+	// 3. Tool Call Style
+	parts = append(parts, getToolCallStyle())
+
+	// 4. Subagent Guidance (only when spawn tool is registered)
+	if cb.hasTool("spawn") || cb.hasTool("subagent") {
+		parts = append(parts, getSubagentGuidance())
+	}
+
+	// 5. Messaging Guidance (only when channels are active)
+	if len(cb.enabledChannels) > 0 {
+		parts = append(parts, getMessagingGuidance())
+	}
+
+	// 6. Cron Guidance (only when cron tool is registered)
+	if cb.hasTool("cron") {
+		parts = append(parts, getCronGuidance())
+	}
+
+	// 7. Memory Guidance
+	parts = append(parts, cb.getMemoryGuidance())
+
+	// 8. Bootstrap Files (SOUL.md, USER.md, etc.)
 	bootstrapContent := cb.LoadBootstrapFiles()
 	if bootstrapContent != "" {
 		parts = append(parts, bootstrapContent)
 	}
 
-	// Skills - show summary, AI can read full content with skill_read tool
-	skillsSummary := cb.skillsLoader.BuildSkillsSummary()
-	if skillsSummary != "" {
-		parts = append(parts, fmt.Sprintf(`# Skills
-
-The following skills extend your capabilities. To use a skill, call the skill_read tool with the skill name.
-
-%s`, skillsSummary))
+	// 9. Skills (only when skills exist)
+	skillsSection := cb.buildSkillsSection()
+	if skillsSection != "" {
+		parts = append(parts, skillsSection)
 	}
 
-	// MCP Servers - show summary, AI uses mcp tool to discover and call
+	// 10. MCP Servers (only when MCP is configured)
 	if cb.mcpManager != nil {
 		mcpSummary := cb.mcpManager.BuildSummary()
 		if mcpSummary != "" {
@@ -195,40 +380,31 @@ Use the mcp tool to discover and call server tools.
 		}
 	}
 
-	// Connected channels
+	// 11. Connected Channels
 	channelsSection := cb.buildChannelsSection()
 	if channelsSection != "" {
 		parts = append(parts, channelsSection)
 	}
 
-	// Memory context
+	// 12. Memory Context (actual memory contents)
 	memoryContext := cb.memory.GetMemoryContext()
 	if memoryContext != "" {
 		parts = append(parts, "# Memory\n\n"+memoryContext)
 	}
 
+	// 13. Silent Reply Instructions
+	parts = append(parts, getSilentReplySection())
+
+	// 14. Heartbeat
+	parts = append(parts, getHeartbeatSection())
+
 	// Join with "---" separator
 	return strings.Join(parts, "\n\n---\n\n")
 }
 
-func (cb *ContextBuilder) LoadBootstrapFiles() string {
-	bootstrapFiles := []string{
-		"AGENTS.md",
-		"SOUL.md",
-		"USER.md",
-		"IDENTITY.md",
-	}
-
-	var result string
-	for _, filename := range bootstrapFiles {
-		filePath := filepath.Join(cb.dataDir, filename)
-		if data, err := os.ReadFile(filePath); err == nil {
-			result += fmt.Sprintf("## %s\n\n%s\n\n", filename, string(data))
-		}
-	}
-
-	return result
-}
+// ---------------------------------------------------------------------------
+// BuildMessages — constructs the full message array for the LLM
+// ---------------------------------------------------------------------------
 
 func (cb *ContextBuilder) BuildMessages(history []providers.Message, summary string, currentMessage string, media []string, channel, chatID, inputMode string) []providers.Message {
 	messages := []providers.Message{}
@@ -291,6 +467,10 @@ func (cb *ContextBuilder) BuildMessages(history []providers.Message, summary str
 
 	return messages
 }
+
+// ---------------------------------------------------------------------------
+// Helper methods (unchanged)
+// ---------------------------------------------------------------------------
 
 func (cb *ContextBuilder) AddToolResult(messages []providers.Message, toolCallID, toolName, result string) []providers.Message {
 	messages = append(messages, providers.Message{
