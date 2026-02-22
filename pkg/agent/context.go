@@ -15,13 +15,14 @@ import (
 )
 
 type ContextBuilder struct {
-	workspace       string
-	dataDir         string
-	skillsLoader    *skills.SkillsLoader
-	memory          *MemoryStore
-	tools           *tools.ToolRegistry // Direct reference to tool registry
-	mcpManager      *mcp.Manager        // MCP server manager
-	enabledChannels []string            // Active communication channels
+	workspace        string
+	dataDir          string
+	skillsLoader     *skills.SkillsLoader
+	memory           *MemoryStore
+	tools            *tools.ToolRegistry // Direct reference to tool registry
+	mcpManager       *mcp.Manager        // MCP server manager
+	enabledChannels  []string            // Active communication channels
+	memoryToolEnabled bool               // Whether memory tool is registered
 }
 
 func getGlobalConfigDir() string {
@@ -72,11 +73,34 @@ func (cb *ContextBuilder) SetEnabledChannels(channels []string) {
 	cb.enabledChannels = channels
 }
 
+// SetMemoryToolEnabled sets whether the memory tool is registered.
+// When disabled, the system prompt switches to file-path-based memory instructions.
+func (cb *ContextBuilder) SetMemoryToolEnabled(enabled bool) {
+	cb.memoryToolEnabled = enabled
+}
+
 func (cb *ContextBuilder) getIdentity() string {
 	now := time.Now().Format("2006-01-02 15:04 (Monday)")
 	workspacePath, _ := filepath.Abs(filepath.Join(cb.workspace))
 	// Build tools section dynamically
 	toolsSection := cb.buildToolsSection()
+
+	// Build memory instruction based on whether memory tool is enabled
+	var memoryInstruction string
+	if cb.memoryToolEnabled {
+		memoryInstruction = `3. **Memory** - Use the memory tool to store and retrieve information.
+   - write_long_term: Save important, date-independent facts (user preferences, project info, permanent notes)
+   - append_daily: Record today's events and memos (diary-like daily entries)
+   - read_long_term: Read long-term memory
+   - read_daily: Read today's daily notes`
+	} else {
+		dataDirAbs, _ := filepath.Abs(cb.dataDir)
+		memoryInstruction = fmt.Sprintf(`3. **Memory** - When interacting with me if something seems memorable, update %s/memory/MEMORY.md
+   - Long-term memory: %s/memory/MEMORY.md
+   - Daily notes: %s/memory/YYYYMM/YYYYMMDD.md (e.g. %s/memory/%s/%s.md)`,
+			dataDirAbs, dataDirAbs, dataDirAbs, dataDirAbs,
+			time.Now().Format("200601"), time.Now().Format("20060102"))
+	}
 
 	return fmt.Sprintf(`## Current Time
 %s
@@ -95,12 +119,8 @@ Your workspace is at: %s
 
 2. **Be helpful and accurate** - When using tools, briefly explain what you're doing.
 
-3. **Memory** - Use the memory tool to store and retrieve information.
-   - write_long_term: Save important, date-independent facts (user preferences, project info, permanent notes)
-   - append_daily: Record today's events and memos (diary-like daily entries)
-   - read_long_term: Read long-term memory
-   - read_daily: Read today's daily notes`,
-		now, workspacePath, toolsSection)
+%s`,
+		now, workspacePath, toolsSection, memoryInstruction)
 }
 
 func (cb *ContextBuilder) buildChannelsSection() string {

@@ -186,10 +186,13 @@ func NewAgentLoop(cfg *config.Config, msgBus *bus.MessageBus, provider providers
 	contextBuilder := NewContextBuilder(workspace, dataDir)
 	contextBuilder.SetToolsRegistry(toolsRegistry)
 
-	// Register memory and skill tools (controlled access to dataDir)
-	memoryTool := tools.NewMemoryTool(contextBuilder.GetMemory())
-	toolsRegistry.Register(memoryTool)
-	subagentTools.Register(memoryTool)
+	// Register memory tool (conditionally based on config)
+	contextBuilder.SetMemoryToolEnabled(cfg.Tools.Memory.Enabled)
+	if cfg.Tools.Memory.Enabled {
+		memoryTool := tools.NewMemoryTool(contextBuilder.GetMemory())
+		toolsRegistry.Register(memoryTool)
+		subagentTools.Register(memoryTool)
+	}
 
 	skillTool := tools.NewSkillTool(contextBuilder.GetSkillsLoader())
 	toolsRegistry.Register(skillTool)

@@ -257,12 +257,17 @@ type AndroidToolsConfig struct {
 	Enabled bool `json:"enabled" env:"PICOCLAW_TOOLS_ANDROID_ENABLED"`
 }
 
+type MemoryToolsConfig struct {
+	Enabled bool `json:"enabled" env:"PICOCLAW_TOOLS_MEMORY_ENABLED"`
+}
+
 type ToolsConfig struct {
 	Web     WebToolsConfig             `json:"web"`
 	Exec    ExecToolsConfig            `json:"exec"`
 	I2C     I2CToolsConfig             `json:"i2c"`
 	SPI     SPIToolsConfig             `json:"spi"`
 	Android AndroidToolsConfig         `json:"android"`
+	Memory  MemoryToolsConfig          `json:"memory"`
 	MCP     map[string]MCPServerConfig `json:"mcp,omitempty"`
 }
 
@@ -380,6 +385,9 @@ func DefaultConfig() *Config {
 				Enabled: false,
 			},
 			Android: AndroidToolsConfig{
+				Enabled: true,
+			},
+			Memory: MemoryToolsConfig{
 				Enabled: true,
 			},
 			Web: WebToolsConfig{
