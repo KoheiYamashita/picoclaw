@@ -120,8 +120,8 @@ func cronStatusLabel(args map[string]interface{}) string {
 
 func androidStatusLabel(args map[string]interface{}) string {
 	switch strArg(args, "action") {
-	case "list_apps":
-		return "アプリ一覧取得中..."
+	case "search_apps":
+		return "アプリ検索中..."
 	case "app_info":
 		if p := strArg(args, "package_name"); p != "" {
 			return fmt.Sprintf("アプリ情報取得中...（%s）", truncLabel(p, 25))
@@ -132,8 +132,10 @@ func androidStatusLabel(args map[string]interface{}) string {
 			return fmt.Sprintf("アプリ起動中...（%s）", truncLabel(p, 25))
 		}
 		return "アプリ起動中..."
-	case "current_activity":
-		return "画面情報取得中..."
+	case "screenshot":
+		return "スクリーンショット撮影中..."
+	case "get_ui_tree":
+		return "UI要素取得中..."
 	case "tap":
 		return "タップ中..."
 	case "swipe":

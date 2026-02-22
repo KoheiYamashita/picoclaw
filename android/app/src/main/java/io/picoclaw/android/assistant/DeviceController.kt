@@ -54,14 +54,8 @@ class DeviceController {
         return service?.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS) ?: false
     }
 
-    fun getCurrentPackage(): String? {
-        val svc = service ?: return null
-        val ownPackage = svc.packageName
-        // Skip our own overlay window and find the actual foreground app
-        return svc.windows
-            .filter { it.type == android.view.accessibility.AccessibilityWindowInfo.TYPE_APPLICATION }
-            .firstOrNull { it.root?.packageName?.toString() != ownPackage }
-            ?.root?.packageName?.toString()
+    fun getRootNode(): AccessibilityNodeInfo? {
+        return service?.rootInActiveWindow
     }
 
     suspend fun inputText(text: String): Boolean {

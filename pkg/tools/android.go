@@ -45,7 +45,8 @@ func (t *AndroidTool) Description() string {
 - search_apps: Search installed apps by name or package name (requires query)
 - app_info: Get app details (requires package_name)
 - launch_app: Launch an app (requires package_name)
-- current_activity: Get the currently active app/window
+- screenshot: Capture a screenshot of the current screen (no params)
+- get_ui_tree: Get the accessibility UI tree (optional: resource_id, index, bounds_x/bounds_y, max_depth, max_nodes)
 - tap: Tap a screen coordinate (requires x, y)
 - swipe: Swipe between coordinates (requires x, y, x2, y2; optional duration_ms)
 - text: Input text into the focused field (requires text)
@@ -62,7 +63,8 @@ func (t *AndroidTool) Parameters() map[string]interface{} {
 			"action": map[string]interface{}{
 				"type": "string",
 				"enum": []string{
-					"search_apps", "app_info", "launch_app", "current_activity",
+					"search_apps", "app_info", "launch_app",
+					"screenshot", "get_ui_tree",
 					"tap", "swipe", "text", "keyevent",
 					"broadcast", "intent",
 				},
@@ -125,6 +127,30 @@ func (t *AndroidTool) Parameters() map[string]interface{} {
 				"type":        "object",
 				"description": "Extra key-value pairs for broadcast/intent",
 			},
+			"resource_id": map[string]interface{}{
+				"type":        "string",
+				"description": "View resource ID to start UI tree from (for get_ui_tree, e.g. com.example:id/button)",
+			},
+			"index": map[string]interface{}{
+				"type":        "integer",
+				"description": "Which match to use when resource_id has multiple hits (for get_ui_tree, default 0)",
+			},
+			"bounds_x": map[string]interface{}{
+				"type":        "number",
+				"description": "X coordinate to find the containing node (for get_ui_tree, alternative to resource_id)",
+			},
+			"bounds_y": map[string]interface{}{
+				"type":        "number",
+				"description": "Y coordinate to find the containing node (for get_ui_tree, alternative to resource_id)",
+			},
+			"max_depth": map[string]interface{}{
+				"type":        "integer",
+				"description": "Maximum traversal depth (for get_ui_tree, default 30)",
+			},
+			"max_nodes": map[string]interface{}{
+				"type":        "integer",
+				"description": "Maximum number of nodes to output (for get_ui_tree, default 2000)",
+			},
 		},
 		"required": []string{"action"},
 	}
@@ -181,8 +207,44 @@ func (t *AndroidTool) validateAndBuildParams(action string, args map[string]inte
 		}
 		params["package_name"] = pkg
 
-	case "current_activity":
+	case "screenshot":
 		// No params needed
+
+	case "get_ui_tree":
+		// Start node selection: resource_id or bounds (mutually exclusive)
+		hasResourceID := false
+		hasBounds := false
+		if rid, ok := args["resource_id"].(string); ok && rid != "" {
+			params["resource_id"] = rid
+			hasResourceID = true
+			if idx, ok := toFloat64(args["index"]); ok {
+				idxInt := int(idx)
+				if idxInt < 0 {
+					return nil, fmt.Errorf("get_ui_tree: index must be non-negative, got %d", idxInt)
+				}
+				params["index"] = idxInt
+			}
+		}
+		if bx, bxOk := toFloat64(args["bounds_x"]); bxOk {
+			if by, byOk := toFloat64(args["bounds_y"]); byOk {
+				params["bounds_x"] = bx
+				params["bounds_y"] = by
+				hasBounds = true
+			}
+		}
+		if hasResourceID && hasBounds {
+			return nil, fmt.Errorf("get_ui_tree: cannot specify both resource_id and bounds_x/bounds_y")
+		}
+		if md, ok := toFloat64(args["max_depth"]); ok {
+			params["max_depth"] = int(md)
+		}
+		if mn, ok := toFloat64(args["max_nodes"]); ok {
+			mnInt := int(mn)
+			if mnInt < 1 {
+				return nil, fmt.Errorf("get_ui_tree: max_nodes must be at least 1, got %d", mnInt)
+			}
+			params["max_nodes"] = mnInt
+		}
 
 	case "tap":
 		x, xOk := toFloat64(args["x"])
@@ -304,6 +366,14 @@ func (t *AndroidTool) sendAndWait(ctx context.Context, action string, params map
 			return &ToolResult{
 				ForUser: "この機能にはユーザー補助の設定が必要です",
 				ForLLM:  "accessibility_required: The accessibility service is not enabled. The settings dialog has been shown to the user. Do not retry automatically - wait for the user to enable the service and try again.",
+			}
+		}
+		// Screenshot returns base64 JPEG data — wrap as multimodal result
+		if action == "screenshot" {
+			return &ToolResult{
+				ForLLM: "Screenshot captured.",
+				Media:  []string{"data:image/jpeg;base64," + content},
+				Silent: true,
 			}
 		}
 		return SilentResult(content)

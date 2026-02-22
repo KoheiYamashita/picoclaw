@@ -27,6 +27,10 @@ type ToolResult struct {
 	// When true, the tool will complete later and notify via callback.
 	Async bool `json:"async"`
 
+	// Media contains base64 data URLs (e.g. "data:image/jpeg;base64,...") to
+	// pass multimodal content (screenshots, etc.) to the LLM.
+	Media []string `json:"media,omitempty"`
+
 	// Err is the underlying error (not JSON serialized).
 	// Used for internal error handling and logging.
 	Err error `json:"-"`

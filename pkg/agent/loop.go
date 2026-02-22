@@ -957,6 +957,7 @@ func (al *AgentLoop) runLLMIteration(ctx context.Context, messages []providers.M
 			toolResultMsg := providers.Message{
 				Role:       "tool",
 				Content:    contentForLLM,
+				Media:      toolResult.Media,
 				ToolCallID: tc.ID,
 			}
 			messages = append(messages, toolResultMsg)

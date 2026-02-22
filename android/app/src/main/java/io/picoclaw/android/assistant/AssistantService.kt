@@ -117,6 +117,10 @@ class AssistantService : LifecycleService(), SavedStateRegistryOwner {
         toolRequestHandler = ToolRequestHandler(
             context = applicationContext,
             deviceController = deviceController,
+            screenshotSource = screenshotSource,
+            setOverlayVisibility = { visible ->
+                overlayView?.visibility = if (visible) View.VISIBLE else View.INVISIBLE
+            },
             onAccessibilityNeeded = { showAccessibilityGuide = true }
         )
         (connection as AssistantConnectionImpl).onToolRequest = { request ->

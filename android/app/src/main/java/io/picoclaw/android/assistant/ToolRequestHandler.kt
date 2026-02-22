@@ -4,21 +4,33 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
+import android.util.Base64
 import android.util.Log
+import android.view.accessibility.AccessibilityNodeInfo
 import io.picoclaw.android.core.data.remote.dto.ToolRequest
 import io.picoclaw.android.core.data.remote.dto.ToolResponse
+import io.picoclaw.android.feature.chat.voice.ScreenshotSource
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.longOrNull
+import java.io.ByteArrayOutputStream
 
 class ToolRequestHandler(
     private val context: Context,
     private val deviceController: DeviceController,
+    private val screenshotSource: ScreenshotSource,
+    private val setOverlayVisibility: (Boolean) -> Unit,
     private val onAccessibilityNeeded: () -> Unit
 ) {
 
@@ -28,7 +40,8 @@ class ToolRequestHandler(
                 "search_apps" -> handleSearchApps(request)
                 "app_info" -> handleAppInfo(request)
                 "launch_app" -> handleLaunchApp(request)
-                "current_activity" -> handleCurrentActivity(request)
+                "screenshot" -> handleScreenshot(request)
+                "get_ui_tree" -> handleGetUiTree(request)
                 "tap" -> handleTap(request)
                 "swipe" -> handleSwipe(request)
                 "text" -> handleText(request)
@@ -140,13 +153,144 @@ class ToolRequestHandler(
         return ToolResponse(request.requestId, true, result = "Launched $packageName")
     }
 
-    private suspend fun handleCurrentActivity(request: ToolRequest): ToolResponse {
+    private suspend fun handleScreenshot(request: ToolRequest): ToolResponse {
         requireAccessibility(request)?.let { return it }
 
-        val pkg = deviceController.getCurrentPackage()
-            ?: return ToolResponse(request.requestId, false, error = "Could not get current activity")
+        return try {
+            withContext(Dispatchers.Main) { setOverlayVisibility(false) }
+            delay(150)
+            val bitmap = screenshotSource.takeScreenshot()
+                ?: return ToolResponse(request.requestId, false, error = "Screenshot capture failed")
+            try {
+                val base64 = withContext(Dispatchers.IO) {
+                    val stream = ByteArrayOutputStream()
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream)
+                    Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
+                }
+                ToolResponse(request.requestId, true, result = base64)
+            } finally {
+                bitmap.recycle()
+            }
+        } finally {
+            withContext(Dispatchers.Main) { setOverlayVisibility(true) }
+        }
+    }
 
-        return ToolResponse(request.requestId, true, result = "Current package: $pkg")
+    private suspend fun handleGetUiTree(request: ToolRequest): ToolResponse {
+        requireAccessibility(request)?.let { return it }
+
+        val resourceId = request.params?.get("resource_id")?.jsonPrimitive?.contentOrNull
+        val index = request.params?.get("index")?.jsonPrimitive?.intOrNull ?: 0
+        val boundsX = request.params?.get("bounds_x")?.jsonPrimitive?.doubleOrNull
+        val boundsY = request.params?.get("bounds_y")?.jsonPrimitive?.doubleOrNull
+        val maxDepth = request.params?.get("max_depth")?.jsonPrimitive?.intOrNull ?: 30
+        val maxNodes = request.params?.get("max_nodes")?.jsonPrimitive?.intOrNull ?: 2000
+
+        return try {
+            withContext(Dispatchers.Main) { setOverlayVisibility(false) }
+            delay(150)
+            val root = deviceController.getRootNode()
+                ?: return ToolResponse(request.requestId, false, error = "Could not get UI tree")
+            try {
+                val startNode = resolveStartNode(root, resourceId, index, boundsX, boundsY)
+                    ?: return ToolResponse(request.requestId, false, error = buildString {
+                        if (resourceId != null) append("No node found with resource_id=$resourceId (index=$index)")
+                        else append("No node found at bounds ($boundsX, $boundsY)")
+                    })
+                try {
+                    val sb = StringBuilder()
+                    val nodeCount = intArrayOf(0)
+                    dumpNode(startNode, sb, 0, maxDepth, maxNodes, nodeCount)
+                    if (nodeCount[0] >= maxNodes) {
+                        sb.appendLine("[truncated: max_nodes=$maxNodes reached]")
+                    }
+                    ToolResponse(request.requestId, true, result = sb.toString())
+                } finally {
+                    if (startNode !== root) startNode.recycle()
+                }
+            } finally {
+                root.recycle()
+            }
+        } finally {
+            withContext(Dispatchers.Main) { setOverlayVisibility(true) }
+        }
+    }
+
+    private fun resolveStartNode(
+        root: AccessibilityNodeInfo,
+        resourceId: String?,
+        index: Int,
+        boundsX: Double?,
+        boundsY: Double?
+    ): AccessibilityNodeInfo? {
+        if (resourceId != null) {
+            val matches = root.findAccessibilityNodeInfosByViewId(resourceId)
+            if (matches.isNullOrEmpty()) return null
+            val target = matches.getOrNull(index)
+            // Recycle unused matches
+            for ((i, node) in matches.withIndex()) {
+                if (i != index) node.recycle()
+            }
+            return target
+        }
+        if (boundsX != null && boundsY != null) {
+            return findNodeAtPoint(root, boundsX.toInt(), boundsY.toInt())
+        }
+        return root
+    }
+
+    private fun findNodeAtPoint(node: AccessibilityNodeInfo, x: Int, y: Int): AccessibilityNodeInfo? {
+        val bounds = Rect()
+        node.getBoundsInScreen(bounds)
+        if (!bounds.contains(x, y)) return null
+        // Find the deepest (smallest) child that contains the point
+        for (i in 0 until node.childCount) {
+            val child = node.getChild(i) ?: continue
+            val found = findNodeAtPoint(child, x, y)
+            if (found != null) return found
+            child.recycle()
+        }
+        return node
+    }
+
+    private fun dumpNode(
+        node: AccessibilityNodeInfo,
+        sb: StringBuilder,
+        depth: Int,
+        maxDepth: Int,
+        maxNodes: Int,
+        nodeCount: IntArray
+    ) {
+        if (nodeCount[0] >= maxNodes) return
+        nodeCount[0]++
+        val indent = "  ".repeat(depth)
+        val bounds = Rect()
+        node.getBoundsInScreen(bounds)
+        sb.appendLine(
+            "${indent}[${node.className}] " +
+                "text=${node.text ?: ""} " +
+                "desc=${node.contentDescription ?: ""} " +
+                "bounds=${bounds} " +
+                "clickable=${node.isClickable} " +
+                "enabled=${node.isEnabled} " +
+                "visible=${node.isVisibleToUser} " +
+                "id=${node.viewIdResourceName ?: ""}"
+        )
+        if (depth >= maxDepth) {
+            if (node.childCount > 0) {
+                sb.appendLine("${indent}  [truncated: ${node.childCount} children at depth $depth]")
+            }
+            return
+        }
+        for (i in 0 until node.childCount) {
+            if (nodeCount[0] >= maxNodes) return
+            val child = node.getChild(i) ?: continue
+            try {
+                dumpNode(child, sb, depth + 1, maxDepth, maxNodes, nodeCount)
+            } finally {
+                child.recycle()
+            }
+        }
     }
 
     private suspend fun handleTap(request: ToolRequest): ToolResponse {

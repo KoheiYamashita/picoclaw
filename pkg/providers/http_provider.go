@@ -134,8 +134,8 @@ func (p *HTTPProvider) buildAPIMessages(messages []Message) []map[string]interfa
 			"role": msg.Role,
 		}
 
-		// Only user messages with media get the array-style content
-		if msg.Role == "user" && len(msg.Media) > 0 {
+		// Messages with media get the array-style content (user or tool)
+		if len(msg.Media) > 0 && (msg.Role == "user" || msg.Role == "tool") {
 			parts := make([]map[string]interface{}, 0, 1+len(msg.Media))
 			if msg.Content != "" {
 				parts = append(parts, map[string]interface{}{
