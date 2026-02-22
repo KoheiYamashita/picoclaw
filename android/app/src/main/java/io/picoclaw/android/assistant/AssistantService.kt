@@ -118,9 +118,7 @@ class AssistantService : LifecycleService(), SavedStateRegistryOwner {
             context = applicationContext,
             deviceController = deviceController,
             screenshotSource = screenshotSource,
-            setOverlayVisibility = { visible ->
-                overlayView?.visibility = if (visible) View.VISIBLE else View.INVISIBLE
-            },
+            setOverlayVisibility = { visible -> setOverlayVisible(visible) },
             onAccessibilityNeeded = { showAccessibilityGuide = true }
         )
         (connection as AssistantConnectionImpl).onToolRequest = { request ->
@@ -136,7 +134,7 @@ class AssistantService : LifecycleService(), SavedStateRegistryOwner {
         ttsWrapper = TextToSpeechWrapper(this, ttsSettingsRepo.ttsConfig)
         cameraCaptureManager = CameraCaptureManager(this)
         screenCaptureManager = ScreenCaptureManager(screenshotSource, applicationContext) { visible ->
-            overlayView?.visibility = if (visible) View.VISIBLE else View.INVISIBLE
+            setOverlayVisible(visible)
         }
 
         assistantManager = AssistantManager(
@@ -224,6 +222,19 @@ class AssistantService : LifecycleService(), SavedStateRegistryOwner {
     private fun shutdown() {
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
+    }
+
+    private fun setOverlayVisible(visible: Boolean) {
+        val view = overlayView ?: return
+        val lp = view.layoutParams as? WindowManager.LayoutParams ?: return
+        if (visible) {
+            lp.flags = lp.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
+            view.visibility = View.VISIBLE
+        } else {
+            lp.flags = lp.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+            view.visibility = View.INVISIBLE
+        }
+        windowManager.updateViewLayout(view, lp)
     }
 
     private fun addOverlay() {

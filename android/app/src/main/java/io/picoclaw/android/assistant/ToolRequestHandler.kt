@@ -76,6 +76,16 @@ class ToolRequestHandler(
         return null
     }
 
+    private suspend fun <T> withOverlayHidden(block: suspend () -> T): T {
+        return try {
+            withContext(Dispatchers.Main) { setOverlayVisibility(false) }
+            delay(150)
+            block()
+        } finally {
+            withContext(Dispatchers.Main) { setOverlayVisibility(true) }
+        }
+    }
+
     private fun handleSearchApps(request: ToolRequest): ToolResponse {
         val query = request.params?.get("query")?.jsonPrimitive?.contentOrNull
             ?: return ToolResponse(request.requestId, false, error = "query required")
@@ -156,11 +166,9 @@ class ToolRequestHandler(
     private suspend fun handleScreenshot(request: ToolRequest): ToolResponse {
         requireAccessibility(request)?.let { return it }
 
-        return try {
-            withContext(Dispatchers.Main) { setOverlayVisibility(false) }
-            delay(150)
+        return withOverlayHidden {
             val bitmap = screenshotSource.takeScreenshot()
-                ?: return ToolResponse(request.requestId, false, error = "Screenshot capture failed")
+                ?: return@withOverlayHidden ToolResponse(request.requestId, false, error = "Screenshot capture failed")
             try {
                 val base64 = withContext(Dispatchers.IO) {
                     val stream = ByteArrayOutputStream()
@@ -171,8 +179,6 @@ class ToolRequestHandler(
             } finally {
                 bitmap.recycle()
             }
-        } finally {
-            withContext(Dispatchers.Main) { setOverlayVisibility(true) }
         }
     }
 
@@ -186,14 +192,12 @@ class ToolRequestHandler(
         val maxDepth = request.params?.get("max_depth")?.jsonPrimitive?.intOrNull ?: 15
         val maxNodes = request.params?.get("max_nodes")?.jsonPrimitive?.intOrNull ?: 300
 
-        return try {
-            withContext(Dispatchers.Main) { setOverlayVisibility(false) }
-            delay(150)
+        return withOverlayHidden {
             val root = deviceController.getRootNode()
-                ?: return ToolResponse(request.requestId, false, error = "Could not get UI tree")
+                ?: return@withOverlayHidden ToolResponse(request.requestId, false, error = "Could not get UI tree")
             try {
                 val startNode = resolveStartNode(root, resourceId, index, boundsX, boundsY)
-                    ?: return ToolResponse(request.requestId, false, error = buildString {
+                    ?: return@withOverlayHidden ToolResponse(request.requestId, false, error = buildString {
                         if (resourceId != null) append("No node found with resource_id=$resourceId (index=$index)")
                         else append("No node found at bounds ($boundsX, $boundsY)")
                     })
@@ -211,8 +215,6 @@ class ToolRequestHandler(
             } finally {
                 root.recycle()
             }
-        } finally {
-            withContext(Dispatchers.Main) { setOverlayVisibility(true) }
         }
     }
 
@@ -313,12 +315,14 @@ class ToolRequestHandler(
         val y = request.params?.get("y")?.jsonPrimitive?.doubleOrNull?.toFloat()
             ?: return ToolResponse(request.requestId, false, error = "y coordinate required")
 
-        val success = deviceController.tap(x, y)
-        return ToolResponse(
-            request.requestId, success,
-            result = if (success) "Tapped at ($x, $y)" else null,
-            error = if (!success) "Tap failed" else null
-        )
+        return withOverlayHidden {
+            val success = deviceController.tap(x, y)
+            ToolResponse(
+                request.requestId, success,
+                result = if (success) "Tapped at ($x, $y)" else null,
+                error = if (!success) "Tap failed" else null
+            )
+        }
     }
 
     private suspend fun handleSwipe(request: ToolRequest): ToolResponse {
@@ -334,12 +338,14 @@ class ToolRequestHandler(
             ?: return ToolResponse(request.requestId, false, error = "y2 coordinate required")
         val durationMs = request.params?.get("duration_ms")?.jsonPrimitive?.longOrNull ?: 300L
 
-        val success = deviceController.swipe(x, y, x2, y2, durationMs)
-        return ToolResponse(
-            request.requestId, success,
-            result = if (success) "Swiped from ($x,$y) to ($x2,$y2)" else null,
-            error = if (!success) "Swipe failed" else null
-        )
+        return withOverlayHidden {
+            val success = deviceController.swipe(x, y, x2, y2, durationMs)
+            ToolResponse(
+                request.requestId, success,
+                result = if (success) "Swiped from ($x,$y) to ($x2,$y2)" else null,
+                error = if (!success) "Swipe failed" else null
+            )
+        }
     }
 
     private suspend fun handleText(request: ToolRequest): ToolResponse {
@@ -348,12 +354,14 @@ class ToolRequestHandler(
         val text = request.params?.get("text")?.jsonPrimitive?.contentOrNull
             ?: return ToolResponse(request.requestId, false, error = "text required")
 
-        val success = deviceController.inputText(text)
-        return ToolResponse(
-            request.requestId, success,
-            result = if (success) "Text input: $text" else null,
-            error = if (!success) "Text input failed (no focused input field?)" else null
-        )
+        return withOverlayHidden {
+            val success = deviceController.inputText(text)
+            ToolResponse(
+                request.requestId, success,
+                result = if (success) "Text input: $text" else null,
+                error = if (!success) "Text input failed (no focused input field?)" else null
+            )
+        }
     }
 
     private fun handleKeyEvent(request: ToolRequest): ToolResponse {
