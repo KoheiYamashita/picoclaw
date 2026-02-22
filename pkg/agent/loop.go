@@ -296,17 +296,9 @@ func (al *AgentLoop) Run(ctx context.Context) error {
 					return
 				}
 				if response != "" {
-					alreadySent := false
-					if tool, ok := al.tools.Get("message"); ok {
-						if mt, ok := tool.(*tools.MessageTool); ok {
-							alreadySent = mt.HasSentInRound()
-						}
-					}
-					if !alreadySent {
-						al.bus.PublishOutbound(bus.OutboundMessage{
-							Channel: m.Channel, ChatID: m.ChatID, Content: response,
-						})
-					}
+					al.bus.PublishOutbound(bus.OutboundMessage{
+						Channel: m.Channel, ChatID: m.ChatID, Content: response,
+					})
 				}
 			}(msg, sessionKey)
 		}

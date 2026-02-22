@@ -18,7 +18,6 @@ type MessageTool struct {
 	sendCallback    SendCallback
 	defaultChannel  string
 	defaultChatID   string
-	sentInRound     bool // Tracks whether a message was sent in the current processing round
 	enabledChannels []string
 	stateResolver   StateResolver
 }
@@ -74,12 +73,6 @@ func (t *MessageTool) SetStateResolver(sr StateResolver) {
 func (t *MessageTool) SetContext(channel, chatID string) {
 	t.defaultChannel = channel
 	t.defaultChatID = chatID
-	t.sentInRound = false // Reset send tracking for new processing round
-}
-
-// HasSentInRound returns true if the message tool sent a message during the current round.
-func (t *MessageTool) HasSentInRound() bool {
-	return t.sentInRound
 }
 
 func (t *MessageTool) SetSendCallback(callback SendCallback) {
@@ -146,12 +139,6 @@ func (t *MessageTool) Execute(ctx context.Context, args map[string]interface{}) 
 		}
 	}
 
-	// Only mark as "sent in round" when the message went to the originating channel.
-	// Cross-channel sends (e.g. WS→Discord) must NOT suppress the response
-	// back to the sender's channel.
-	if channel == t.defaultChannel {
-		t.sentInRound = true
-	}
 	// Silent: user already received the message directly
 	return &ToolResult{
 		ForLLM: fmt.Sprintf("Message sent to %s:%s", channel, chatID),

@@ -190,13 +190,14 @@ class AssistantManager(
 
         val statusJob = launch {
             connection.statusText.collect { label ->
-                if (label != null) heartbeat.trySend(Unit)
+                heartbeat.trySend(Unit)
             }
         }
 
         try {
             _state.update { it.copy(phase = VoicePhase.THINKING, statusText = null) }
 
+            var hasSpoken = false
             while (true) {
                 val result = select<WaitResult> {
                     speechQueue.onReceive { WaitResult.Message(it) }
@@ -206,15 +207,21 @@ class AssistantManager(
 
                 when (result) {
                     WaitResult.Timeout -> {
-                        _state.update {
-                            it.copy(phase = VoicePhase.ERROR, errorMessage = "Response timed out")
+                        if (!hasSpoken) {
+                            _state.update {
+                                it.copy(phase = VoicePhase.ERROR, errorMessage = "Response timed out")
+                            }
+                            delay(2000)
                         }
-                        delay(2000)
                         return@coroutineScope
                     }
-                    WaitResult.Heartbeat -> continue
+                    WaitResult.Heartbeat -> {
+                        if (hasSpoken && connection.statusText.value == null) return@coroutineScope
+                        continue
+                    }
                     is WaitResult.Message -> {
                         speakAndDrain(result.content, speechQueue)
+                        hasSpoken = true
                         val currentStatus = connection.statusText.value
                         if (currentStatus == null) return@coroutineScope
                         _state.update {
@@ -231,7 +238,7 @@ class AssistantManager(
     private suspend fun speakAndDrain(firstContent: String, speechQueue: Channel<String>) {
         val chunks = mutableListOf(firstContent)
         try {
-            _state.update { it.copy(phase = VoicePhase.SPEAKING, responseText = firstContent) }
+            _state.update { it.copy(phase = VoicePhase.SPEAKING, responseText = firstContent, statusText = null) }
             ttsWrapper.speak(firstContent)
             while (true) {
                 val next = speechQueue.tryReceive().getOrNull() ?: break

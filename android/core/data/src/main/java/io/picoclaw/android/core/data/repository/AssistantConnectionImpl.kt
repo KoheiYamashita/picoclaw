@@ -51,7 +51,6 @@ class AssistantConnectionImpl(
                     "status_end" -> _statusText.value = null
                     "tool_request" -> handleToolRequest(dto.content)
                     else -> {
-                        _statusText.value = null
                         _messages.emit(AssistantMessage(content = dto.content, type = dto.type))
                     }
                 }
