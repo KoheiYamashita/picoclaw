@@ -1,6 +1,6 @@
 # ClawDroid
 
-**[日本語版 README はこちら (README.ja.md)](README.ja.md)**
+**[日本語版](README.ja.md)**
 
 Ultra-lightweight personal AI assistant for Android. A Go backend runs in Termux while a native Kotlin/Jetpack Compose app provides the chat UI, voice assistant, and device automation.
 
