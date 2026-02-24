@@ -6,33 +6,27 @@ Android 向け超軽量パーソナル AI アシスタント。Go バックエ�
 
 ## アーキテクチャ
 
-```
-┌──────────────────────────────────┐
-│   Android アプリ (Kotlin)          │
-│  ┌───────────┐ ┌───────────────┐ │
-│  │ チャット    │ │ アシスタント    │ │
-│  │   UI      │ │ オーバーレイ    │ │
-│  │ (Compose) │ │               │ │
-│  └─────┬─────┘ └───────┬──────┘ │
-│        │   WebSocket    │        │
-│        └───────┬────────┘        │
-└────────────────┼─────────────────┘
-                 │ ws://127.0.0.1:18793
-┌────────────────┼─────────────────┐
-│   Go バックエンド (Termux)          │
-│  ┌────────┐ ┌─────────────────┐  │
-│  │エージェント│ │  ツールループ     │  │
-│  │  ループ  │ │  (16以上)       │  │
-│  └───┬────┘ └────────┬────────┘  │
-│      │    ┌──────────┤           │
-│  ┌───┴──┐ │ ┌────────┴─────────┐ │
-│  │ LLM  │ │ │ MCP / Cron /     │ │
-│  └──────┘ │ │ Skills / Memory   │ │
-│  ┌────────┴─┴──────────────────┐ │
-│  │ チャンネル (Telegram,         │ │
-│  │ Discord, Slack, LINE 等)     │ │
-│  └─────────────────────────────┘ │
-└──────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph android["Android アプリ (Kotlin)"]
+        ChatUI["チャット UI\n(Compose)"]
+        Overlay["アシスタント\nオーバーレイ"]
+    end
+
+    subgraph backend["Go バックエンド (Termux)"]
+        Agent["エージェントループ"]
+        Tools["ツールループ\n(16以上)"]
+        LLM["LLM"]
+        Services["MCP / Cron /\nSkills / Memory"]
+        Channels["チャンネル\n(Telegram, Discord, Slack, LINE 等)"]
+    end
+
+    ChatUI -- "WebSocket\nws://127.0.0.1:18793" --> Agent
+    Overlay -- "WebSocket\nws://127.0.0.1:18793" --> Agent
+    Agent --> LLM
+    Agent --> Tools
+    Tools --> Services
+    Agent --> Channels
 ```
 
 - **Go バックエンド** (`cmd/clawdroid/`): シングルバイナリ。エージェントループ、ツール実行、LLM 呼び出し、メッセージングチャンネル、Cron、ハートビート

@@ -8,32 +8,27 @@ Forked from [PicoClaw](https://github.com/sipeed/picoclaw).
 
 ## Architecture
 
-```
-┌─────────────────────────────────┐
-│   Android App (Kotlin)          │
-│  ┌───────────┐ ┌──────────────┐ │
-│  │  Chat UI  │ │  Assistant   │ │
-│  │ (Compose) │ │  Overlay     │ │
-│  └─────┬─────┘ └──────┬──────┘ │
-│        │   WebSocket   │        │
-│        └───────┬───────┘        │
-└────────────────┼────────────────┘
-                 │ ws://127.0.0.1:18793
-┌────────────────┼────────────────┐
-│   Go Backend (Termux)           │
-│  ┌────────┐ ┌────────────────┐  │
-│  │ Agent  │ │   Tool Loop    │  │
-│  │  Loop  │ │  (16+ tools)   │  │
-│  └───┬────┘ └───────┬────────┘  │
-│      │    ┌─────────┤           │
-│  ┌───┴──┐ │ ┌───────┴────────┐  │
-│  │ LLM  │ │ │ MCP / Cron /   │  │
-│  └──────┘ │ │ Skills / Memory │  │
-│  ┌────────┴─┴────────────────┐  │
-│  │ Channels (Telegram,       │  │
-│  │ Discord, Slack, LINE etc.)│  │
-│  └───────────────────────────┘  │
-└─────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph android["Android App (Kotlin)"]
+        ChatUI["Chat UI\n(Compose)"]
+        Overlay["Assistant\nOverlay"]
+    end
+
+    subgraph backend["Go Backend (Termux)"]
+        Agent["Agent Loop"]
+        Tools["Tool Loop\n(16+ tools)"]
+        LLM["LLM"]
+        Services["MCP / Cron /\nSkills / Memory"]
+        Channels["Channels\n(Telegram, Discord, Slack, LINE etc.)"]
+    end
+
+    ChatUI -- "WebSocket\nws://127.0.0.1:18793" --> Agent
+    Overlay -- "WebSocket\nws://127.0.0.1:18793" --> Agent
+    Agent --> LLM
+    Agent --> Tools
+    Tools --> Services
+    Agent --> Channels
 ```
 
 - **Go backend** (`cmd/clawdroid/`): Single binary. Agent loop, tool execution, LLM calls, messaging channels, cron, heartbeat
