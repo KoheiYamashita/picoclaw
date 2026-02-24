@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/clawdroid.png" alt="ClawDroid" width="300">
+</p>
+
 # ClawDroid
 
 Android 向け超軽量パーソナル AI アシスタント。Go バックエンドが Termux 上で動作し、ネイティブ Kotlin/Jetpack Compose アプリがチャット UI、音声アシスタント、デバイス自動操作を提供します。

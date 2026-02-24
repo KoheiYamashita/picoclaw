@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/clawdroid.png" alt="ClawDroid" width="300">
+</p>
+
 # ClawDroid
 
 **[日本語版](README.ja.md)**
