@@ -1,858 +1,524 @@
-<div align="center">
-  <img src="assets/logo.jpg" alt="ClawDroid" width="512">
+# ClawDroid
 
-  <h1>ClawDroid: Ultra-Efficient AI Assistant in Go</h1>
+Ultra-lightweight personal AI assistant for Android. A Go backend runs in Termux while a native Kotlin/Jetpack Compose app provides the chat UI, voice assistant, and device automation.
 
-  <h3>$10 Hardware · 10MB RAM · 1s Boot · 皮皮虾，我们走！</h3>
+Forked from [PicoClaw](https://github.com/pico-claw/picoclaw).
 
-  <p>
-    <img src="https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go&logoColor=white" alt="Go">
-    <img src="https://img.shields.io/badge/Arch-x86__64%2C%20ARM64%2C%20RISC--V-blue" alt="Hardware">
-    <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
-    <br>
-    <a href="https://clawdroid.io"><img src="https://img.shields.io/badge/Website-clawdroid.io-blue?style=flat&logo=google-chrome&logoColor=white" alt="Website"></a>
-    <a href="https://x.com/SipeedIO"><img src="https://img.shields.io/badge/X_(Twitter)-SipeedIO-black?style=flat&logo=x&logoColor=white" alt="Twitter"></a>
-  </p>
+## Architecture
 
- [中文](README.zh.md) | [日本語](README.ja.md) | **English**
-</div>
-
----
-
-🦐 ClawDroid is an ultra-lightweight personal AI Assistant inspired by [nanobot](https://github.com/HKUDS/nanobot), refactored from the ground up in Go through a self-bootstrapping process, where the AI agent itself drove the entire architectural migration and code optimization.
-
-⚡️ Runs on $10 hardware with <10MB RAM: That's 99% less memory than OpenClaw and 98% cheaper than a Mac mini!
-
-<table align="center">
-  <tr align="center">
-    <td align="center" valign="top">
-      <p align="center">
-        <img src="assets/clawdroid_mem.gif" width="360" height="240">
-      </p>
-    </td>
-    <td align="center" valign="top">
-      <p align="center">
-        <img src="assets/licheervnano.png" width="400" height="240">
-      </p>
-    </td>
-  </tr>
-</table>
-
-> [!CAUTION]
-> **🚨 SECURITY & OFFICIAL CHANNELS / 安全声明**
->
-> * **NO CRYPTO:** ClawDroid has **NO** official token/coin. All claims on `pump.fun` or other trading platforms are **SCAMS**.
-> * **OFFICIAL DOMAIN:** The **ONLY** official website is **[clawdroid.io](https://clawdroid.io)**, and company website is **[sipeed.com](https://sipeed.com)**
-> * **Warning:** Many `.ai/.org/.com/.net/...` domains are registered by third parties.
-> * **Warning:** clawdroid is in early development now and may have unresolved network security issues. Do not deploy to production environments before the v1.0 release.
-> * **Note:** clawdroid has recently merged a lot of PRs, which may result in a larger memory footprint (10–20MB) in the latest versions. We plan to prioritize resource optimization as soon as the current feature set reaches a stable state.
-
-
-## 📢 News
-2026-02-16 🎉 ClawDroid hit 12K stars in one week! Thank you all for your support! ClawDroid is growing faster than we ever imagined. Given the high volume of PRs, we urgently need community maintainers. Our volunteer roles and roadmap are officially posted [here](doc/clawdroid_community_roadmap_260216.md) —we can’t wait to have you on board!
-
-2026-02-13 🎉 ClawDroid hit 5000 stars in 4days! Thank you for the community! There are so many PRs&issues come in (during Chinese New Year holidays), we are finalizing the Project Roadmap and setting up the Developer Group to accelerate ClawDroid's development.  
-🚀 Call to Action: Please submit your feature requests in GitHub Discussions. We will review and prioritize them during our upcoming weekly meeting.
-
-2026-02-09 🎉 ClawDroid Launched! Built in 1 day to bring AI Agents to $10 hardware with <10MB RAM. 🦐 ClawDroid，Let's Go！
-
-## ✨ Features
-
-🪶 **Ultra-Lightweight**: <10MB Memory footprint — 99% smaller than Clawdbot - core functionality.
-
-💰 **Minimal Cost**: Efficient enough to run on $10 Hardware — 98% cheaper than a Mac mini.
-
-⚡️ **Lightning Fast**: 400X Faster startup time, boot in 1 second even in 0.6GHz single core.
-
-🌍 **True Portability**: Single self-contained binary across RISC-V, ARM, and x86, One-click to Go!
-
-🤖 **AI-Bootstrapped**: Autonomous Go-native implementation — 95% Agent-generated core with human-in-the-loop refinement.
-
-|                               | OpenClaw      | NanoBot                  | **ClawDroid**                              |
-| ----------------------------- | ------------- | ------------------------ | ----------------------------------------- |
-| **Language**                  | TypeScript    | Python                   | **Go**                                    |
-| **RAM**                       | >1GB          | >100MB                   | **< 10MB**                                |
-| **Startup**</br>(0.8GHz core) | >500s         | >30s                     | **<1s**                                   |
-| **Cost**                      | Mac Mini 599$ | Most Linux SBC </br>~50$ | **Any Linux Board**</br>**As low as 10$** |
-
-<img src="assets/compare.jpg" alt="ClawDroid" width="512">
-
-## 🦾 Demonstration
-
-### 🛠️ Standard Assistant Workflows
-
-<table align="center">
-  <tr align="center">
-    <th><p align="center">🧩 Full-Stack Engineer</p></th>
-    <th><p align="center">🗂️ Logging & Planning Management</p></th>
-    <th><p align="center">🔎 Web Search & Learning</p></th>
-  </tr>
-  <tr>
-    <td align="center"><p align="center"><img src="assets/clawdroid_code.gif" width="240" height="180"></p></td>
-    <td align="center"><p align="center"><img src="assets/clawdroid_memory.gif" width="240" height="180"></p></td>
-    <td align="center"><p align="center"><img src="assets/clawdroid_search.gif" width="240" height="180"></p></td>
-  </tr>
-  <tr>
-    <td align="center">Develop • Deploy • Scale</td>
-    <td align="center">Schedule • Automate • Memory</td>
-    <td align="center">Discovery • Insights • Trends</td>
-  </tr>
-</table>
-
-### 🐜 Innovative Low-Footprint Deploy
-
-ClawDroid can be deployed on almost any Linux device!
-
-- $9.9 [LicheeRV-Nano](https://www.aliexpress.com/item/1005006519668532.html) E(Ethernet) or W(WiFi6) version, for Minimal Home Assistant
-- $30~50 [NanoKVM](https://www.aliexpress.com/item/1005007369816019.html), or $100 [NanoKVM-Pro](https://www.aliexpress.com/item/1005010048471263.html) for Automated Server Maintenance
-- $50 [MaixCAM](https://www.aliexpress.com/item/1005008053333693.html) or $100 [MaixCAM2](https://www.kickstarter.com/projects/zepan/maixcam2-build-your-next-gen-4k-ai-camera) for Smart Monitoring
-
-<https://private-user-images.githubusercontent.com/83055338/547056448-e7b031ff-d6f5-4468-bcca-5726b6fecb5c.mp4>
-
-🌟 More Deployment Cases Await！
-
-## 📦 Install
-
-### Install with precompiled binary
-
-Download the firmware for your platform from the [release](https://github.com/KarakuriAgent/clawdroid/releases) page.
-
-### Install from source (latest features, recommended for development)
-
-```bash
-git clone https://github.com/KarakuriAgent/clawdroid.git
-
-cd clawdroid
-make deps
-
-# Build, no need to install
-make build
-
-# Build for multiple platforms
-make build-all
-
-# Build And Install
-make install
+```
+┌─────────────────────────────────┐
+│   Android App (Kotlin)          │
+│  ┌───────────┐ ┌──────────────┐ │
+│  │  Chat UI  │ │  Assistant   │ │
+│  │ (Compose) │ │  Overlay     │ │
+│  └─────┬─────┘ └──────┬──────┘ │
+│        │   WebSocket   │        │
+│        └───────┬───────┘        │
+└────────────────┼────────────────┘
+                 │ ws://127.0.0.1:18793
+┌────────────────┼────────────────┐
+│   Go Backend (Termux)           │
+│  ┌────────┐ ┌────────────────┐  │
+│  │ Agent  │ │   Tool Loop    │  │
+│  │  Loop  │ │  (16+ tools)   │  │
+│  └───┬────┘ └───────┬────────┘  │
+│      │    ┌─────────┤           │
+│  ┌───┴──┐ │ ┌───────┴────────┐  │
+│  │ LLM  │ │ │ MCP / Cron /   │  │
+│  └──────┘ │ │ Skills / Memory │  │
+│  ┌────────┴─┴────────────────┐  │
+│  │ Channels (Telegram,       │  │
+│  │ Discord, Slack, LINE etc.)│  │
+│  └───────────────────────────┘  │
+└─────────────────────────────────┘
 ```
 
-## 🐳 Docker Compose
+- **Go backend** (`cmd/clawdroid/`): Single binary. Agent loop, tool execution, LLM calls, messaging channels, cron, heartbeat
+- **Android app** (`android/`): Chat UI, floating assistant overlay, accessibility-based device control, voice mode
 
-You can also run ClawDroid using Docker Compose without installing anything locally.
+## Quick Start
 
-```bash
-# 1. Clone this repo
-git clone https://github.com/KarakuriAgent/clawdroid.git
-cd clawdroid
+### Prerequisites
 
-# 2. Set your API keys
-cp config/config.example.json config/config.json
-vim config/config.json      # Set DISCORD_BOT_TOKEN, API keys, etc.
+- Android device with [Termux](https://termux.dev) installed
+- LLM API key (OpenAI, Anthropic, Gemini, etc.)
 
-# 3. Build & Start
-docker compose --profile gateway up -d
+### 1. Download
 
-# 4. Check logs
-docker compose logs -f clawdroid-gateway
+Download the latest Go backend binary and Android app APK from [GitHub Releases](https://github.com/KarakuriAgent/clawdroid/releases).
 
-# 5. Stop
-docker compose --profile gateway down
-```
+Choose the binary matching your device architecture:
 
-### Agent Mode (One-shot)
+| Architecture | Binary |
+|-------------|--------|
+| 64-bit ARM (most modern devices) | `clawdroid-linux-arm64` |
+| 32-bit ARM | `clawdroid-linux-arm` |
 
-```bash
-# Ask a question
-docker compose run --rm clawdroid-agent -m "What is 2+2?"
+You can check your architecture in Termux with `uname -m`.
 
-# Interactive mode
-docker compose run --rm clawdroid-agent
-```
+### 2. Install the Go Backend
 
-### Rebuild
+In Termux:
 
 ```bash
-docker compose --profile gateway build --no-cache
-docker compose --profile gateway up -d
+# Place the binary and make it executable (example for arm64)
+cp ~/storage/downloads/clawdroid-linux-arm64 ~/.local/bin/clawdroid
+chmod +x ~/.local/bin/clawdroid
 ```
 
-### 🚀 Quick Start
-
-> [!TIP]
-> Set your API key in `~/.clawdroid/config.json`.
-> Get API keys: [OpenRouter](https://openrouter.ai/keys) (LLM) · [Zhipu](https://open.bigmodel.cn/usercenter/proj-mgmt/apikeys) (LLM)
-> Web search is **optional** - get free [Brave Search API](https://brave.com/search/api) (2000 free queries/month) or use built-in auto fallback.
-
-**1. Initialize**
+### 3. Initial Setup
 
 ```bash
 clawdroid onboard
 ```
 
-**2. Configure** (`~/.clawdroid/config.json`)
+This creates `~/.clawdroid/config.json` and workspace templates.
 
-```json
-{
-  "agents": {
-    "defaults": {
-      "workspace": "~/.clawdroid/workspace",
-      "model": "glm-4.7",
-      "max_tokens": 8192,
-      "temperature": 0.7,
-      "max_tool_iterations": 20
-    }
-  },
-  "providers": {
-    "openrouter": {
-      "api_key": "xxx",
-      "api_base": "https://openrouter.ai/api/v1"
-    }
-  },
-  "tools": {
-    "web": {
-      "brave": {
-        "enabled": false,
-        "api_key": "YOUR_BRAVE_API_KEY",
-        "max_results": 5
-      },
-      "duckduckgo": {
-        "enabled": true,
-        "max_results": 5
-      }
-    }
-  }
-}
-```
-
-**3. Get API Keys**
-
-* **LLM Provider**: [OpenRouter](https://openrouter.ai/keys) · [Zhipu](https://open.bigmodel.cn/usercenter/proj-mgmt/apikeys) · [Anthropic](https://console.anthropic.com) · [OpenAI](https://platform.openai.com) · [Gemini](https://aistudio.google.com/api-keys)
-* **Web Search** (optional): [Brave Search](https://brave.com/search/api) - Free tier available (2000 requests/month)
-
-> **Note**: See `config.example.json` for a complete configuration template.
-
-**4. Chat**
+Edit the config to add your API key:
 
 ```bash
-clawdroid agent -m "What is 2+2?"
+vi ~/.clawdroid/config.json
 ```
 
-That's it! You have a working AI assistant in 2 minutes.
+### 4. Install the Android App
 
----
+Install the downloaded APK on the same device.
 
-## 💬 Chat Apps
-
-Talk to your clawdroid through Telegram, Discord, DingTalk, or LINE
-
-| Channel      | Setup                              |
-| ------------ | ---------------------------------- |
-| **Telegram** | Easy (just a token)                |
-| **Discord**  | Easy (bot token + intents)         |
-| **QQ**       | Easy (AppID + AppSecret)           |
-| **DingTalk** | Medium (app credentials)           |
-| **LINE**     | Medium (credentials + webhook URL) |
-
-<details>
-<summary><b>Telegram</b> (Recommended)</summary>
-
-**1. Create a bot**
-
-* Open Telegram, search `@BotFather`
-* Send `/newbot`, follow prompts
-* Copy the token
-
-**2. Configure**
-
-```json
-{
-  "channels": {
-    "telegram": {
-      "enabled": true,
-      "token": "YOUR_BOT_TOKEN",
-      "allowFrom": ["YOUR_USER_ID"]
-    }
-  }
-}
-```
-
-> Get your user ID from `@userinfobot` on Telegram.
-
-**3. Run**
+### 5. Run
 
 ```bash
+# Start the gateway server (connects to Android app + messaging channels)
 clawdroid gateway
+
+# Or interact directly from the terminal
+clawdroid agent
+clawdroid agent -m "Hello!"
 ```
 
-</details>
+## CLI Commands
 
-<details>
-<summary><b>Discord</b></summary>
-
-**1. Create a bot**
-
-* Go to <https://discord.com/developers/applications>
-* Create an application → Bot → Add Bot
-* Copy the bot token
-
-**2. Enable intents**
-
-* In the Bot settings, enable **MESSAGE CONTENT INTENT**
-* (Optional) Enable **SERVER MEMBERS INTENT** if you plan to use allow lists based on member data
-
-**3. Get your User ID**
-
-* Discord Settings → Advanced → enable **Developer Mode**
-* Right-click your avatar → **Copy User ID**
-
-**4. Configure**
-
-```json
-{
-  "channels": {
-    "discord": {
-      "enabled": true,
-      "token": "YOUR_BOT_TOKEN",
-      "allowFrom": ["YOUR_USER_ID"]
-    }
-  }
-}
-```
-
-**5. Invite the bot**
-
-* OAuth2 → URL Generator
-* Scopes: `bot`
-* Bot Permissions: `Send Messages`, `Read Message History`
-* Open the generated invite URL and add the bot to your server
-
-**6. Run**
-
-```bash
-clawdroid gateway
-```
-
-</details>
-
-<details>
-<summary><b>QQ</b></summary>
-
-**1. Create a bot**
-
-- Go to [QQ Open Platform](https://q.qq.com/#)
-- Create an application → Get **AppID** and **AppSecret**
-
-**2. Configure**
-
-```json
-{
-  "channels": {
-    "qq": {
-      "enabled": true,
-      "app_id": "YOUR_APP_ID",
-      "app_secret": "YOUR_APP_SECRET",
-      "allow_from": []
-    }
-  }
-}
-```
-
-> Set `allow_from` to empty to allow all users, or specify QQ numbers to restrict access.
-
-**3. Run**
-
-```bash
-clawdroid gateway
-```
-
-</details>
-
-<details>
-<summary><b>DingTalk</b></summary>
-
-**1. Create a bot**
-
-* Go to [Open Platform](https://open.dingtalk.com/)
-* Create an internal app
-* Copy Client ID and Client Secret
-
-**2. Configure**
-
-```json
-{
-  "channels": {
-    "dingtalk": {
-      "enabled": true,
-      "client_id": "YOUR_CLIENT_ID",
-      "client_secret": "YOUR_CLIENT_SECRET",
-      "allow_from": []
-    }
-  }
-}
-```
-
-> Set `allow_from` to empty to allow all users, or specify QQ numbers to restrict access.
-
-**3. Run**
-
-```bash
-clawdroid gateway
-```
-
-</details>
-
-<details>
-<summary><b>LINE</b></summary>
-
-**1. Create a LINE Official Account**
-
-- Go to [LINE Developers Console](https://developers.line.biz/)
-- Create a provider → Create a Messaging API channel
-- Copy **Channel Secret** and **Channel Access Token**
-
-**2. Configure**
-
-```json
-{
-  "channels": {
-    "line": {
-      "enabled": true,
-      "channel_secret": "YOUR_CHANNEL_SECRET",
-      "channel_access_token": "YOUR_CHANNEL_ACCESS_TOKEN",
-      "webhook_host": "0.0.0.0",
-      "webhook_port": 18791,
-      "webhook_path": "/webhook/line",
-      "allow_from": []
-    }
-  }
-}
-```
-
-**3. Set up Webhook URL**
-
-LINE requires HTTPS for webhooks. Use a reverse proxy or tunnel:
-
-```bash
-# Example with ngrok
-ngrok http 18791
-```
-
-Then set the Webhook URL in LINE Developers Console to `https://your-domain/webhook/line` and enable **Use webhook**.
-
-**4. Run**
-
-```bash
-clawdroid gateway
-```
-
-> In group chats, the bot responds only when @mentioned. Replies quote the original message.
-
-> **Docker Compose**: Add `ports: ["18791:18791"]` to the `clawdroid-gateway` service to expose the webhook port.
-
-</details>
-
-## <img src="assets/clawdchat-icon.png" width="24" height="24" alt="ClawdChat"> Join the Agent Social Network
-
-Connect Clawdroid to the Agent Social Network simply by sending a single message via the CLI or any integrated Chat App.
-
-**Read `https://clawdchat.ai/skill.md` and follow the instructions to join [ClawdChat.ai](https://clawdchat.ai)**
-
-## ⚙️ Configuration
-
-Config file: `~/.clawdroid/config.json`
-
-### Workspace Layout
-
-ClawDroid stores data in your configured workspace (default: `~/.clawdroid/workspace`):
-
-```
-~/.clawdroid/workspace/
-├── sessions/          # Conversation sessions and history
-├── memory/           # Long-term memory (MEMORY.md)
-├── state/            # Persistent state (last channel, etc.)
-├── cron/             # Scheduled jobs database
-├── skills/           # Custom skills
-├── AGENTS.md         # Agent behavior guide
-├── HEARTBEAT.md      # Periodic task prompts (checked every 30 min)
-├── IDENTITY.md       # Agent identity
-├── SOUL.md           # Agent soul
-├── TOOLS.md          # Tool descriptions
-└── USER.md           # User preferences
-```
-
-### 🔒 Security Sandbox
-
-ClawDroid runs in a sandboxed environment by default. The agent can only access files and execute commands within the configured workspace.
-
-#### Default Configuration
-
-```json
-{
-  "agents": {
-    "defaults": {
-      "workspace": "~/.clawdroid/workspace",
-      "restrict_to_workspace": true
-    }
-  }
-}
-```
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `workspace` | `~/.clawdroid/workspace` | Working directory for the agent |
-| `restrict_to_workspace` | `true` | Restrict file/command access to workspace |
-
-#### Protected Tools
-
-When `restrict_to_workspace: true`, the following tools are sandboxed:
-
-| Tool | Function | Restriction |
-|------|----------|-------------|
-| `read_file` | Read files | Only files within workspace |
-| `write_file` | Write files | Only files within workspace |
-| `list_dir` | List directories | Only directories within workspace |
-| `edit_file` | Edit files | Only files within workspace |
-| `append_file` | Append to files | Only files within workspace |
-| `exec` | Execute commands | Command paths must be within workspace |
-
-#### Additional Exec Protection
-
-Even with `restrict_to_workspace: false`, the `exec` tool blocks these dangerous commands:
-
-* `rm -rf`, `del /f`, `rmdir /s` — Bulk deletion
-* `format`, `mkfs`, `diskpart` — Disk formatting
-* `dd if=` — Disk imaging
-* Writing to `/dev/sd[a-z]` — Direct disk writes
-* `shutdown`, `reboot`, `poweroff` — System shutdown
-* Fork bomb `:(){ :|:& };:`
-
-#### Error Examples
-
-```
-[ERROR] tool: Tool execution failed
-{tool=exec, error=Command blocked by safety guard (path outside working dir)}
-```
-
-```
-[ERROR] tool: Tool execution failed
-{tool=exec, error=Command blocked by safety guard (dangerous pattern detected)}
-```
-
-#### Disabling Restrictions (Security Risk)
-
-If you need the agent to access paths outside the workspace:
-
-**Method 1: Config file**
-
-```json
-{
-  "agents": {
-    "defaults": {
-      "restrict_to_workspace": false
-    }
-  }
-}
-```
-
-**Method 2: Environment variable**
-
-```bash
-export CLAWDROID_AGENTS_DEFAULTS_RESTRICT_TO_WORKSPACE=false
-```
-
-> ⚠️ **Warning**: Disabling this restriction allows the agent to access any path on your system. Use with caution in controlled environments only.
-
-#### Security Boundary Consistency
-
-The `restrict_to_workspace` setting applies consistently across all execution paths:
-
-| Execution Path | Security Boundary |
-|----------------|-------------------|
-| Main Agent | `restrict_to_workspace` ✅ |
-| Subagent / Spawn | Inherits same restriction ✅ |
-| Heartbeat tasks | Inherits same restriction ✅ |
-
-All paths share the same workspace restriction — there's no way to bypass the security boundary through subagents or scheduled tasks.
-
-### Heartbeat (Periodic Tasks)
-
-ClawDroid can perform periodic tasks automatically. Create a `HEARTBEAT.md` file in your workspace:
-
-```markdown
-# Periodic Tasks
-
-- Check my email for important messages
-- Review my calendar for upcoming events
-- Check the weather forecast
-```
-
-The agent will read this file every 30 minutes (configurable) and execute any tasks using available tools.
-
-#### Async Tasks with Spawn
-
-For long-running tasks (web search, API calls), use the `spawn` tool to create a **subagent**:
-
-```markdown
-# Periodic Tasks
-
-## Quick Tasks (respond directly)
-- Report current time
-
-## Long Tasks (use spawn for async)
-- Search the web for AI news and summarize
-- Check email and report important messages
-```
-
-**Key behaviors:**
-
-| Feature | Description |
+| Command | Description |
 |---------|-------------|
-| **spawn** | Creates async subagent, doesn't block heartbeat |
-| **Independent context** | Subagent has its own context, no session history |
-| **message tool** | Subagent communicates with user directly via message tool |
-| **Non-blocking** | After spawning, heartbeat continues to next task |
+| `clawdroid gateway` | Start the full server (channels, cron, heartbeat, HTTP gateway) |
+| `clawdroid agent` | Interactive REPL mode |
+| `clawdroid agent -m "..."` | Send a single message |
+| `clawdroid onboard` | First-time setup wizard |
+| `clawdroid status` | Show config and connection status |
+| `clawdroid cron list\|add\|remove\|enable\|disable` | Manage scheduled tasks |
+| `clawdroid skills list\|show\|remove` | Manage skills |
+| `clawdroid version` | Print version info |
 
-#### How Subagent Communication Works
+Use `--debug` / `-d` with `gateway` or `agent` for verbose logging.
 
-```
-Heartbeat triggers
-    ↓
-Agent reads HEARTBEAT.md
-    ↓
-For long task: spawn subagent
-    ↓                           ↓
-Continue to next task      Subagent works independently
-    ↓                           ↓
-All tasks done            Subagent uses "message" tool
-    ↓                           ↓
-Respond HEARTBEAT_OK      User receives result directly
-```
+## Configuration
 
-The subagent has access to tools (message, web_search, etc.) and can communicate with the user independently without going through the main agent.
+Configuration file: `~/.clawdroid/config.json`
 
-**Configuration:**
+All settings can be overridden by environment variables with the `CLAWDROID_` prefix (e.g. `CLAWDROID_LLM_API_KEY`). The env var name corresponds to the JSON path in uppercase with `_` separators.
+
+### LLM (`llm`)
+
+| Key | Default | Env | Description |
+|-----|---------|-----|-------------|
+| `model` | `zhipu/glm-4.7` | `CLAWDROID_LLM_MODEL` | LLM model in `provider/model` format |
+| `api_key` | *(empty)* | `CLAWDROID_LLM_API_KEY` | API key for the LLM provider |
+| `base_url` | *(empty)* | `CLAWDROID_LLM_BASE_URL` | Custom API endpoint (OpenAI-compatible) |
+
+### Agent Defaults (`agents.defaults`)
+
+| Key | Default | Env | Description |
+|-----|---------|-----|-------------|
+| `workspace` | `~/.clawdroid/workspace` | `CLAWDROID_AGENTS_DEFAULTS_WORKSPACE` | Workspace directory path |
+| `data_dir` | `~/.clawdroid/data` | `CLAWDROID_AGENTS_DEFAULTS_DATA_DIR` | Data directory (memory, skills, cron, etc.) |
+| `restrict_to_workspace` | `true` | `CLAWDROID_AGENTS_DEFAULTS_RESTRICT_TO_WORKSPACE` | Restrict file operations to workspace |
+| `max_tokens` | `8192` | `CLAWDROID_AGENTS_DEFAULTS_MAX_TOKENS` | Max output tokens per LLM call |
+| `context_window` | `128000` | `CLAWDROID_AGENTS_DEFAULTS_CONTEXT_WINDOW` | Context window size (tokens) |
+| `temperature` | `0` | `CLAWDROID_AGENTS_DEFAULTS_TEMPERATURE` | LLM sampling temperature |
+| `max_tool_iterations` | `20` | `CLAWDROID_AGENTS_DEFAULTS_MAX_TOOL_ITERATIONS` | Max tool call loops per request |
+
+### Gateway (`gateway`)
+
+| Key | Default | Env | Description |
+|-----|---------|-----|-------------|
+| `host` | `127.0.0.1` | `CLAWDROID_GATEWAY_HOST` | HTTP gateway bind address |
+| `port` | `18790` | `CLAWDROID_GATEWAY_PORT` | HTTP gateway port |
+
+### Channels (`channels`)
+
+#### WebSocket (`channels.websocket`)
+
+| Key | Default | Env | Description |
+|-----|---------|-----|-------------|
+| `enabled` | `true` | `CLAWDROID_CHANNELS_WEBSOCKET_ENABLED` | Enable WebSocket channel (Android app connection) |
+| `host` | `127.0.0.1` | `CLAWDROID_CHANNELS_WEBSOCKET_HOST` | Bind address |
+| `port` | `18793` | `CLAWDROID_CHANNELS_WEBSOCKET_PORT` | Port |
+| `path` | `/ws` | `CLAWDROID_CHANNELS_WEBSOCKET_PATH` | WebSocket path |
+| `allow_from` | `[]` | `CLAWDROID_CHANNELS_WEBSOCKET_ALLOW_FROM` | Allowed user IDs (empty = all) |
+
+#### Telegram (`channels.telegram`)
+
+| Key | Default | Env | Description |
+|-----|---------|-----|-------------|
+| `enabled` | `false` | `CLAWDROID_CHANNELS_TELEGRAM_ENABLED` | Enable Telegram bot |
+| `token` | *(empty)* | `CLAWDROID_CHANNELS_TELEGRAM_TOKEN` | Bot token from BotFather |
+| `proxy` | *(empty)* | `CLAWDROID_CHANNELS_TELEGRAM_PROXY` | SOCKS5/HTTP proxy URL |
+| `allow_from` | `[]` | `CLAWDROID_CHANNELS_TELEGRAM_ALLOW_FROM` | Allowed user/chat IDs |
+
+#### Discord (`channels.discord`)
+
+| Key | Default | Env | Description |
+|-----|---------|-----|-------------|
+| `enabled` | `false` | `CLAWDROID_CHANNELS_DISCORD_ENABLED` | Enable Discord bot |
+| `token` | *(empty)* | `CLAWDROID_CHANNELS_DISCORD_TOKEN` | Bot token |
+| `allow_from` | `[]` | `CLAWDROID_CHANNELS_DISCORD_ALLOW_FROM` | Allowed user IDs |
+
+#### Slack (`channels.slack`)
+
+| Key | Default | Env | Description |
+|-----|---------|-----|-------------|
+| `enabled` | `false` | `CLAWDROID_CHANNELS_SLACK_ENABLED` | Enable Slack bot |
+| `bot_token` | *(empty)* | `CLAWDROID_CHANNELS_SLACK_BOT_TOKEN` | Bot token (`xoxb-...`) |
+| `app_token` | *(empty)* | `CLAWDROID_CHANNELS_SLACK_APP_TOKEN` | App-level token (`xapp-...`) for Socket Mode |
+| `allow_from` | `[]` | `CLAWDROID_CHANNELS_SLACK_ALLOW_FROM` | Allowed user IDs |
+
+#### WhatsApp (`channels.whatsapp`)
+
+| Key | Default | Env | Description |
+|-----|---------|-----|-------------|
+| `enabled` | `false` | `CLAWDROID_CHANNELS_WHATSAPP_ENABLED` | Enable WhatsApp bridge |
+| `bridge_url` | `ws://localhost:3001` | `CLAWDROID_CHANNELS_WHATSAPP_BRIDGE_URL` | Bridge WebSocket URL |
+| `allow_from` | `[]` | `CLAWDROID_CHANNELS_WHATSAPP_ALLOW_FROM` | Allowed phone numbers/IDs |
+
+#### LINE (`channels.line`)
+
+| Key | Default | Env | Description |
+|-----|---------|-----|-------------|
+| `enabled` | `false` | `CLAWDROID_CHANNELS_LINE_ENABLED` | Enable LINE bot |
+| `channel_secret` | *(empty)* | `CLAWDROID_CHANNELS_LINE_CHANNEL_SECRET` | Channel secret |
+| `channel_access_token` | *(empty)* | `CLAWDROID_CHANNELS_LINE_CHANNEL_ACCESS_TOKEN` | Channel access token |
+| `webhook_host` | `127.0.0.1` | `CLAWDROID_CHANNELS_LINE_WEBHOOK_HOST` | Webhook server bind address |
+| `webhook_port` | `18791` | `CLAWDROID_CHANNELS_LINE_WEBHOOK_PORT` | Webhook server port |
+| `webhook_path` | `/webhook/line` | `CLAWDROID_CHANNELS_LINE_WEBHOOK_PATH` | Webhook path |
+| `allow_from` | `[]` | `CLAWDROID_CHANNELS_LINE_ALLOW_FROM` | Allowed user IDs |
+
+### Tools (`tools`)
+
+| Key | Default | Env | Description |
+|-----|---------|-----|-------------|
+| `exec.enabled` | `false` | `CLAWDROID_TOOLS_EXEC_ENABLED` | Shell command execution (disabled for safety) |
+| `android.enabled` | `true` | `CLAWDROID_TOOLS_ANDROID_ENABLED` | Android device automation |
+| `memory.enabled` | `true` | `CLAWDROID_TOOLS_MEMORY_ENABLED` | Long-term memory and daily notes |
+
+#### Web Search (`tools.web`)
+
+| Key | Default | Env | Description |
+|-----|---------|-----|-------------|
+| `brave.enabled` | `false` | `CLAWDROID_TOOLS_WEB_BRAVE_ENABLED` | Enable Brave Search API |
+| `brave.api_key` | *(empty)* | `CLAWDROID_TOOLS_WEB_BRAVE_API_KEY` | Brave API key |
+| `brave.max_results` | `5` | `CLAWDROID_TOOLS_WEB_BRAVE_MAX_RESULTS` | Max search results |
+| `duckduckgo.enabled` | `true` | `CLAWDROID_TOOLS_WEB_DUCKDUCKGO_ENABLED` | Enable DuckDuckGo search (no API key needed) |
+| `duckduckgo.max_results` | `5` | `CLAWDROID_TOOLS_WEB_DUCKDUCKGO_MAX_RESULTS` | Max search results |
+
+#### MCP Servers (`tools.mcp`)
+
+Each entry is keyed by server name. Stdio and HTTP transports are supported.
+
+**Stdio transport:**
+
+| Key | Description |
+|-----|-------------|
+| `command` | Command to launch the server |
+| `args` | Command arguments |
+| `env` | Environment variables for the process |
+
+**HTTP transport:**
+
+| Key | Description |
+|-----|-------------|
+| `url` | Server URL |
+| `headers` | HTTP headers (e.g. Authorization) |
+
+**Common:**
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `description` | *(empty)* | Human-readable description |
+| `enabled` | `false` | Enable this server |
+| `idle_timeout` | `300` | Seconds before idle shutdown |
+
+### Heartbeat (`heartbeat`)
+
+| Key | Default | Env | Description |
+|-----|---------|-----|-------------|
+| `enabled` | `true` | `CLAWDROID_HEARTBEAT_ENABLED` | Enable periodic heartbeat |
+| `interval` | `30` | `CLAWDROID_HEARTBEAT_INTERVAL` | Interval in minutes (min 5) |
+
+### Rate Limits (`rate_limits`)
+
+| Key | Default | Env | Description |
+|-----|---------|-----|-------------|
+| `max_tool_calls_per_minute` | `60` | `CLAWDROID_RATE_LIMITS_MAX_TOOL_CALLS_PER_MINUTE` | Max tool calls per minute (0 = unlimited) |
+| `max_requests_per_minute` | `30` | `CLAWDROID_RATE_LIMITS_MAX_REQUESTS_PER_MINUTE` | Max LLM requests per minute (0 = unlimited) |
+
+## Supported LLM Providers
+
+Uses [any-llm-go](https://github.com/mozilla-ai/any-llm-go) as a unified adapter.
+
+| Provider | Model Format | Example |
+|----------|-------------|---------|
+| OpenAI | `openai/model` | `openai/gpt-4o` |
+| Anthropic | `anthropic/model` or `claude/model` | `anthropic/claude-3-5-sonnet` |
+| Google Gemini | `gemini/model` or `google/model` | `gemini/gemini-2.0-flash` |
+| DeepSeek | `deepseek/model` | `deepseek/deepseek-chat` |
+| Groq | `groq/model` | `groq/llama-3.3-70b` |
+| Mistral | `mistral/model` | `mistral/mistral-large-latest` |
+| Ollama | `ollama/model` | `ollama/llama3` |
+| LlamaCpp | `llamacpp/model` | `llamacpp/local` |
+| Llamafile | `llamafile/model` | `llamafile/local` |
+| ZhiPu | `zhipu/model` | `zhipu/glm-4.7` |
+
+`base_url` can point to any OpenAI-compatible endpoint (OpenRouter, local proxies, etc.).
+
+## Tools
+
+ClawDroid provides 16+ built-in tools that the AI agent can use autonomously.
+
+### File Operations
+
+| Tool | Description |
+|------|-------------|
+| `read_file` | Read file contents |
+| `write_file` | Write content to a file |
+| `edit_file` | Search-and-replace editing |
+| `append_file` | Append content to a file |
+| `copy_file` | Copy files |
+| `list_dir` | List directory contents |
+
+File operations respect `restrict_to_workspace` when enabled.
+
+### Android Device Automation
+
+| Action | Description |
+|--------|-------------|
+| `screenshot` | Capture screen as JPEG |
+| `get_ui_tree` | Dump accessibility tree |
+| `tap` | Tap at coordinates |
+| `swipe` | Swipe gesture |
+| `text` | Input text |
+| `keyevent` | Send key event (back, home, etc.) |
+| `search_apps` | Search installed apps |
+| `launch_app` | Launch app by package name |
+| `app_info` | Get app details |
+| `broadcast` | Send Android broadcast |
+| `intent` | Send Android intent |
+
+UI automation actions (`screenshot`, `tap`, `swipe`, etc.) are only available from the assistant overlay, not the main chat UI.
+
+### Web
+
+| Tool | Description |
+|------|-------------|
+| `web_search` | Search the web (Brave API or DuckDuckGo) |
+| `web_fetch` | Fetch and extract text from a URL |
+
+### Agent & Task Management
+
+| Tool | Description |
+|------|-------------|
+| `subagent` | Synchronous sub-task delegation |
+| `spawn` | Asynchronous sub-task delegation |
+| `cron` | Schedule tasks (one-time, recurring, cron expressions) |
+| `memory` | Long-term memory and daily notes |
+| `message` | Cross-channel messaging |
+| `skill` | List and read skills |
+| `exec` | Shell command execution (disabled by default) |
+| `exit` | End assistant/voice session |
+
+### MCP (Model Context Protocol)
+
+ClawDroid can connect to external MCP servers as tool providers.
 
 ```json
 {
-  "heartbeat": {
-    "enabled": true,
-    "interval": 30
+  "tools": {
+    "mcp": {
+      "my-local-server": {
+        "command": "npx",
+        "args": ["-y", "@example/mcp-server"],
+        "description": "Local MCP server",
+        "enabled": true
+      },
+      "my-remote-server": {
+        "url": "https://mcp.example.com/mcp",
+        "headers": { "Authorization": "Bearer token" },
+        "description": "Remote MCP server",
+        "enabled": true,
+        "idle_timeout": 300
+      }
+    }
   }
 }
 ```
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `enabled` | `true` | Enable/disable heartbeat |
-| `interval` | `30` | Check interval in minutes (min: 5) |
+Supports both **stdio** (local process) and **HTTP/Streamable** (remote) transports. Idle servers are automatically stopped after 5 minutes (configurable).
 
-**Environment variables:**
+## Android App
 
-* `CLAWDROID_HEARTBEAT_ENABLED=false` to disable
-* `CLAWDROID_HEARTBEAT_INTERVAL=60` to change interval
+### Features
 
-### Providers
+- **Chat UI** - Full chat interface built with Jetpack Compose
+- **Floating Assistant Overlay** - Always-accessible pill bar overlay (`SYSTEM_ALERT_WINDOW`)
+- **Voice Mode** - Continuous voice conversation loop (listen -> send -> think -> speak)
+- **Replace Google Assistant** - Registered as `android.intent.action.ASSIST`; long-press home to activate
+- **Device Automation** - AccessibilityService-based tap, swipe, text input, screenshot capture
+- **Camera Capture** - Take photos during voice mode for visual context
+- **Message Persistence** - Local Room database for chat history
 
-> [!NOTE]
-> Groq provides free voice transcription via Whisper. If configured, Telegram voice messages will be automatically transcribed.
+### Permissions
 
-| Provider                   | Purpose                                 | Get API Key                                            |
-| -------------------------- | --------------------------------------- | ------------------------------------------------------ |
-| `gemini`                   | LLM (Gemini direct)                     | [aistudio.google.com](https://aistudio.google.com)     |
-| `zhipu`                    | LLM (Zhipu direct)                      | [bigmodel.cn](bigmodel.cn)                             |
-| `openrouter(To be tested)` | LLM (recommended, access to all models) | [openrouter.ai](https://openrouter.ai)                 |
-| `anthropic(To be tested)`  | LLM (Claude direct)                     | [console.anthropic.com](https://console.anthropic.com) |
-| `openai(To be tested)`     | LLM (GPT direct)                        | [platform.openai.com](https://platform.openai.com)     |
-| `deepseek(To be tested)`   | LLM (DeepSeek direct)                   | [platform.deepseek.com](https://platform.deepseek.com) |
-| `groq`                     | LLM + **Voice transcription** (Whisper) | [console.groq.com](https://console.groq.com)           |
+| Permission | Purpose |
+|-----------|---------|
+| `INTERNET` | LLM API calls, web tools |
+| `SYSTEM_ALERT_WINDOW` | Floating assistant overlay |
+| `RECORD_AUDIO` | Voice mode (STT) |
+| `CAMERA` | Photo capture |
+| `QUERY_ALL_PACKAGES` | App search and launch |
+| `POST_NOTIFICATIONS` | Foreground service notification |
 
-<details>
-<summary><b>Zhipu</b></summary>
+### Voice Mode
 
-**1. Get API key and base URL**
+Voice mode runs a continuous conversation loop:
 
-* Get [API key](https://bigmodel.cn/usercenter/proj-mgmt/apikeys)
+1. **Listening** - Android SpeechRecognizer captures speech
+2. **Sending** - Transcribed text sent to Go backend
+3. **Thinking** - Agent processes and calls tools
+4. **Speaking** - Response read aloud via TextToSpeech
 
-**2. Configure**
+Responses are kept short (1-3 sentences) with natural spoken language. 30-second silence timeout.
 
-```json
-{
-  "agents": {
-    "defaults": {
-      "workspace": "~/.clawdroid/workspace",
-      "model": "glm-4.7",
-      "max_tokens": 8192,
-      "temperature": 0.7,
-      "max_tool_iterations": 20
-    }
-  },
-  "providers": {
-    "zhipu": {
-      "api_key": "Your API Key",
-      "api_base": "https://open.bigmodel.cn/api/paas/v4"
-    }
-  }
-}
-```
+## Messaging Channels
 
-**3. Run**
+ClawDroid can be reached through multiple messaging platforms simultaneously.
+
+| Channel | Transport | Configuration |
+|---------|-----------|---------------|
+| WebSocket | Local WebSocket | Default on, `127.0.0.1:18793` |
+| Telegram | Bot API | Bot token required |
+| Discord | Bot API | Bot token required |
+| Slack | Socket Mode | Bot token + App token required |
+| WhatsApp | Bridge WebSocket | Bridge URL required |
+| LINE | Webhook | Channel secret + access token required |
+
+Each channel supports `allow_from` access control to restrict which users can interact.
+
+## Memory System
+
+- **Long-term memory** (`memory/MEMORY.md`) - Persistent knowledge base. The agent stores important facts here.
+- **Daily notes** (`memory/YYYYMM/YYYYMMDD.md`) - Daily journal entries. The last 3 days are included in the system prompt.
+
+## Heartbeat
+
+When enabled, the agent periodically checks in based on `HEARTBEAT.md` in the workspace. Default interval: 30 minutes. The heartbeat can trigger proactive actions like reminders or background tasks.
+
+## Skills
+
+Skills are defined as `SKILL.md` files and loaded from three directories:
+
+1. Workspace skills (`~/.clawdroid/data/skills/`)
+2. Global skills (`~/.clawdroid/skills/`)
+3. Built-in skills
 
 ```bash
-clawdroid agent -m "Hello"
+clawdroid skills list            # List installed skills
+clawdroid skills show <name>     # Show skill details
+clawdroid skills remove <name>   # Remove a skill
 ```
 
-</details>
+## Workspace Files
 
-<details>
-<summary><b>Full config example</b></summary>
+The workspace (`~/.clawdroid/data/`) contains template files that shape the agent's behavior:
 
-```json
-{
-  "agents": {
-    "defaults": {
-      "model": "anthropic/claude-opus-4-5"
-    }
-  },
-  "providers": {
-    "openrouter": {
-      "api_key": "sk-or-v1-xxx"
-    },
-    "groq": {
-      "api_key": "gsk_xxx"
-    }
-  },
-  "channels": {
-    "telegram": {
-      "enabled": true,
-      "token": "123456:ABC...",
-      "allow_from": ["123456789"]
-    },
-    "discord": {
-      "enabled": true,
-      "token": "",
-      "allow_from": [""]
-    },
-    "whatsapp": {
-      "enabled": false
-    },
-    "feishu": {
-      "enabled": false,
-      "app_id": "cli_xxx",
-      "app_secret": "xxx",
-      "encrypt_key": "",
-      "verification_token": "",
-      "allow_from": []
-    },
-    "qq": {
-      "enabled": false,
-      "app_id": "",
-      "app_secret": "",
-      "allow_from": []
-    }
-  },
-  "tools": {
-    "web": {
-      "brave": {
-        "enabled": false,
-        "api_key": "BSA...",
-        "max_results": 5
-      },
-      "duckduckgo": {
-        "enabled": true,
-        "max_results": 5
-      }
-    }
-  },
-  "heartbeat": {
-    "enabled": true,
-    "interval": 30
-  }
-}
+| File | Purpose |
+|------|---------|
+| `IDENTITY.md` | Bot name, version, capabilities |
+| `SOUL.md` | Personality and values |
+| `AGENT.md` | Operational guidelines |
+| `USER.md` | User preferences and context |
+| `HEARTBEAT.md` | Heartbeat check template |
+
+## Build from Source
+
+### Go Backend
+
+The Go backend can be built and modified directly on Android within Termux. This means you can customize, extend, and rebuild on the device itself without a separate development machine.
+
+```bash
+# Install Go in Termux
+pkg install golang make git
+
+# Clone and build
+git clone https://github.com/KarakuriAgent/clawdroid.git
+cd clawdroid
+make build && make install
 ```
 
-</details>
+| Make Target | Description |
+|-------------|-------------|
+| `make build` | Build for current platform |
+| `make build-all` | Build for linux/amd64, arm64, arm |
+| `make install` | Install to `~/.local/bin` |
+| `make test` | Run tests |
+| `make check` | deps + fmt + vet + test |
+| `make clean` | Remove build artifacts |
+| `make uninstall` | Remove binary |
+| `make uninstall-all` | Remove binary + all data (`~/.clawdroid/`) |
 
-## CLI Reference
+Static binaries (CGO_ENABLED=0). Build targets: `linux/amd64`, `linux/arm64`, `linux/arm`.
 
-| Command                   | Description                   |
-| ------------------------- | ----------------------------- |
-| `clawdroid onboard`        | Initialize config & workspace |
-| `clawdroid agent -m "..."` | Chat with the agent           |
-| `clawdroid agent`          | Interactive chat mode         |
-| `clawdroid gateway`        | Start the gateway             |
-| `clawdroid status`         | Show status                   |
-| `clawdroid cron list`      | List all scheduled jobs       |
-| `clawdroid cron add ...`   | Add a scheduled job           |
+### Android App
 
-### Scheduled Tasks / Reminders
+Open `android/` in Android Studio or build with Gradle:
 
-ClawDroid supports scheduled reminders and recurring tasks through the `cron` tool:
-
-* **One-time reminders**: "Remind me in 10 minutes" → triggers once after 10min
-* **Recurring tasks**: "Remind me every 2 hours" → triggers every 2 hours
-* **Cron expressions**: "Remind me at 9am daily" → uses cron expression
-
-Jobs are stored in `~/.clawdroid/workspace/cron/` and processed automatically.
-
-## 🤝 Contribute & Roadmap
-
-PRs welcome! The codebase is intentionally small and readable. 🤗
-
-Roadmap coming soon...
-
-Developer group building, Entry Requirement: At least 1 Merged PR.
-
-User Groups:
-
-discord:  <https://discord.gg/V4sAZ9XWpN>
-
-<img src="assets/wechat.png" alt="ClawDroid" width="512">
-
-## 🐛 Troubleshooting
-
-### Web search says "API 配置问题"
-
-This is normal if you haven't configured a search API key yet. ClawDroid will provide helpful links for manual searching.
-
-To enable web search:
-
-1. **Option 1 (Recommended)**: Get a free API key at [https://brave.com/search/api](https://brave.com/search/api) (2000 free queries/month) for the best results.
-2. **Option 2 (No Credit Card)**: If you don't have a key, we automatically fall back to **DuckDuckGo** (no key required).
-
-Add the key to `~/.clawdroid/config.json` if using Brave:
-
-```json
-{
-  "tools": {
-    "web": {
-      "brave": {
-        "enabled": false,
-        "api_key": "YOUR_BRAVE_API_KEY",
-        "max_results": 5
-      },
-      "duckduckgo": {
-        "enabled": true,
-        "max_results": 5
-      }
-    }
-  }
-}
+```bash
+cd android
+./gradlew assembleDebug
 ```
 
-### Getting content filtering errors
+Package name: `io.clawdroid`
 
-Some providers (like Zhipu) have content filtering. Try rephrasing your query or use a different model.
+## Project Structure
 
-### Telegram bot says "Conflict: terminated by other getUpdates"
+```
+clawdroid/
+├── cmd/clawdroid/           # Go CLI entry point
+├── pkg/
+│   ├── agent/               # Agent loop, context builder, memory, sessions, voice prompt
+│   ├── bus/                  # Message bus (inbound/outbound channels)
+│   ├── channels/             # Messaging channel adapters
+│   ├── config/               # Configuration loading and structs
+│   ├── cron/                 # Scheduled task service
+│   ├── gateway/              # HTTP gateway server
+│   ├── heartbeat/            # Periodic heartbeat service
+│   ├── logger/               # Structured logging
+│   ├── mcp/                  # MCP client manager
+│   ├── providers/            # LLM provider adapter (any-llm-go)
+│   ├── skills/               # Skills loader (SKILL.md)
+│   ├── state/                # State persistence
+│   └── tools/                # All tool implementations
+├── android/
+│   ├── app/                  # Main app (AssistantService, AccessibilityService, DeviceController)
+│   ├── core/                 # Shared core (data, domain, model, ui)
+│   └── feature/              # Feature modules (chat, settings)
+├── workspace/                # Template files (IDENTITY.md, SOUL.md, etc.)
+├── config/                   # config.example.json
+├── Makefile
+├── go.mod
+└── .goreleaser.yaml
+```
 
-This happens when another instance of the bot is running. Make sure only one `clawdroid gateway` is running at a time.
+## License
 
----
+MIT License. Copyright (c) 2026 PicoClaw contributors.
 
-## 📝 API Key Comparison
-
-| Service          | Free Tier           | Use Case                              |
-| ---------------- | ------------------- | ------------------------------------- |
-| **OpenRouter**   | 200K tokens/month   | Multiple models (Claude, GPT-4, etc.) |
-| **Zhipu**        | 200K tokens/month   | Best for Chinese users                |
-| **Brave Search** | 2000 queries/month  | Web search functionality              |
-| **Groq**         | Free tier available | Fast inference (Llama, Mixtral)       |
+Forked from [PicoClaw](https://github.com/pico-claw/picoclaw).

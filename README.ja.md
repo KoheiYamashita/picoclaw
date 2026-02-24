@@ -1,769 +1,525 @@
-<div align="center">
-<img src="assets/logo.jpg" alt="ClawDroid" width="512">
+# ClawDroid
 
-<h1>ClawDroid: Go で書かれた超効率 AI アシスタント</h1>
+Android 向け超軽量パーソナル AI アシスタント。Go バックエンドが Termux 上で動作し、ネイティブ Kotlin/Jetpack Compose アプリがチャット UI、音声アシスタント、デバイス自動操作を提供します。
 
-<h3>$10 ハードウェア · 10MB RAM · 1秒起動 · 皮皮虾，我们走！</h3>
-<h3></h3>
+[PicoClaw](https://github.com/pico-claw/picoclaw) からフォークしたプロジェクトです。
 
-<p>
-<img src="https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go&logoColor=white" alt="Go">
-<img src="https://img.shields.io/badge/Arch-x86__64%2C%20ARM64%2C%20RISC--V-blue" alt="Hardware">
-<img src="https://img.shields.io/badge/license-MIT-green" alt="License">
-</p>
+## アーキテクチャ
 
-**日本語** | [English](README.md)
-
-</div>
-
-
----
-
-🦐 ClawDroid は [nanobot](https://github.com/HKUDS/nanobot) にインスパイアされた超軽量パーソナル AI アシスタントです。Go でゼロからリファクタリングされ、AI エージェント自身がアーキテクチャの移行とコード最適化を推進するセルフブートストラッピングプロセスで構築されました。
-
-⚡️ $10 のハードウェアで 10MB 未満の RAM で動作：OpenClaw より 99% 少ないメモリ、Mac mini より 98% 安い！
-
-<table align="center">
-  <tr align="center">
-    <td align="center" valign="top">
-      <p align="center">
-        <img src="assets/clawdroid_mem.gif" width="360" height="240">
-      </p>
-    </td>
-    <td align="center" valign="top">
-      <p align="center">
-        <img src="assets/licheervnano.png" width="400" height="240">
-      </p>
-    </td>
-  </tr>
-</table>
-
-## 📢 ニュース
-2026-02-09 🎉 ClawDroid リリース！$10 ハードウェアで 10MB 未満の RAM で動く AI エージェントを 1 日で構築。🦐 皮皮虾，我们走！
-
-## ✨ 特徴
-
-🪶 **超軽量**: メモリフットプリント 10MB 未満 — Clawdbot のコア機能より 99% 小さい。
-
-💰 **最小コスト**: $10 ハードウェアで動作 — Mac mini より 98% 安い。
-
-⚡️ **超高速**: 起動時間 400 倍高速、0.6GHz シングルコアでも 1 秒で起動。
-
-🌍 **真のポータビリティ**: RISC-V、ARM、x86 対応の単一バイナリ。ワンクリックで Go！
-
-🤖 **AI ブートストラップ**: 自律的な Go ネイティブ実装 — コアの 95% が AI 生成、人間によるレビュー付き。
-
-|  | OpenClaw  | NanoBot | **ClawDroid** |
-| --- | --- | --- |--- |
-| **言語** | TypeScript | Python | **Go** |
-| **RAM** | >1GB |>100MB| **< 10MB** |
-| **起動時間**</br>(0.8GHz コア) | >500秒 | >30秒 |  **<1秒** |
-| **コスト** | Mac Mini 599$ | 大半の Linux SBC </br>~50$ |**あらゆる Linux ボード**</br>**最安 10$** |
-<img src="assets/compare.jpg" alt="ClawDroid" width="512">
-
-
-## 🦾 デモンストレーション
-### 🛠️ スタンダードアシスタントワークフロー
-<table align="center">
-  <tr align="center">
-    <th><p align="center">🧩 フルスタックエンジニア</p></th>
-    <th><p align="center">🗂️ ログ＆計画管理</p></th>
-    <th><p align="center">🔎 Web 検索＆学習</p></th>
-  </tr>
-  <tr>
-    <td align="center"><p align="center"><img src="assets/clawdroid_code.gif" width="240" height="180"></p></td>
-    <td align="center"><p align="center"><img src="assets/clawdroid_memory.gif" width="240" height="180"></p></td>
-    <td align="center"><p align="center"><img src="assets/clawdroid_search.gif" width="240" height="180"></p></td>
-  </tr>
-  <tr>
-    <td align="center">開発 · デプロイ · スケール</td>
-    <td align="center">スケジュール · 自動化 · メモリ</td>
-    <td align="center">発見 · インサイト · トレンド</td>
-  </tr>
-</table>
-
-### 🐜 革新的な省フットプリントデプロイ
-ClawDroid はほぼすべての Linux デバイスにデプロイできます！
-
-- $9.9 [LicheeRV-Nano](https://www.aliexpress.com/item/1005006519668532.html) E(Ethernet) または W(WiFi6) バージョン、最小ホームアシスタントに
-- $30~50 [NanoKVM](https://www.aliexpress.com/item/1005007369816019.html) または $100 [NanoKVM-Pro](https://www.aliexpress.com/item/1005010048471263.html) サーバー自動メンテナンスに
-- $50 [MaixCAM](https://www.aliexpress.com/item/1005008053333693.html) または $100 [MaixCAM2](https://www.kickstarter.com/projects/zepan/maixcam2-build-your-next-gen-4k-ai-camera) スマート監視に
-
-https://private-user-images.githubusercontent.com/83055338/547056448-e7b031ff-d6f5-4468-bcca-5726b6fecb5c.mp4
-
-🌟 もっと多くのデプロイ事例が待っています！
-
-## 📦 インストール
-
-### コンパイル済みバイナリでインストール
-
-[リリースページ](https://github.com/KarakuriAgent/clawdroid/releases) からお使いのプラットフォーム用のファームウェアをダウンロードしてください。
-
-### ソースからインストール（最新機能、開発向け推奨）
-
-```bash
-git clone https://github.com/KarakuriAgent/clawdroid.git
-
-cd clawdroid
-make deps
-
-# ビルド（インストール不要）
-make build
-
-# 複数プラットフォーム向けビルド
-make build-all
-
-# ビルドとインストール
-make install
+```
+┌──────────────────────────────────┐
+│   Android アプリ (Kotlin)          │
+│  ┌───────────┐ ┌───────────────┐ │
+│  │ チャット    │ │ アシスタント    │ │
+│  │   UI      │ │ オーバーレイ    │ │
+│  │ (Compose) │ │               │ │
+│  └─────┬─────┘ └───────┬──────┘ │
+│        │   WebSocket    │        │
+│        └───────┬────────┘        │
+└────────────────┼─────────────────┘
+                 │ ws://127.0.0.1:18793
+┌────────────────┼─────────────────┐
+│   Go バックエンド (Termux)          │
+│  ┌────────┐ ┌─────────────────┐  │
+│  │エージェント│ │  ツールループ     │  │
+│  │  ループ  │ │  (16以上)       │  │
+│  └───┬────┘ └────────┬────────┘  │
+│      │    ┌──────────┤           │
+│  ┌───┴──┐ │ ┌────────┴─────────┐ │
+│  │ LLM  │ │ │ MCP / Cron /     │ │
+│  └──────┘ │ │ Skills / Memory   │ │
+│  ┌────────┴─┴──────────────────┐ │
+│  │ チャンネル (Telegram,         │ │
+│  │ Discord, Slack, LINE 等)     │ │
+│  └─────────────────────────────┘ │
+└──────────────────────────────────┘
 ```
 
-## 🐳 Docker Compose
+- **Go バックエンド** (`cmd/clawdroid/`): シングルバイナリ。エージェントループ、ツール実行、LLM 呼び出し、メッセージングチャンネル、Cron、ハートビート
+- **Android アプリ** (`android/`): チャット UI、フローティングアシスタントオーバーレイ、アクセシビリティベースのデバイス制御、音声モード
 
-Docker Compose を使えば、ローカルにインストールせずに ClawDroid を実行できます。
+## クイックスタート
 
-```bash
-# 1. リポジトリをクローン
-git clone https://github.com/KarakuriAgent/clawdroid.git
-cd clawdroid
+### 前提条件
 
-# 2. API キーを設定
-cp config/config.example.json config/config.json
-vim config/config.json      # DISCORD_BOT_TOKEN, プロバイダーの API キーを設定
+- [Termux](https://termux.dev) がインストールされた Android デバイス
+- LLM API キー（OpenAI、Anthropic、Gemini 等）
 
-# 3. ビルドと起動
-docker compose --profile gateway up -d
+### 1. ダウンロード
 
-# 4. ログ確認
-docker compose logs -f clawdroid-gateway
+[GitHub Releases](https://github.com/KarakuriAgent/clawdroid/releases) から最新の Go バックエンドバイナリと Android アプリ APK をダウンロードします。
 
-# 5. 停止
-docker compose --profile gateway down
-```
+デバイスのアーキテクチャに合ったバイナリを選択してください:
 
-### Agent モード（ワンショット）
+| アーキテクチャ | バイナリ |
+|-------------|---------|
+| 64-bit ARM（最近のデバイスの大半） | `clawdroid-linux-arm64` |
+| 32-bit ARM | `clawdroid-linux-arm` |
 
-```bash
-# 質問を投げる
-docker compose run --rm clawdroid-agent -m "What is 2+2?"
+Termux で `uname -m` を実行するとアーキテクチャを確認できます。
 
-# インタラクティブモード
-docker compose run --rm clawdroid-agent
-```
+### 2. Go バックエンドのインストール
 
-### リビルド
+Termux で:
 
 ```bash
-docker compose --profile gateway build --no-cache
-docker compose --profile gateway up -d
+# バイナリを配置して実行権限を付与（arm64 の例）
+cp ~/storage/downloads/clawdroid-linux-arm64 ~/.local/bin/clawdroid
+chmod +x ~/.local/bin/clawdroid
 ```
 
-### 🚀 クイックスタート（ネイティブ）
-
-> [!TIP]
-> `~/.clawdroid/config.json` に API キーを設定してください。
-> API キーの取得先: [OpenRouter](https://openrouter.ai/keys) (LLM) · [Zhipu](https://open.bigmodel.cn/usercenter/proj-mgmt/apikeys) (LLM)
-> Web 検索は **任意** です - 無料の [Brave Search API](https://brave.com/search/api) (月 2000 クエリ無料)
-
-**1. 初期化**
+### 3. 初期セットアップ
 
 ```bash
 clawdroid onboard
 ```
 
-**2. 設定** (`~/.clawdroid/config.json`)
+`~/.clawdroid/config.json` とワークスペーステンプレートが作成されます。
 
-```json
-{
-  "agents": {
-    "defaults": {
-      "workspace": "~/.clawdroid/workspace",
-      "model": "glm-4.7",
-      "max_tokens": 8192,
-      "temperature": 0.7,
-      "max_tool_iterations": 20
-    }
-  },
-  "providers": {
-    "openrouter": {
-      "api_key": "xxx",
-      "api_base": "https://openrouter.ai/api/v1"
-    }
-  },
-  "tools": {
-    "web": {
-      "search": {
-        "api_key": "YOUR_BRAVE_API_KEY",
-        "max_results": 5
-      }
-    }
-  },
-  "heartbeat": {
-    "enabled": true,
-    "interval": 30
-  }
-}
-```
-
-**3. API キーの取得**
-
-- **LLM プロバイダー**: [OpenRouter](https://openrouter.ai/keys) · [Zhipu](https://open.bigmodel.cn/usercenter/proj-mgmt/apikeys) · [Anthropic](https://console.anthropic.com) · [OpenAI](https://platform.openai.com) · [Gemini](https://aistudio.google.com/api-keys)
-- **Web 検索**（任意）: [Brave Search](https://brave.com/search/api) - 無料枠あり（月 2000 リクエスト）
-
-> **注意**: 完全な設定テンプレートは `config.example.json` を参照してください。
-
-**3. チャット**
+設定ファイルを編集して API キーを追加:
 
 ```bash
-clawdroid agent -m "What is 2+2?"
+vi ~/.clawdroid/config.json
 ```
 
-これだけです！2 分で AI アシスタントが動きます。
+### 4. Android アプリのインストール
 
----
+ダウンロードした APK を同じデバイスにインストールします。
 
-## 💬 チャットアプリ
-
-Telegram、Discord、QQ、DingTalk、LINE で ClawDroid と会話できます
-
-| チャネル | セットアップ |
-|---------|------------|
-| **Telegram** | 簡単（トークンのみ） |
-| **Discord** | 簡単（Bot トークン + Intents） |
-| **QQ** | 簡単（AppID + AppSecret） |
-| **DingTalk** | 普通（アプリ認証情報） |
-| **LINE** | 普通（認証情報 + Webhook URL） |
-
-<details>
-<summary><b>Telegram</b>（推奨）</summary>
-
-**1. Bot を作成**
-
-- Telegram を開き、`@BotFather` を検索
-- `/newbot` を送信、プロンプトに従う
-- トークンをコピー
-
-**2. 設定**
-
-```json
-{
-  "channels": {
-    "telegram": {
-      "enabled": true,
-      "token": "YOUR_BOT_TOKEN",
-      "allowFrom": ["YOUR_USER_ID"]
-    }
-  }
-}
-```
-
-> ユーザー ID は Telegram の `@userinfobot` から取得できます。
-
-**3. 起動**
+### 5. 実行
 
 ```bash
+# ゲートウェイサーバーを起動（Android アプリ + メッセージングチャンネルに接続）
 clawdroid gateway
-```
-</details>
 
-
-<details>
-<summary><b>Discord</b></summary>
-
-**1. Bot を作成**
-- https://discord.com/developers/applications にアクセス
-- アプリケーションを作成 → Bot → Add Bot
-- Bot トークンをコピー
-
-**2. Intents を有効化**
-- Bot の設定画面で **MESSAGE CONTENT INTENT** を有効化
-- （任意）**SERVER MEMBERS INTENT** も有効化
-
-**3. ユーザー ID を取得**
-- Discord 設定 → 詳細設定 → **開発者モード** を有効化
-- 自分のアバターを右クリック → **ユーザーIDをコピー**
-
-**4. 設定**
-
-```json
-{
-  "channels": {
-    "discord": {
-      "enabled": true,
-      "token": "YOUR_BOT_TOKEN",
-      "allowFrom": ["YOUR_USER_ID"]
-    }
-  }
-}
+# またはターミナルから直接対話
+clawdroid agent
+clawdroid agent -m "こんにちは！"
 ```
 
-**5. Bot を招待**
-- OAuth2 → URL Generator
-- Scopes: `bot`
-- Bot Permissions: `Send Messages`, `Read Message History`
-- 生成された招待 URL を開き、サーバーに Bot を追加
-
-**6. 起動**
-
-```bash
-clawdroid gateway
-```
-
-</details>
-
-<details>
-<summary><b>QQ</b></summary>
-
-**1. Bot を作成**
-
-- [QQ オープンプラットフォーム](https://q.qq.com/#) にアクセス
-- アプリケーションを作成 → **AppID** と **AppSecret** を取得
-
-**2. 設定**
-
-```json
-{
-  "channels": {
-    "qq": {
-      "enabled": true,
-      "app_id": "YOUR_APP_ID",
-      "app_secret": "YOUR_APP_SECRET",
-      "allow_from": []
-    }
-  }
-}
-```
-
-> `allow_from` を空にすると全ユーザーを許可、QQ番号を指定してアクセス制限可能。
-
-**3. 起動**
-
-```bash
-clawdroid gateway
-```
-
-</details>
-
-<details>
-<summary><b>DingTalk</b></summary>
-
-**1. Bot を作成**
-
-- [オープンプラットフォーム](https://open.dingtalk.com/) にアクセス
-- 内部アプリを作成
-- Client ID と Client Secret をコピー
-
-**2. 設定**
-
-```json
-{
-  "channels": {
-    "dingtalk": {
-      "enabled": true,
-      "client_id": "YOUR_CLIENT_ID",
-      "client_secret": "YOUR_CLIENT_SECRET",
-      "allow_from": []
-    }
-  }
-}
-```
-
-> `allow_from` を空にすると全ユーザーを許可、ユーザーIDを指定してアクセス制限可能。
-
-**3. 起動**
-
-```bash
-clawdroid gateway
-```
-
-</details>
-
-<details>
-<summary><b>LINE</b></summary>
-
-**1. LINE 公式アカウントを作成**
-
-- [LINE Developers Console](https://developers.line.biz/) にアクセス
-- プロバイダーを作成 → Messaging API チャネルを作成
-- **チャネルシークレット** と **チャネルアクセストークン** をコピー
-
-**2. 設定**
-
-```json
-{
-  "channels": {
-    "line": {
-      "enabled": true,
-      "channel_secret": "YOUR_CHANNEL_SECRET",
-      "channel_access_token": "YOUR_CHANNEL_ACCESS_TOKEN",
-      "webhook_host": "0.0.0.0",
-      "webhook_port": 18791,
-      "webhook_path": "/webhook/line",
-      "allow_from": []
-    }
-  }
-}
-```
-
-**3. Webhook URL を設定**
-
-LINE の Webhook には HTTPS が必要です。リバースプロキシまたはトンネルを使用してください:
-
-```bash
-# ngrok の例
-ngrok http 18791
-```
-
-LINE Developers Console で Webhook URL を `https://あなたのドメイン/webhook/line` に設定し、**Webhook の利用** を有効にしてください。
-
-**4. 起動**
-
-```bash
-clawdroid gateway
-```
-
-> グループチャットでは @メンション時のみ応答します。返信は元メッセージを引用する形式です。
-
-> **Docker Compose**: `clawdroid-gateway` サービスに `ports: ["18791:18791"]` を追加して Webhook ポートを公開してください。
-
-</details>
-
-## ⚙️ 設定
-
-設定ファイル: `~/.clawdroid/config.json`
-
-### ワークスペース構成
-
-ClawDroid は設定されたワークスペース（デフォルト: `~/.clawdroid/workspace`）にデータを保存します：
-
-```
-~/.clawdroid/workspace/
-├── sessions/          # 会話セッションと履歴
-├── memory/            # 長期メモリ（MEMORY.md）
-├── state/             # 永続状態（最後のチャネルなど）
-├── cron/              # スケジュールジョブデータベース
-├── skills/            # カスタムスキル
-├── AGENTS.md          # エージェントの行動ガイド
-├── HEARTBEAT.md       # 定期タスクプロンプト（30分ごとに確認）
-├── IDENTITY.md        # エージェントのアイデンティティ
-├── SOUL.md            # エージェントのソウル
-├── TOOLS.md           # ツールの説明
-└── USER.md            # ユーザー設定
-```
-
-### 🔒 セキュリティサンドボックス
-
-ClawDroid はデフォルトでサンドボックス環境で実行されます。エージェントは設定されたワークスペース内のファイルにのみアクセスし、コマンドを実行できます。
-
-#### デフォルト設定
-
-```json
-{
-  "agents": {
-    "defaults": {
-      "workspace": "~/.clawdroid/workspace",
-      "restrict_to_workspace": true
-    }
-  }
-}
-```
-
-| オプション | デフォルト | 説明 |
-|-----------|-----------|------|
-| `workspace` | `~/.clawdroid/workspace` | エージェントの作業ディレクトリ |
-| `restrict_to_workspace` | `true` | ファイル/コマンドアクセスをワークスペースに制限 |
-
-#### 保護対象ツール
-
-`restrict_to_workspace: true` の場合、以下のツールがサンドボックス化されます：
-
-| ツール | 機能 | 制限 |
-|-------|------|------|
-| `read_file` | ファイル読み込み | ワークスペース内のファイルのみ |
-| `write_file` | ファイル書き込み | ワークスペース内のファイルのみ |
-| `list_dir` | ディレクトリ一覧 | ワークスペース内のディレクトリのみ |
-| `edit_file` | ファイル編集 | ワークスペース内のファイルのみ |
-| `append_file` | ファイル追記 | ワークスペース内のファイルのみ |
-| `exec` | コマンド実行 | コマンドパスはワークスペース内である必要あり |
-
-#### exec ツールの追加保護
-
-`restrict_to_workspace: false` でも、`exec` ツールは以下の危険なコマンドをブロックします：
-
-- `rm -rf`, `del /f`, `rmdir /s` — 一括削除
-- `format`, `mkfs`, `diskpart` — ディスクフォーマット
-- `dd if=` — ディスクイメージング
-- `/dev/sd[a-z]` への書き込み — 直接ディスク書き込み
-- `shutdown`, `reboot`, `poweroff` — システムシャットダウン
-- フォークボム `:(){ :|:& };:`
-
-#### エラー例
-
-```
-[ERROR] tool: Tool execution failed
-{tool=exec, error=Command blocked by safety guard (path outside working dir)}
-```
-
-```
-[ERROR] tool: Tool execution failed
-{tool=exec, error=Command blocked by safety guard (dangerous pattern detected)}
-```
-
-#### 制限の無効化（セキュリティリスク）
-
-エージェントにワークスペース外のパスへのアクセスが必要な場合：
-
-**方法1: 設定ファイル**
-```json
-{
-  "agents": {
-    "defaults": {
-      "restrict_to_workspace": false
-    }
-  }
-}
-```
-
-**方法2: 環境変数**
-```bash
-export CLAWDROID_AGENTS_DEFAULTS_RESTRICT_TO_WORKSPACE=false
-```
-
-> ⚠️ **警告**: この制限を無効にすると、エージェントはシステム上の任意のパスにアクセスできるようになります。制御された環境でのみ慎重に使用してください。
-
-#### セキュリティ境界の一貫性
-
-`restrict_to_workspace` 設定は、すべての実行パスで一貫して適用されます：
-
-| 実行パス | セキュリティ境界 |
-|---------|-----------------|
-| メインエージェント | `restrict_to_workspace` ✅ |
-| サブエージェント / Spawn | 同じ制限を継承 ✅ |
-| ハートビートタスク | 同じ制限を継承 ✅ |
-
-すべてのパスで同じワークスペース制限が適用されます — サブエージェントやスケジュールタスクを通じてセキュリティ境界をバイパスする方法はありません。
-
-### ハートビート（定期タスク）
-
-ClawDroid は自動的に定期タスクを実行できます。ワークスペースに `HEARTBEAT.md` ファイルを作成します：
-
-```markdown
-# 定期タスク
-
-- 重要なメールをチェック
-- 今後の予定を確認
-- 天気予報をチェック
-```
-
-エージェントは30分ごと（設定可能）にこのファイルを読み込み、利用可能なツールを使ってタスクを実行します。
-
-#### spawn で非同期タスク実行
-
-時間のかかるタスク（Web検索、API呼び出し）には `spawn` ツールを使って**サブエージェント**を作成します：
-
-```markdown
-# 定期タスク
-
-## クイックタスク（直接応答）
-- 現在時刻を報告
-
-## 長時間タスク（spawn で非同期）
-- AIニュースを検索して要約
-- メールをチェックして重要なメッセージを報告
-```
-
-**主な特徴:**
-
-| 機能 | 説明 |
-|------|------|
-| **spawn** | 非同期サブエージェントを作成、ハートビートをブロックしない |
-| **独立コンテキスト** | サブエージェントは独自のコンテキストを持ち、セッション履歴なし |
-| **message ツール** | サブエージェントは message ツールで直接ユーザーと通信 |
-| **非ブロッキング** | spawn 後、ハートビートは次のタスクへ継続 |
-
-#### サブエージェントの通信方法
-
-```
-ハートビート発動
-    ↓
-エージェントが HEARTBEAT.md を読む
-    ↓
-長いタスク: spawn サブエージェント
-    ↓                           ↓
-次のタスクへ継続          サブエージェントが独立して動作
-    ↓                           ↓
-全タスク完了              message ツールを使用
-    ↓                           ↓
-HEARTBEAT_OK 応答         ユーザーが直接結果を受け取る
-```
-
-サブエージェントはツール（message、web_search など）にアクセスでき、メインエージェントを経由せずにユーザーと通信できます。
-
-**設定:**
-
-```json
-{
-  "heartbeat": {
-    "enabled": true,
-    "interval": 30
-  }
-}
-```
-
-| オプション | デフォルト | 説明 |
-|-----------|-----------|------|
-| `enabled` | `true` | ハートビートの有効/無効 |
-| `interval` | `30` | チェック間隔（分）、最小5分 |
-
-**環境変数:**
-- `CLAWDROID_HEARTBEAT_ENABLED=false` で無効化
-- `CLAWDROID_HEARTBEAT_INTERVAL=60` で間隔変更
-
-### 基本設定
-
-1.  **設定ファイルの作成:**
-
-    ```bash
-    cp config.example.json config/config.json
-    ```
-
-2.  **設定の編集:**
-
-    ```json
-    {
-      "providers": {
-        "openrouter": {
-          "api_key": "sk-or-v1-..."
-        }
-      },
-      "channels": {
-        "discord": {
-          "enabled": true,
-          "token": "YOUR_DISCORD_BOT_TOKEN"
-        }
-      }
-    }
-    ```
-
-3.  **実行**
-
-    ```bash
-    clawdroid agent -m "Hello"
-    ```
-</details>
-
-<details>
-<summary><b>完全な設定例</b></summary>
-
-```json
-{
-  "agents": {
-    "defaults": {
-      "model": "anthropic/claude-opus-4-5"
-    }
-  },
-  "providers": {
-    "openrouter": {
-      "apiKey": "sk-or-v1-xxx"
-    },
-    "groq": {
-      "apiKey": "gsk_xxx"
-    }
-  },
-  "channels": {
-    "telegram": {
-      "enabled": true,
-      "token": "123456:ABC...",
-      "allowFrom": ["123456789"]
-    },
-    "discord": {
-      "enabled": true,
-      "token": "",
-      "allow_from": [""]
-    },
-    "whatsapp": {
-      "enabled": false
-    },
-    "feishu": {
-      "enabled": false,
-      "appId": "cli_xxx",
-      "appSecret": "xxx",
-      "encryptKey": "",
-      "verificationToken": "",
-      "allowFrom": []
-    }
-  },
-  "tools": {
-    "web": {
-      "search": {
-        "apiKey": "BSA..."
-      }
-    }
-  },
-  "heartbeat": {
-    "enabled": true,
-    "interval": 30
-  }
-}
-```
-
-</details>
-
-## CLI リファレンス
+## CLI コマンド
 
 | コマンド | 説明 |
 |---------|------|
-| `clawdroid onboard` | 設定＆ワークスペースの初期化 |
-| `clawdroid agent -m "..."` | エージェントとチャット |
-| `clawdroid agent` | インタラクティブチャットモード |
-| `clawdroid gateway` | ゲートウェイを起動 |
-| `clawdroid status` | ステータスを表示 |
+| `clawdroid gateway` | フルサーバー起動（チャンネル、Cron、ハートビート、HTTP ゲートウェイ） |
+| `clawdroid agent` | 対話型 REPL モード |
+| `clawdroid agent -m "..."` | 単発メッセージ送信 |
+| `clawdroid onboard` | 初回セットアップウィザード |
+| `clawdroid status` | 設定と接続状態の表示 |
+| `clawdroid cron list\|add\|remove\|enable\|disable` | スケジュールタスクの管理 |
+| `clawdroid skills list\|show\|remove` | スキルの管理 |
+| `clawdroid version` | バージョン情報の表示 |
 
-## 🤝 コントリビュート＆ロードマップ
+`gateway` または `agent` に `--debug` / `-d` を付けると詳細ログが有効になります。
 
-PR 歓迎！コードベースは意図的に小さく読みやすくしています。🤗
+## 設定
 
-Discord: https://discord.gg/V4sAZ9XWpN
+設定ファイル: `~/.clawdroid/config.json`
 
-<img src="assets/wechat.png" alt="ClawDroid" width="512">
+すべての設定は `CLAWDROID_` プレフィックスの環境変数で上書きできます（例: `CLAWDROID_LLM_API_KEY`）。環境変数名は JSON パスを大文字・`_` 区切りにしたものです。
 
+### LLM (`llm`)
 
-## 🐛 トラブルシューティング
+| キー | デフォルト | 環境変数 | 説明 |
+|-----|----------|---------|------|
+| `model` | `zhipu/glm-4.7` | `CLAWDROID_LLM_MODEL` | `プロバイダー/モデル名` 形式で指定 |
+| `api_key` | *(空)* | `CLAWDROID_LLM_API_KEY` | LLM プロバイダーの API キー |
+| `base_url` | *(空)* | `CLAWDROID_LLM_BASE_URL` | カスタム API エンドポイント（OpenAI 互換） |
 
-### Web 検索で「API 配置问题」と表示される
+### エージェント (`agents.defaults`)
 
-検索 API キーをまだ設定していない場合、これは正常です。ClawDroid は手動検索用の便利なリンクを提供します。
+| キー | デフォルト | 環境変数 | 説明 |
+|-----|----------|---------|------|
+| `workspace` | `~/.clawdroid/workspace` | `CLAWDROID_AGENTS_DEFAULTS_WORKSPACE` | ワークスペースのパス |
+| `data_dir` | `~/.clawdroid/data` | `CLAWDROID_AGENTS_DEFAULTS_DATA_DIR` | データディレクトリ（メモリ、スキル、cron 等） |
+| `restrict_to_workspace` | `true` | `CLAWDROID_AGENTS_DEFAULTS_RESTRICT_TO_WORKSPACE` | ファイル操作をワークスペース内に制限 |
+| `max_tokens` | `8192` | `CLAWDROID_AGENTS_DEFAULTS_MAX_TOKENS` | LLM 呼び出しあたりの最大出力トークン数 |
+| `context_window` | `128000` | `CLAWDROID_AGENTS_DEFAULTS_CONTEXT_WINDOW` | コンテキストウィンドウサイズ（トークン） |
+| `temperature` | `0` | `CLAWDROID_AGENTS_DEFAULTS_TEMPERATURE` | LLM のサンプリング温度 |
+| `max_tool_iterations` | `20` | `CLAWDROID_AGENTS_DEFAULTS_MAX_TOOL_ITERATIONS` | 1リクエストあたりのツール呼び出し最大ループ数 |
 
-Web 検索を有効にするには：
-1. [https://brave.com/search/api](https://brave.com/search/api) で無料の API キーを取得（月 2000 クエリ無料）
-2. `~/.clawdroid/config.json` に追加：
-   ```json
-   {
-     "tools": {
-       "web": {
-         "search": {
-           "api_key": "YOUR_BRAVE_API_KEY",
-           "max_results": 5
-         }
-       }
-     }
-   }
-   ```
+### ゲートウェイ (`gateway`)
 
-### コンテンツフィルタリングエラーが出る
+| キー | デフォルト | 環境変数 | 説明 |
+|-----|----------|---------|------|
+| `host` | `127.0.0.1` | `CLAWDROID_GATEWAY_HOST` | HTTP ゲートウェイのバインドアドレス |
+| `port` | `18790` | `CLAWDROID_GATEWAY_PORT` | HTTP ゲートウェイのポート |
 
-一部のプロバイダー（Zhipu など）にはコンテンツフィルタリングがあります。クエリを言い換えるか、別のモデルを使用してください。
+### チャンネル (`channels`)
 
-### Telegram Bot で「Conflict: terminated by other getUpdates」と表示される
+#### WebSocket (`channels.websocket`)
 
-別のインスタンスが実行中の場合に発生します。`clawdroid gateway` が 1 つだけ実行されていることを確認してください。
+| キー | デフォルト | 環境変数 | 説明 |
+|-----|----------|---------|------|
+| `enabled` | `true` | `CLAWDROID_CHANNELS_WEBSOCKET_ENABLED` | WebSocket チャンネルを有効化（Android アプリ接続用） |
+| `host` | `127.0.0.1` | `CLAWDROID_CHANNELS_WEBSOCKET_HOST` | バインドアドレス |
+| `port` | `18793` | `CLAWDROID_CHANNELS_WEBSOCKET_PORT` | ポート |
+| `path` | `/ws` | `CLAWDROID_CHANNELS_WEBSOCKET_PATH` | WebSocket パス |
+| `allow_from` | `[]` | `CLAWDROID_CHANNELS_WEBSOCKET_ALLOW_FROM` | 許可するユーザー ID（空 = 全員許可） |
 
----
+#### Telegram (`channels.telegram`)
 
-## 📝 API キー比較
+| キー | デフォルト | 環境変数 | 説明 |
+|-----|----------|---------|------|
+| `enabled` | `false` | `CLAWDROID_CHANNELS_TELEGRAM_ENABLED` | Telegram ボットを有効化 |
+| `token` | *(空)* | `CLAWDROID_CHANNELS_TELEGRAM_TOKEN` | BotFather から取得したボットトークン |
+| `proxy` | *(空)* | `CLAWDROID_CHANNELS_TELEGRAM_PROXY` | SOCKS5/HTTP プロキシ URL |
+| `allow_from` | `[]` | `CLAWDROID_CHANNELS_TELEGRAM_ALLOW_FROM` | 許可するユーザー/チャット ID |
 
-| サービス | 無料枠 | ユースケース |
-|---------|--------|------------|
-| **OpenRouter** | 月 200K トークン | 複数モデル（Claude, GPT-4 など） |
-| **Zhipu** | 月 200K トークン | 中国ユーザー向け最適 |
-| **Brave Search** | 月 2000 クエリ | Web 検索機能 |
-| **Groq** | 無料枠あり | 高速推論（Llama, Mixtral） |
+#### Discord (`channels.discord`)
+
+| キー | デフォルト | 環境変数 | 説明 |
+|-----|----------|---------|------|
+| `enabled` | `false` | `CLAWDROID_CHANNELS_DISCORD_ENABLED` | Discord ボットを有効化 |
+| `token` | *(空)* | `CLAWDROID_CHANNELS_DISCORD_TOKEN` | ボットトークン |
+| `allow_from` | `[]` | `CLAWDROID_CHANNELS_DISCORD_ALLOW_FROM` | 許可するユーザー ID |
+
+#### Slack (`channels.slack`)
+
+| キー | デフォルト | 環境変数 | 説明 |
+|-----|----------|---------|------|
+| `enabled` | `false` | `CLAWDROID_CHANNELS_SLACK_ENABLED` | Slack ボットを有効化 |
+| `bot_token` | *(空)* | `CLAWDROID_CHANNELS_SLACK_BOT_TOKEN` | ボットトークン（`xoxb-...`） |
+| `app_token` | *(空)* | `CLAWDROID_CHANNELS_SLACK_APP_TOKEN` | Socket Mode 用アプリレベルトークン（`xapp-...`） |
+| `allow_from` | `[]` | `CLAWDROID_CHANNELS_SLACK_ALLOW_FROM` | 許可するユーザー ID |
+
+#### WhatsApp (`channels.whatsapp`)
+
+| キー | デフォルト | 環境変数 | 説明 |
+|-----|----------|---------|------|
+| `enabled` | `false` | `CLAWDROID_CHANNELS_WHATSAPP_ENABLED` | WhatsApp ブリッジを有効化 |
+| `bridge_url` | `ws://localhost:3001` | `CLAWDROID_CHANNELS_WHATSAPP_BRIDGE_URL` | ブリッジの WebSocket URL |
+| `allow_from` | `[]` | `CLAWDROID_CHANNELS_WHATSAPP_ALLOW_FROM` | 許可する電話番号/ID |
+
+#### LINE (`channels.line`)
+
+| キー | デフォルト | 環境変数 | 説明 |
+|-----|----------|---------|------|
+| `enabled` | `false` | `CLAWDROID_CHANNELS_LINE_ENABLED` | LINE ボットを有効化 |
+| `channel_secret` | *(空)* | `CLAWDROID_CHANNELS_LINE_CHANNEL_SECRET` | チャンネルシークレット |
+| `channel_access_token` | *(空)* | `CLAWDROID_CHANNELS_LINE_CHANNEL_ACCESS_TOKEN` | チャンネルアクセストークン |
+| `webhook_host` | `127.0.0.1` | `CLAWDROID_CHANNELS_LINE_WEBHOOK_HOST` | Webhook サーバーのバインドアドレス |
+| `webhook_port` | `18791` | `CLAWDROID_CHANNELS_LINE_WEBHOOK_PORT` | Webhook サーバーのポート |
+| `webhook_path` | `/webhook/line` | `CLAWDROID_CHANNELS_LINE_WEBHOOK_PATH` | Webhook パス |
+| `allow_from` | `[]` | `CLAWDROID_CHANNELS_LINE_ALLOW_FROM` | 許可するユーザー ID |
+
+### ツール (`tools`)
+
+| キー | デフォルト | 環境変数 | 説明 |
+|-----|----------|---------|------|
+| `exec.enabled` | `false` | `CLAWDROID_TOOLS_EXEC_ENABLED` | シェルコマンド実行（安全のためデフォルト無効） |
+| `android.enabled` | `true` | `CLAWDROID_TOOLS_ANDROID_ENABLED` | Android デバイス自動操作 |
+| `memory.enabled` | `true` | `CLAWDROID_TOOLS_MEMORY_ENABLED` | 長期メモリとデイリーノート |
+
+#### Web 検索 (`tools.web`)
+
+| キー | デフォルト | 環境変数 | 説明 |
+|-----|----------|---------|------|
+| `brave.enabled` | `false` | `CLAWDROID_TOOLS_WEB_BRAVE_ENABLED` | Brave Search API を有効化 |
+| `brave.api_key` | *(空)* | `CLAWDROID_TOOLS_WEB_BRAVE_API_KEY` | Brave API キー |
+| `brave.max_results` | `5` | `CLAWDROID_TOOLS_WEB_BRAVE_MAX_RESULTS` | 検索結果の最大件数 |
+| `duckduckgo.enabled` | `true` | `CLAWDROID_TOOLS_WEB_DUCKDUCKGO_ENABLED` | DuckDuckGo 検索を有効化（API キー不要） |
+| `duckduckgo.max_results` | `5` | `CLAWDROID_TOOLS_WEB_DUCKDUCKGO_MAX_RESULTS` | 検索結果の最大件数 |
+
+#### MCP サーバー (`tools.mcp`)
+
+サーバー名をキーとしたエントリで定義。Stdio と HTTP の 2 種類のトランスポートに対応。
+
+**Stdio トランスポート:**
+
+| キー | 説明 |
+|-----|------|
+| `command` | サーバーの起動コマンド |
+| `args` | コマンド引数 |
+| `env` | プロセスの環境変数 |
+
+**HTTP トランスポート:**
+
+| キー | 説明 |
+|-----|------|
+| `url` | サーバー URL |
+| `headers` | HTTP ヘッダー（例: Authorization） |
+
+**共通:**
+
+| キー | デフォルト | 説明 |
+|-----|----------|------|
+| `description` | *(空)* | 人間が読める説明 |
+| `enabled` | `false` | このサーバーを有効化 |
+| `idle_timeout` | `300` | アイドル時に停止するまでの秒数 |
+
+### ハートビート (`heartbeat`)
+
+| キー | デフォルト | 環境変数 | 説明 |
+|-----|----------|---------|------|
+| `enabled` | `true` | `CLAWDROID_HEARTBEAT_ENABLED` | 定期ハートビートを有効化 |
+| `interval` | `30` | `CLAWDROID_HEARTBEAT_INTERVAL` | 間隔（分、最小 5） |
+
+### レート制限 (`rate_limits`)
+
+| キー | デフォルト | 環境変数 | 説明 |
+|-----|----------|---------|------|
+| `max_tool_calls_per_minute` | `60` | `CLAWDROID_RATE_LIMITS_MAX_TOOL_CALLS_PER_MINUTE` | 1分あたりのツール呼び出し上限（0 = 無制限） |
+| `max_requests_per_minute` | `30` | `CLAWDROID_RATE_LIMITS_MAX_REQUESTS_PER_MINUTE` | 1分あたりの LLM リクエスト上限（0 = 無制限） |
+
+## 対応 LLM プロバイダー
+
+[any-llm-go](https://github.com/mozilla-ai/any-llm-go) を統一アダプターとして使用。
+
+| プロバイダー | モデル指定形式 | 例 |
+|------------|-------------|---|
+| OpenAI | `openai/model` | `openai/gpt-4o` |
+| Anthropic | `anthropic/model` または `claude/model` | `anthropic/claude-3-5-sonnet` |
+| Google Gemini | `gemini/model` または `google/model` | `gemini/gemini-2.0-flash` |
+| DeepSeek | `deepseek/model` | `deepseek/deepseek-chat` |
+| Groq | `groq/model` | `groq/llama-3.3-70b` |
+| Mistral | `mistral/model` | `mistral/mistral-large-latest` |
+| Ollama | `ollama/model` | `ollama/llama3` |
+| LlamaCpp | `llamacpp/model` | `llamacpp/local` |
+| Llamafile | `llamafile/model` | `llamafile/local` |
+| ZhiPu | `zhipu/model` | `zhipu/glm-4.7` |
+
+`base_url` で任意の OpenAI 互換エンドポイント（OpenRouter、ローカルプロキシ等）を指定できます。
+
+## ツール
+
+ClawDroid は 16 以上の組み込みツールを提供し、AI エージェントが自律的に使用します。
+
+### ファイル操作
+
+| ツール | 説明 |
+|-------|------|
+| `read_file` | ファイル内容の読み取り |
+| `write_file` | ファイルへの書き込み |
+| `edit_file` | 検索置換による編集 |
+| `append_file` | ファイルへの追記 |
+| `copy_file` | ファイルのコピー |
+| `list_dir` | ディレクトリ内容の一覧 |
+
+`restrict_to_workspace` 有効時はワークスペース内のみに制限されます。
+
+### Android デバイス自動操作
+
+| アクション | 説明 |
+|-----------|------|
+| `screenshot` | 画面キャプチャ（JPEG） |
+| `get_ui_tree` | アクセシビリティツリーの取得 |
+| `tap` | 座標をタップ |
+| `swipe` | スワイプ操作 |
+| `text` | テキスト入力 |
+| `keyevent` | キーイベント送信（戻る、ホーム等） |
+| `search_apps` | インストール済みアプリの検索 |
+| `launch_app` | パッケージ名でアプリを起動 |
+| `app_info` | アプリ情報の取得 |
+| `broadcast` | Android ブロードキャストの送信 |
+| `intent` | Android インテントの送信 |
+
+UI 自動操作（`screenshot`、`tap`、`swipe` 等）はアシスタントオーバーレイからのみ利用可能です。メインのチャット UI からは使用できません。
+
+### Web
+
+| ツール | 説明 |
+|-------|------|
+| `web_search` | Web 検索（Brave API または DuckDuckGo） |
+| `web_fetch` | URL からテキストを取得・抽出 |
+
+### エージェント・タスク管理
+
+| ツール | 説明 |
+|-------|------|
+| `subagent` | 同期的なサブタスク委譲 |
+| `spawn` | 非同期的なサブタスク委譲 |
+| `cron` | タスクのスケジュール（単発、繰り返し、cron 式） |
+| `memory` | 長期メモリとデイリーノート |
+| `message` | クロスチャンネルメッセージング |
+| `skill` | スキルの一覧表示・読み込み |
+| `exec` | シェルコマンド実行（デフォルト無効） |
+| `exit` | アシスタント/音声セッションの終了 |
+
+### MCP（Model Context Protocol）
+
+外部 MCP サーバーをツールプロバイダーとして接続できます。
+
+```json
+{
+  "tools": {
+    "mcp": {
+      "my-local-server": {
+        "command": "npx",
+        "args": ["-y", "@example/mcp-server"],
+        "description": "ローカル MCP サーバー",
+        "enabled": true
+      },
+      "my-remote-server": {
+        "url": "https://mcp.example.com/mcp",
+        "headers": { "Authorization": "Bearer token" },
+        "description": "リモート MCP サーバー",
+        "enabled": true,
+        "idle_timeout": 300
+      }
+    }
+  }
+}
+```
+
+**stdio**（ローカルプロセス）と **HTTP/Streamable**（リモート）の両方のトランスポートに対応。アイドル状態のサーバーは 5 分後に自動停止します（`idle_timeout` で変更可能）。
+
+## Android アプリ
+
+### 機能
+
+- **チャット UI** - Jetpack Compose で構築されたフルチャットインターフェース
+- **フローティングアシスタントオーバーレイ** - 常時アクセス可能なピルバー型オーバーレイ（`SYSTEM_ALERT_WINDOW`）
+- **音声モード** - 継続的な音声会話ループ（聞く → 送信 → 思考 → 話す）
+- **Google アシスタントの代替** - `android.intent.action.ASSIST` として登録。ホームボタン長押しで起動
+- **デバイス自動操作** - AccessibilityService ベースのタップ、スワイプ、テキスト入力、スクリーンショット
+- **カメラ撮影** - 音声モード中に写真を撮影し視覚的コンテキストとして利用
+- **メッセージ永続化** - Room データベースによるチャット履歴の保存
+
+### パーミッション
+
+| パーミッション | 用途 |
+|-------------|------|
+| `INTERNET` | LLM API 呼び出し、Web ツール |
+| `SYSTEM_ALERT_WINDOW` | フローティングアシスタントオーバーレイ |
+| `RECORD_AUDIO` | 音声モード（音声認識） |
+| `CAMERA` | 写真撮影 |
+| `QUERY_ALL_PACKAGES` | アプリ検索・起動 |
+| `POST_NOTIFICATIONS` | フォアグラウンドサービスの通知 |
+
+### 音声モード
+
+音声モードは継続的な会話ループで動作します:
+
+1. **聞き取り** - Android SpeechRecognizer が音声をキャプチャ
+2. **送信** - 文字起こしされたテキストを Go バックエンドに送信
+3. **思考** - エージェントが処理しツールを呼び出す
+4. **読み上げ** - TextToSpeech でレスポンスを読み上げ
+
+レスポンスは短く（1〜3 文）、自然な話し言葉で返されます。30 秒間無音が続くと自動的にタイムアウトします。
+
+## メッセージングチャンネル
+
+複数のメッセージングプラットフォームから同時にアクセスできます。
+
+| チャンネル | トランスポート | 設定 |
+|-----------|-------------|------|
+| WebSocket | ローカル WebSocket | デフォルト有効、`127.0.0.1:18793` |
+| Telegram | Bot API | Bot トークンが必要 |
+| Discord | Bot API | Bot トークンが必要 |
+| Slack | Socket Mode | Bot トークン + App トークンが必要 |
+| WhatsApp | Bridge WebSocket | ブリッジ URL が必要 |
+| LINE | Webhook | チャンネルシークレット + アクセストークンが必要 |
+
+各チャンネルは `allow_from` でアクセスを許可するユーザーを制限できます。
+
+## メモリシステム
+
+- **長期メモリ** (`memory/MEMORY.md`) - 永続的なナレッジベース。エージェントが重要な情報を保存します。
+- **デイリーノート** (`memory/YYYYMM/YYYYMMDD.md`) - 日ごとのジャーナル。直近 3 日分がシステムプロンプトに含まれます。
+
+## ハートビート
+
+有効時、ワークスペースの `HEARTBEAT.md` に基づいてエージェントが定期的にチェックインします。デフォルト間隔: 30 分。リマインダーやバックグラウンドタスクなどのプロアクティブなアクションをトリガーできます。
+
+## スキル
+
+スキルは `SKILL.md` ファイルとして定義され、3 つのディレクトリから読み込まれます:
+
+1. ワークスペーススキル (`~/.clawdroid/data/skills/`)
+2. グローバルスキル (`~/.clawdroid/skills/`)
+3. ビルトインスキル
+
+```bash
+clawdroid skills list            # インストール済みスキルの一覧
+clawdroid skills show <name>     # スキルの詳細表示
+clawdroid skills remove <name>   # スキルの削除
+```
+
+## ワークスペースファイル
+
+ワークスペース (`~/.clawdroid/data/`) にはエージェントの振る舞いを定義するテンプレートファイルが含まれます:
+
+| ファイル | 用途 |
+|--------|------|
+| `IDENTITY.md` | ボット名、バージョン、機能 |
+| `SOUL.md` | 性格と価値観 |
+| `AGENT.md` | 運用ガイドライン |
+| `USER.md` | ユーザーの好みとコンテキスト |
+| `HEARTBEAT.md` | ハートビートチェックのテンプレート |
+
+## ソースからビルド
+
+### Go バックエンド
+
+Go バックエンドは Termux 上で直接修正・ビルドできます。PC 等の別の開発環境がなくても、Android デバイス上でコードを変更して拡張することが可能です。
+
+```bash
+# Termux に Go をインストール
+pkg install golang make git
+
+# クローンしてビルド
+git clone https://github.com/KarakuriAgent/clawdroid.git
+cd clawdroid
+make build && make install
+```
+
+| Make ターゲット | 説明 |
+|---------------|------|
+| `make build` | 現在のプラットフォーム向けにビルド |
+| `make build-all` | linux/amd64, arm64, arm 向けにビルド |
+| `make install` | `~/.local/bin` にインストール |
+| `make test` | テスト実行 |
+| `make check` | deps + fmt + vet + test |
+| `make clean` | ビルド成果物を削除 |
+| `make uninstall` | バイナリを削除 |
+| `make uninstall-all` | バイナリ + 全データ (`~/.clawdroid/`) を削除 |
+
+静的バイナリ（CGO_ENABLED=0）。ビルドターゲット: `linux/amd64`、`linux/arm64`、`linux/arm`。
+
+### Android アプリ
+
+Android Studio で `android/` を開くか、Gradle でビルド:
+
+```bash
+cd android
+./gradlew assembleDebug
+```
+
+パッケージ名: `io.clawdroid`
+
+## プロジェクト構成
+
+```
+clawdroid/
+├── cmd/clawdroid/           # Go CLI エントリーポイント
+├── pkg/
+│   ├── agent/               # エージェントループ、コンテキストビルダー、メモリ、セッション、音声プロンプト
+│   ├── bus/                  # メッセージバス（受信/送信チャンネル）
+│   ├── channels/             # メッセージングチャンネルアダプター
+│   ├── config/               # 設定の読み込みと構造体
+│   ├── cron/                 # スケジュールタスクサービス
+│   ├── gateway/              # HTTP ゲートウェイサーバー
+│   ├── heartbeat/            # 定期ハートビートサービス
+│   ├── logger/               # 構造化ロギング
+│   ├── mcp/                  # MCP クライアントマネージャー
+│   ├── providers/            # LLM プロバイダーアダプター (any-llm-go)
+│   ├── skills/               # スキルローダー (SKILL.md)
+│   ├── state/                # 状態の永続化
+│   └── tools/                # 全ツール実装
+├── android/
+│   ├── app/                  # メインアプリ (AssistantService, AccessibilityService, DeviceController)
+│   ├── core/                 # 共有コア (data, domain, model, ui)
+│   └── feature/              # 機能モジュール (chat, settings)
+├── workspace/                # テンプレートファイル (IDENTITY.md, SOUL.md 等)
+├── config/                   # config.example.json
+├── Makefile
+├── go.mod
+└── .goreleaser.yaml
+```
+
+## ライセンス
+
+MIT License。Copyright (c) 2026 PicoClaw contributors。
+
+[PicoClaw](https://github.com/pico-claw/picoclaw) からフォーク。
