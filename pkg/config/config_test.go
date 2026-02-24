@@ -27,12 +27,12 @@ func TestDefaultConfig_WorkspacePath(t *testing.T) {
 	}
 }
 
-// TestDefaultConfig_Model verifies model is set
+// TestDefaultConfig_Model verifies model default is empty (user must configure)
 func TestDefaultConfig_Model(t *testing.T) {
 	cfg := DefaultConfig()
 
-	if cfg.LLM.Model == "" {
-		t.Error("LLM.Model should not be empty")
+	if cfg.LLM.Model != "" {
+		t.Errorf("LLM.Model should be empty by default, got %q", cfg.LLM.Model)
 	}
 }
 
@@ -85,8 +85,8 @@ func TestDefaultConfig_LLM(t *testing.T) {
 	if cfg.LLM.BaseURL != "" {
 		t.Error("LLM BaseURL should be empty by default")
 	}
-	if cfg.LLM.Model != "zhipu/glm-4.7" {
-		t.Errorf("LLM Model = %q, want %q", cfg.LLM.Model, "zhipu/glm-4.7")
+	if cfg.LLM.Model != "" {
+		t.Errorf("LLM Model should be empty by default, got %q", cfg.LLM.Model)
 	}
 }
 
@@ -192,9 +192,6 @@ func TestConfig_Complete(t *testing.T) {
 	// Verify complete config structure
 	if cfg.Agents.Defaults.Workspace == "" {
 		t.Error("Workspace should not be empty")
-	}
-	if cfg.LLM.Model == "" {
-		t.Error("LLM.Model should not be empty")
 	}
 	if cfg.Agents.Defaults.MaxTokens == 0 {
 		t.Error("MaxTokens should not be zero")

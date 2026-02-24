@@ -195,7 +195,7 @@ type ToolsConfig struct {
 func DefaultConfig() *Config {
 	return &Config{
 		LLM: LLMConfig{
-			Model: "zhipu/glm-4.7",
+			Model: "",
 		},
 		Agents: AgentsConfig{
 			Defaults: AgentDefaults{
@@ -205,7 +205,7 @@ func DefaultConfig() *Config {
 				MaxTokens:           8192,
 				ContextWindow:       128000,
 				Temperature:         0,
-				MaxToolIterations:   20,
+				MaxToolIterations:   10,
 			},
 		},
 		Channels: ChannelsConfig{
@@ -278,8 +278,8 @@ func DefaultConfig() *Config {
 			Interval: 30, // default 30 minutes
 		},
 		RateLimits: RateLimitsConfig{
-			MaxToolCallsPerMinute: 60,
-			MaxRequestsPerMinute:  30,
+			MaxToolCallsPerMinute: 30,
+			MaxRequestsPerMinute:  15,
 		},
 	}
 }

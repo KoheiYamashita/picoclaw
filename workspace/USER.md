@@ -1,21 +1,24 @@
 # User
 
-Information about user goes here.
+## Language
+- Preferred language: (set your language here, e.g. "English", "Japanese", "Chinese")
+
+## Communication Style
+- Tone: (casual / formal / auto)
+- Detail level: (brief / normal / detailed)
+
+## Timezone
+- Timezone: (e.g. Asia/Tokyo, America/New_York, UTC)
+
+## Personal Info (optional)
+- Name:
+- Location:
+- Occupation:
 
 ## Preferences
+- Topics of interest:
+- Apps frequently used:
+- Wake-up / sleep schedule:
 
-- Communication style: (casual/formal)
-- Timezone: (your timezone)
-- Language: (your preferred language)
-
-## Personal Information
-
-- Name: (optional)
-- Location: (optional)
-- Occupation: (optional)
-
-## Learning Goals
-
-- What the user wants to learn from AI
-- Preferred interaction style
-- Areas of interest
+## Notes
+(The agent will learn about you over time and may update this file via memory tools.)

@@ -122,7 +122,7 @@ clawdroid agent -m "こんにちは！"
 
 | キー | デフォルト | 環境変数 | 説明 |
 |-----|----------|---------|------|
-| `model` | `zhipu/glm-4.7` | `CLAWDROID_LLM_MODEL` | `プロバイダー/モデル名` 形式で指定 |
+| `model` | *(空)* | `CLAWDROID_LLM_MODEL` | `プロバイダー/モデル名` 形式で指定 |
 | `api_key` | *(空)* | `CLAWDROID_LLM_API_KEY` | LLM プロバイダーの API キー |
 | `base_url` | *(空)* | `CLAWDROID_LLM_BASE_URL` | カスタム API エンドポイント（OpenAI 互換） |
 
@@ -136,7 +136,7 @@ clawdroid agent -m "こんにちは！"
 | `max_tokens` | `8192` | `CLAWDROID_AGENTS_DEFAULTS_MAX_TOKENS` | LLM 呼び出しあたりの最大出力トークン数 |
 | `context_window` | `128000` | `CLAWDROID_AGENTS_DEFAULTS_CONTEXT_WINDOW` | コンテキストウィンドウサイズ（トークン） |
 | `temperature` | `0` | `CLAWDROID_AGENTS_DEFAULTS_TEMPERATURE` | LLM のサンプリング温度 |
-| `max_tool_iterations` | `20` | `CLAWDROID_AGENTS_DEFAULTS_MAX_TOOL_ITERATIONS` | 1リクエストあたりのツール呼び出し最大ループ数 |
+| `max_tool_iterations` | `10` | `CLAWDROID_AGENTS_DEFAULTS_MAX_TOOL_ITERATIONS` | 1リクエストあたりのツール呼び出し最大ループ数 |
 
 ### ゲートウェイ (`gateway`)
 
@@ -259,8 +259,8 @@ clawdroid agent -m "こんにちは！"
 
 | キー | デフォルト | 環境変数 | 説明 |
 |-----|----------|---------|------|
-| `max_tool_calls_per_minute` | `60` | `CLAWDROID_RATE_LIMITS_MAX_TOOL_CALLS_PER_MINUTE` | 1分あたりのツール呼び出し上限（0 = 無制限） |
-| `max_requests_per_minute` | `30` | `CLAWDROID_RATE_LIMITS_MAX_REQUESTS_PER_MINUTE` | 1分あたりの LLM リクエスト上限（0 = 無制限） |
+| `max_tool_calls_per_minute` | `30` | `CLAWDROID_RATE_LIMITS_MAX_TOOL_CALLS_PER_MINUTE` | 1分あたりのツール呼び出し上限（0 = 無制限） |
+| `max_requests_per_minute` | `15` | `CLAWDROID_RATE_LIMITS_MAX_REQUESTS_PER_MINUTE` | 1分あたりの LLM リクエスト上限（0 = 無制限） |
 
 ## 対応 LLM プロバイダー
 

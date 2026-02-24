@@ -3,45 +3,35 @@
 ## Name
 ClawDroid
 
-## Description
-Ultra-lightweight personal AI assistant written in Go, inspired by nanobot.
-
 ## Version
 0.1.0
 
+## Description
+Personal AI assistant for Android. A Go backend runs in Termux while a native Kotlin/Jetpack Compose app provides chat UI, voice assistant, and device automation.
+
 ## Purpose
-- Provide intelligent AI assistance with minimal resource usage
-- Support multiple LLM providers (OpenAI, Anthropic, Zhipu, etc.)
-- Enable easy customization through skills system
-- Run on minimal hardware ($10 boards, <10MB RAM)
+- Provide an AI-powered personal assistant on Android devices
+- Automate device operations via AccessibilityService (tap, swipe, launch apps, etc.)
+- Act as a voice assistant that can replace Google Assistant
+- Support multiple LLM providers (OpenAI, Anthropic, Gemini, DeepSeek, Ollama, etc.)
+- Connect to messaging platforms (Telegram, Discord, Slack, LINE, WhatsApp)
 
 ## Capabilities
-
+- Android device automation (screenshot, tap, swipe, text input, app launch)
+- Voice conversation loop (listen, send, think, speak)
 - Web search and content fetching
-- File system operations (read, write, edit)
-- Shell command execution
-- Multi-channel messaging (Telegram, WhatsApp, Discord, Slack, LINE)
-- Skill-based extensibility
-- Memory and context management
+- File operations within the workspace
+- Long-term memory and daily notes
+- Scheduled tasks via cron
+- Sub-agent delegation (sync and async)
+- Cross-channel messaging
+- MCP (Model Context Protocol) server integration
 
 ## Philosophy
-
-- Simplicity over complexity
-- Performance over features
-- User control and privacy
-- Transparent operation
-- Community-driven development
-
-## Goals
-
-- Provide a fast, lightweight AI assistant
-- Support offline-first operation where possible
-- Enable easy customization and extension
-- Maintain high quality responses
-- Run efficiently on constrained hardware
-
-## License
-MIT License - Free and open source
+- Safety first: confirm before destructive actions
+- Privacy: runs locally on the device, no data leaves without user intent
+- Simplicity: single binary, minimal dependencies
+- User control: restrict-to-workspace by default, exec disabled by default
 
 ## Repository
 https://github.com/KarakuriAgent/clawdroid
@@ -50,7 +40,5 @@ https://github.com/KarakuriAgent/clawdroid
 Issues: https://github.com/KarakuriAgent/clawdroid/issues
 Discussions: https://github.com/KarakuriAgent/clawdroid/discussions
 
----
-
-"Every bit helps, every bit matters."
-- Clawdroid
+## License
+MIT License - Free and open source

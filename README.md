@@ -121,7 +121,7 @@ All settings can be overridden by environment variables with the `CLAWDROID_` pr
 
 | Key | Default | Env | Description |
 |-----|---------|-----|-------------|
-| `model` | `zhipu/glm-4.7` | `CLAWDROID_LLM_MODEL` | LLM model in `provider/model` format |
+| `model` | *(empty)* | `CLAWDROID_LLM_MODEL` | LLM model in `provider/model` format |
 | `api_key` | *(empty)* | `CLAWDROID_LLM_API_KEY` | API key for the LLM provider |
 | `base_url` | *(empty)* | `CLAWDROID_LLM_BASE_URL` | Custom API endpoint (OpenAI-compatible) |
 
@@ -135,7 +135,7 @@ All settings can be overridden by environment variables with the `CLAWDROID_` pr
 | `max_tokens` | `8192` | `CLAWDROID_AGENTS_DEFAULTS_MAX_TOKENS` | Max output tokens per LLM call |
 | `context_window` | `128000` | `CLAWDROID_AGENTS_DEFAULTS_CONTEXT_WINDOW` | Context window size (tokens) |
 | `temperature` | `0` | `CLAWDROID_AGENTS_DEFAULTS_TEMPERATURE` | LLM sampling temperature |
-| `max_tool_iterations` | `20` | `CLAWDROID_AGENTS_DEFAULTS_MAX_TOOL_ITERATIONS` | Max tool call loops per request |
+| `max_tool_iterations` | `10` | `CLAWDROID_AGENTS_DEFAULTS_MAX_TOOL_ITERATIONS` | Max tool call loops per request |
 
 ### Gateway (`gateway`)
 
@@ -258,8 +258,8 @@ Each entry is keyed by server name. Stdio and HTTP transports are supported.
 
 | Key | Default | Env | Description |
 |-----|---------|-----|-------------|
-| `max_tool_calls_per_minute` | `60` | `CLAWDROID_RATE_LIMITS_MAX_TOOL_CALLS_PER_MINUTE` | Max tool calls per minute (0 = unlimited) |
-| `max_requests_per_minute` | `30` | `CLAWDROID_RATE_LIMITS_MAX_REQUESTS_PER_MINUTE` | Max LLM requests per minute (0 = unlimited) |
+| `max_tool_calls_per_minute` | `30` | `CLAWDROID_RATE_LIMITS_MAX_TOOL_CALLS_PER_MINUTE` | Max tool calls per minute (0 = unlimited) |
+| `max_requests_per_minute` | `15` | `CLAWDROID_RATE_LIMITS_MAX_REQUESTS_PER_MINUTE` | Max LLM requests per minute (0 = unlimited) |
 
 ## Supported LLM Providers
 
