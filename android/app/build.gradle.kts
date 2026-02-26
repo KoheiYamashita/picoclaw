@@ -64,6 +64,8 @@ dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:data"))
     implementation(project(":core:ui"))
+    implementation(project(":backend:api"))
+    implementation(project(":backend:config"))
 
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
