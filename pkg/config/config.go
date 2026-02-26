@@ -138,8 +138,9 @@ type RateLimitsConfig struct {
 }
 
 type GatewayConfig struct {
-	Host string `json:"host" env:"CLAWDROID_GATEWAY_HOST"`
-	Port int    `json:"port" env:"CLAWDROID_GATEWAY_PORT"`
+	Host   string `json:"host" env:"CLAWDROID_GATEWAY_HOST"`
+	Port   int    `json:"port" env:"CLAWDROID_GATEWAY_PORT"`
+	APIKey string `json:"api_key" env:"CLAWDROID_GATEWAY_API_KEY"`
 }
 
 type BraveConfig struct {
@@ -322,6 +323,9 @@ func SaveConfig(path string, cfg *Config) error {
 
 	return os.WriteFile(path, data, 0600)
 }
+
+func (c *Config) RLock()   { c.mu.RLock() }
+func (c *Config) RUnlock() { c.mu.RUnlock() }
 
 func (c *Config) WorkspacePath() string {
 	c.mu.RLock()

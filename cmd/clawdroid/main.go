@@ -18,6 +18,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/KarakuriAgent/clawdroid/pkg/agent"
@@ -25,6 +26,7 @@ import (
 	"github.com/KarakuriAgent/clawdroid/pkg/channels"
 	"github.com/KarakuriAgent/clawdroid/pkg/config"
 	"github.com/KarakuriAgent/clawdroid/pkg/cron"
+	"github.com/KarakuriAgent/clawdroid/pkg/gateway"
 	"github.com/KarakuriAgent/clawdroid/pkg/heartbeat"
 	"github.com/KarakuriAgent/clawdroid/pkg/logger"
 	"github.com/KarakuriAgent/clawdroid/pkg/providers"
@@ -442,6 +444,7 @@ func gatewayCmd() {
 		}
 	}
 
+	configPath := getConfigPath()
 	cfg, err := loadConfig()
 	if err != nil {
 		fmt.Printf("Error loading config: %v\n", err)
@@ -474,6 +477,22 @@ func gatewayCmd() {
 			"skills_total":     skillsInfo["total"],
 			"skills_available": skillsInfo["available"],
 		})
+
+	// Restart channel for config-triggered restarts
+	restartCh := make(chan struct{}, 1)
+
+	// Start Gateway HTTP server (Config API)
+	gwServer := gateway.NewServer(cfg, configPath, func() {
+		select {
+		case restartCh <- struct{}{}:
+		default:
+		}
+	})
+	if err := gwServer.Start(); err != nil {
+		fmt.Printf("Error starting gateway HTTP server: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Printf("✓ Config API started on %s:%d\n", cfg.Gateway.Host, cfg.Gateway.Port)
 
 	// Setup cron tool and service
 	cronService := setupCronTool(agentLoop, msgBus, cfg.WorkspacePath(), cfg.DataPath(), cfg.Agents.Defaults.RestrictToWorkspace, cfg.Tools.Exec.Enabled)
@@ -544,15 +563,35 @@ func gatewayCmd() {
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt)
-	<-sigChan
 
+	restart := false
+	select {
+	case <-sigChan:
+	case <-restartCh:
+		restart = true
+		fmt.Println("\nRestarting due to config change...")
+	}
+
+	// Graceful shutdown
 	fmt.Println("\nShutting down...")
 	cancel()
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer shutdownCancel()
+	gwServer.Stop(shutdownCtx)
 	heartbeatService.Stop()
 	cronService.Stop()
 	agentLoop.Stop()
-	channelManager.StopAll(ctx)
+	channelManager.StopAll(shutdownCtx)
 	fmt.Println("✓ Gateway stopped")
+
+	if restart {
+		exe, err := os.Executable()
+		if err != nil {
+			fmt.Printf("Error finding executable: %v\n", err)
+			os.Exit(1)
+		}
+		syscall.Exec(exe, os.Args, os.Environ())
+	}
 }
 
 func statusCmd() {

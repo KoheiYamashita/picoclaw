@@ -185,6 +185,14 @@ func TestConfig_DataPath(t *testing.T) {
 	}
 }
 
+// TestDefaultConfig_GatewayAPIKey verifies Gateway APIKey is empty by default
+func TestDefaultConfig_GatewayAPIKey(t *testing.T) {
+	cfg := DefaultConfig()
+	if cfg.Gateway.APIKey != "" {
+		t.Error("Gateway APIKey should be empty by default")
+	}
+}
+
 // TestConfig_Complete verifies all config fields are set
 func TestConfig_Complete(t *testing.T) {
 	cfg := DefaultConfig()

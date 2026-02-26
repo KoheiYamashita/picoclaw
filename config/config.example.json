@@ -99,7 +99,8 @@
   },
   "gateway": {
     "host": "127.0.0.1",
-    "port": 18790
+    "port": 18790,
+    "api_key": ""
   },
   "rate_limits": {
     "max_tool_calls_per_minute": 30,
