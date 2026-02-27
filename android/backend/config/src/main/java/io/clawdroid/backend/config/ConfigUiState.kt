@@ -23,6 +23,7 @@ data class SectionSummary(val key: String, val label: String, val fieldCount: In
 data class FieldState(
     val key: String,
     val label: String,
+    val group: String = "",
     val type: String,
     val secret: Boolean,
     val value: String,

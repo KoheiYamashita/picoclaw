@@ -2435,3 +2435,51 @@ func lastDot(s string) int {
 	}
 	return -1
 }
+
+func TestBuildSchema_FieldGroups(t *testing.T) {
+	schema := BuildSchema(config.DefaultConfig())
+
+	// Build a map from "section.fieldKey" → group
+	fieldGroup := map[string]string{}
+	for _, sec := range schema.Sections {
+		for _, f := range sec.Fields {
+			fieldGroup[sec.Key+"."+f.Key] = f.Group
+		}
+	}
+
+	tests := []struct {
+		fullKey   string
+		wantGroup string
+	}{
+		// channels: each sub-struct label becomes group
+		{"channels.whatsapp.enabled", "WhatsApp"},
+		{"channels.discord.token", "Discord"},
+		{"channels.line.channel_secret", "LINE"},
+		{"channels.telegram.token", "Telegram"},
+		{"channels.slack.bot_token", "Slack"},
+		{"channels.websocket.enabled", "WebSocket"},
+		// tools: deeper nesting uses the innermost struct label
+		{"tools.web.brave.api_key", "Brave Search"},
+		{"tools.web.brave.enabled", "Brave Search"},
+		{"tools.web.duckduckgo.enabled", "DuckDuckGo"},
+		{"tools.exec.enabled", "Shell Exec"},
+		{"tools.android.enabled", "Android"},
+		{"tools.memory.enabled", "Memory"},
+		// llm: flat fields have no group
+		{"llm.model", ""},
+		{"llm.api_key", ""},
+		// agents: single intermediate struct — group suppressed
+		{"agents.defaults.max_tokens", ""},
+	}
+
+	for _, tt := range tests {
+		got, ok := fieldGroup[tt.fullKey]
+		if !ok {
+			t.Errorf("field %q not found in schema", tt.fullKey)
+			continue
+		}
+		if got != tt.wantGroup {
+			t.Errorf("field %q group = %q, want %q", tt.fullKey, got, tt.wantGroup)
+		}
+	}
+}

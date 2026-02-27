@@ -31,6 +31,7 @@ data class SchemaSection(val key: String, val label: String, val fields: List<Sc
 data class SchemaField(
     val key: String,
     val label: String,
+    val group: String = "",
     val type: String,
     val secret: Boolean = false,
     val default: JsonElement = Json.parseToJsonElement("null"),

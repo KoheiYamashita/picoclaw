@@ -11,6 +11,7 @@ import (
 type SchemaField struct {
 	Key      string      `json:"key"`
 	Label    string      `json:"label"`
+	Group    string      `json:"group,omitempty"`
 	Type     string      `json:"type"`
 	Secret   bool        `json:"secret"`
 	Default  interface{} `json:"default"`
@@ -70,7 +71,21 @@ func BuildSchema(defaultCfg *config.Config) SchemaResponse {
 		}
 
 		fieldVal := cfgVal.Field(i)
-		section.Fields = buildFields(field.Type, fieldVal, "")
+		section.Fields = buildFields(field.Type, fieldVal, "", "")
+
+		// If every field shares the same single group, the header is redundant — clear it.
+		groups := map[string]bool{}
+		for _, f := range section.Fields {
+			if f.Group != "" {
+				groups[f.Group] = true
+			}
+		}
+		if len(groups) <= 1 {
+			for j := range section.Fields {
+				section.Fields[j].Group = ""
+			}
+		}
+
 		sections = append(sections, section)
 	}
 
@@ -78,8 +93,9 @@ func BuildSchema(defaultCfg *config.Config) SchemaResponse {
 }
 
 // buildFields recursively collects fields from a struct type, flattening nested structs
-// with dot-separated key prefixes.
-func buildFields(t reflect.Type, v reflect.Value, prefix string) []SchemaField {
+// with dot-separated key prefixes. The group parameter propagates the label of the
+// enclosing struct so that leaf fields can be grouped under a header in the UI.
+func buildFields(t reflect.Type, v reflect.Value, prefix string, group string) []SchemaField {
 	var fields []SchemaField
 
 	if t.Kind() == reflect.Ptr {
@@ -122,8 +138,13 @@ func buildFields(t reflect.Type, v reflect.Value, prefix string) []SchemaField {
 
 		schemaType := goTypeToSchema(ft)
 		if schemaType == "object" {
-			// Nested struct: recurse and flatten
-			fields = append(fields, buildFields(ft, fieldVal, fullKey)...)
+			// Nested struct: recurse and flatten.
+			// Use the nested struct's label tag as group; fall back to current group.
+			childGroup := labelTag(sf)
+			if childGroup == "" {
+				childGroup = group
+			}
+			fields = append(fields, buildFields(ft, fieldVal, fullKey, childGroup)...)
 			continue
 		}
 
@@ -140,6 +161,7 @@ func buildFields(t reflect.Type, v reflect.Value, prefix string) []SchemaField {
 		fields = append(fields, SchemaField{
 			Key:     fullKey,
 			Label:   labelTag(sf),
+			Group:   group,
 			Type:    schemaType,
 			Secret:  secretKeys[jk],
 			Default: defVal,
