@@ -24,12 +24,15 @@ import io.clawdroid.core.domain.usecase.ObserveConnectionUseCase
 import io.clawdroid.core.domain.usecase.ObserveMessagesUseCase
 import io.clawdroid.core.domain.usecase.ObserveStatusUseCase
 import io.clawdroid.core.domain.usecase.SendMessageUseCase
+import io.clawdroid.backend.api.GatewaySettingsStore
 import io.clawdroid.feature.chat.ChatViewModel
 import io.clawdroid.feature.chat.SettingsViewModel
 import io.clawdroid.feature.chat.voice.SpeechRecognizerWrapper
 import io.clawdroid.feature.chat.voice.TextToSpeechWrapper
 import io.clawdroid.feature.chat.voice.CameraCaptureManager
 import io.clawdroid.feature.chat.voice.VoiceModeManager
+import io.clawdroid.settings.AppSettingsViewModel
+import io.clawdroid.settings.GatewaySettingsStoreImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -43,6 +46,9 @@ import java.util.concurrent.TimeUnit
 val appModule = module {
     // CoroutineScope
     single { CoroutineScope(SupervisorJob() + Dispatchers.IO) }
+
+    // GatewaySettingsStore
+    single<GatewaySettingsStore> { GatewaySettingsStoreImpl(androidContext(), get()) }
 
     // Room
     single {
@@ -72,7 +78,11 @@ val appModule = module {
         val clientId = prefs.getString("client_id", null) ?: UUID.randomUUID().toString().also {
             prefs.edit().putString("client_id", it).apply()
         }
-        WebSocketClient(get(), get(), clientId)
+        val gwSettings = get<GatewaySettingsStore>().settings.value
+        WebSocketClient(get(), get(), clientId).apply {
+            wsUrl = gwSettings.wsUrl
+            apiKey = gwSettings.apiKey
+        }
     }
 
     // ImageFileStorage
@@ -124,4 +134,5 @@ val appModule = module {
     // ViewModel
     viewModel { ChatViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { SettingsViewModel(get(), get(), get()) }
+    viewModel { AppSettingsViewModel(get()) }
 }

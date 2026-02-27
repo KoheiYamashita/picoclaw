@@ -87,7 +87,11 @@ dependencies {
 
     implementation(libs.coroutines.android)
 
+    implementation(libs.datastore.preferences)
+
     implementation(libs.serialization.json)
+
+    implementation(libs.icons.lucide)
 
     debugImplementation(libs.compose.ui.tooling)
 }
