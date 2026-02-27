@@ -1,5 +1,10 @@
 package io.clawdroid.backend.config
 
+import android.content.Intent
+import android.net.Uri
+import android.provider.DocumentsContract
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,8 +42,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
@@ -51,6 +58,7 @@ import io.clawdroid.core.ui.theme.GlassWhite
 import io.clawdroid.core.ui.theme.NeonCyan
 import io.clawdroid.core.ui.theme.TextPrimary
 import io.clawdroid.core.ui.theme.TextSecondary
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -147,6 +155,7 @@ fun ConfigSectionDetailScreen(
                         ConfigField(
                             field = field,
                             onValueChanged = { viewModel.onFieldValueChanged(field.key, it) },
+                            snackbarHostState = snackbarHostState,
                         )
                     }
                 }
@@ -168,12 +177,14 @@ fun ConfigSectionDetailScreen(
 private fun ConfigField(
     field: FieldState,
     onValueChanged: (String) -> Unit,
+    snackbarHostState: SnackbarHostState? = null,
 ) {
     when (field.type) {
         "bool" -> BoolField(field, onValueChanged)
         "int" -> NumberField(field, onValueChanged, KeyboardType.Number)
         "float" -> NumberField(field, onValueChanged, KeyboardType.Decimal)
         "[]string" -> StringArrayField(field, onValueChanged)
+        "directory" -> DirectoryField(field, onValueChanged, snackbarHostState)
         "map", "[]any" -> ReadOnlyField(field)
         else -> StringField(field, onValueChanged)
     }
@@ -279,6 +290,81 @@ private fun ReadOnlyField(field: FieldState) {
         colors = configFieldColors(),
         modifier = Modifier.fillMaxWidth(),
     )
+}
+
+@Composable
+private fun DirectoryField(
+    field: FieldState,
+    onValueChanged: (String) -> Unit,
+    snackbarHostState: SnackbarHostState?,
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree()
+    ) { uri: Uri? ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        context.contentResolver.takePersistableUriPermission(
+            uri,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
+        )
+        val path = safUriToPath(uri)
+        if (path != null) {
+            onValueChanged(path)
+        } else {
+            scope.launch {
+                snackbarHostState?.showSnackbar("Internal storage only")
+            }
+        }
+    }
+
+    Column {
+        OutlinedTextField(
+            value = field.value,
+            onValueChange = onValueChanged,
+            label = { Text(field.label, color = TextSecondary) },
+            singleLine = true,
+            trailingIcon = {
+                IconButton(onClick = { launcher.launch(null) }) {
+                    Icon(
+                        painter = painterResource(LucideR.drawable.lucide_ic_folder_open),
+                        contentDescription = "Browse",
+                        tint = NeonCyan,
+                    )
+                }
+            },
+            colors = configFieldColors(),
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Text(
+            "Internal storage only for SAF picker",
+            style = MaterialTheme.typography.labelSmall,
+            color = TextSecondary.copy(alpha = 0.6f),
+            modifier = Modifier.padding(start = 16.dp, top = 2.dp),
+        )
+    }
+}
+
+/**
+ * Converts a SAF tree URI to a filesystem path.
+ * Only internal storage (`primary:...`) is supported.
+ */
+private fun safUriToPath(uri: Uri): String? {
+    val docId = try {
+        DocumentsContract.getTreeDocumentId(uri)
+    } catch (_: Exception) {
+        return null
+    }
+
+    if (!docId.startsWith("primary:")) return null
+
+    val relativePath = docId.removePrefix("primary:")
+    return if (relativePath.isEmpty()) {
+        "/storage/emulated/0"
+    } else {
+        "/storage/emulated/0/$relativePath"
+    }
 }
 
 @Composable

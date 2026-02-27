@@ -2470,6 +2470,41 @@ func TestBuildSchema_AgentsSectionFields(t *testing.T) {
 	}
 }
 
+// --- #28b: directory type override ---
+
+func TestBuildSchema_DirectoryType(t *testing.T) {
+	schema := BuildSchema(config.DefaultConfig())
+
+	// Find the agents section which contains the defaults sub-fields
+	var agentsFields []SchemaField
+	for _, sec := range schema.Sections {
+		if sec.Key == "agents" {
+			agentsFields = sec.Fields
+			break
+		}
+	}
+	if agentsFields == nil {
+		t.Fatal("agents section not found in schema")
+	}
+
+	fieldByKey := make(map[string]SchemaField)
+	for _, f := range agentsFields {
+		fieldByKey[f.Key] = f
+	}
+
+	dirFields := []string{"defaults.workspace", "defaults.data_dir"}
+	for _, k := range dirFields {
+		f, ok := fieldByKey[k]
+		if !ok {
+			t.Errorf("field %q not found in agents section", k)
+			continue
+		}
+		if f.Type != "directory" {
+			t.Errorf("field %q: want type %q, got %q", k, "directory", f.Type)
+		}
+	}
+}
+
 // --- #29: rate_limits section fields in schema ---
 
 func TestBuildSchema_RateLimitsSectionFields(t *testing.T) {

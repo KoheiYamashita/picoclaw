@@ -44,6 +44,14 @@ var secretKeys = map[string]bool{
 	"channel_access_token": true,
 }
 
+// directoryKeys lists full dot-separated JSON keys that represent directory paths.
+// Fields matching these keys are reported as type "directory" so that
+// Android can render a SAF directory-picker instead of a plain text field.
+var directoryKeys = map[string]bool{
+	"defaults.workspace": true,
+	"defaults.data_dir":  true,
+}
+
 // BuildSchema generates a SchemaResponse by reflecting over a default Config.
 func BuildSchema(defaultCfg *config.Config) SchemaResponse {
 	var sections []SchemaSection
@@ -128,6 +136,11 @@ func buildFields(t reflect.Type, v reflect.Value, prefix string) []SchemaField {
 		var defVal interface{}
 		if fieldVal.IsValid() {
 			defVal = fieldVal.Interface()
+		}
+
+		// Override type for directory-path fields
+		if schemaType == "string" && directoryKeys[fullKey] {
+			schemaType = "directory"
 		}
 
 		fields = append(fields, SchemaField{
