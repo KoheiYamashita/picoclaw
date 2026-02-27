@@ -67,7 +67,15 @@ func (s *Server) handlePutConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := config.SaveConfig(s.configPath, &newCfg); err != nil {
+	// Hold write lock: save file first, then update memory only on success.
+	// Any concurrent GET /api/config will block until both are done.
+	s.cfg.Lock()
+	err = config.SaveConfigLocked(s.configPath, &newCfg)
+	if err == nil {
+		s.cfg.CopyFrom(&newCfg)
+	}
+	s.cfg.Unlock()
+	if err != nil {
 		writeJSONError(w, http.StatusInternalServerError, "failed to save config: "+err.Error())
 		return
 	}

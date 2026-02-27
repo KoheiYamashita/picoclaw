@@ -310,7 +310,16 @@ func LoadConfig(path string) (*Config, error) {
 func SaveConfig(path string, cfg *Config) error {
 	cfg.mu.RLock()
 	defer cfg.mu.RUnlock()
+	return saveConfigLocked(path, cfg)
+}
 
+// SaveConfigLocked writes cfg to path without acquiring cfg's mutex.
+// Use this when the caller manages synchronization externally.
+func SaveConfigLocked(path string, cfg *Config) error {
+	return saveConfigLocked(path, cfg)
+}
+
+func saveConfigLocked(path string, cfg *Config) error {
 	data, err := json.MarshalIndent(cfg, "", "  ")
 	if err != nil {
 		return err
@@ -324,8 +333,22 @@ func SaveConfig(path string, cfg *Config) error {
 	return os.WriteFile(path, data, 0600)
 }
 
+func (c *Config) Lock()    { c.mu.Lock() }
+func (c *Config) Unlock()  { c.mu.Unlock() }
 func (c *Config) RLock()   { c.mu.RLock() }
 func (c *Config) RUnlock() { c.mu.RUnlock() }
+
+// CopyFrom copies all configuration fields from src into c.
+// The caller must hold c's write lock. src's mutex is not acquired.
+func (c *Config) CopyFrom(src *Config) {
+	c.LLM = src.LLM
+	c.Agents = src.Agents
+	c.Channels = src.Channels
+	c.Gateway = src.Gateway
+	c.Tools = src.Tools
+	c.Heartbeat = src.Heartbeat
+	c.RateLimits = src.RateLimits
+}
 
 func (c *Config) WorkspacePath() string {
 	c.mu.RLock()

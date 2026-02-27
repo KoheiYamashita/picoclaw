@@ -1303,9 +1303,9 @@ func TestHandlePutConfig_MultipleSectionsSimultaneous(t *testing.T) {
 	}
 }
 
-// --- PUT /api/config: in-memory config not updated ---
+// --- PUT /api/config: in-memory config updated immediately ---
 
-func TestHandlePutConfig_InMemoryConfigUnchanged(t *testing.T) {
+func TestHandlePutConfig_InMemoryConfigUpdated(t *testing.T) {
 	cfg := config.DefaultConfig()
 	cfg.LLM.Model = "original"
 
@@ -1323,9 +1323,9 @@ func TestHandlePutConfig_InMemoryConfigUnchanged(t *testing.T) {
 		t.Fatalf("status = %d, want 200", rr.Code)
 	}
 
-	// In-memory config should still have old value (disk is updated, restart reloads)
-	if s.cfg.LLM.Model != "original" {
-		t.Errorf("in-memory model = %q, want %q (should remain unchanged until restart)", s.cfg.LLM.Model, "original")
+	// In-memory config should be updated immediately
+	if s.cfg.LLM.Model != "updated" {
+		t.Errorf("in-memory model = %q, want %q", s.cfg.LLM.Model, "updated")
 	}
 
 	// Disk should have new value
@@ -1645,7 +1645,7 @@ func TestHandlePutConfig_MCPMapUpdate(t *testing.T) {
 	}
 }
 
-func TestHandlePutConfig_MCPMapInMemoryUnchanged(t *testing.T) {
+func TestHandlePutConfig_MCPMapInMemoryUpdated(t *testing.T) {
 	cfg := config.DefaultConfig()
 	cfg.Tools.MCP = map[string]config.MCPServerConfig{
 		"original": {Command: "orig", Enabled: true},
@@ -1665,12 +1665,12 @@ func TestHandlePutConfig_MCPMapInMemoryUnchanged(t *testing.T) {
 		t.Fatalf("status = %d, want 200", rr.Code)
 	}
 
-	// In-memory config should NOT have the added server
-	if _, found := s.cfg.Tools.MCP["added"]; found {
-		t.Error("in-memory MCP should not contain 'added' (deep copy should prevent mutation)")
+	// In-memory config should now contain the added server
+	if _, found := s.cfg.Tools.MCP["added"]; !found {
+		t.Error("in-memory MCP should contain 'added' after PUT")
 	}
-	if len(s.cfg.Tools.MCP) != 1 {
-		t.Errorf("in-memory MCP count = %d, want 1", len(s.cfg.Tools.MCP))
+	if len(s.cfg.Tools.MCP) != 2 {
+		t.Errorf("in-memory MCP count = %d, want 2", len(s.cfg.Tools.MCP))
 	}
 }
 
