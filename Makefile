@@ -1,4 +1,4 @@
-.PHONY: all build install uninstall clean help test
+.PHONY: all build install uninstall clean help test build-android
 
 # Build variables
 BINARY_NAME=clawdroid
@@ -71,6 +71,20 @@ build-all: generate
 	GOOS=linux GOARCH=arm64 $(GO) build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-linux-arm64 ./$(CMD_DIR)
 	GOOS=linux GOARCH=arm $(GO) build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-linux-arm ./$(CMD_DIR)
 	@echo "All builds complete"
+
+## build-android: Build clawdroid for Android (embedded flavor jniLibs)
+build-android: generate
+	@echo "Building $(BINARY_NAME) for Android..."
+	@mkdir -p android/app/src/embedded/jniLibs/arm64-v8a
+	@mkdir -p android/app/src/embedded/jniLibs/x86_64
+	@mkdir -p android/app/src/embedded/jniLibs/armeabi-v7a
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 $(GO) build -trimpath $(LDFLAGS) \
+		-o android/app/src/embedded/jniLibs/arm64-v8a/libclawdroid.so ./$(CMD_DIR)
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GO) build -trimpath $(LDFLAGS) \
+		-o android/app/src/embedded/jniLibs/x86_64/libclawdroid.so ./$(CMD_DIR)
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 $(GO) build -trimpath $(LDFLAGS) \
+		-o android/app/src/embedded/jniLibs/armeabi-v7a/libclawdroid.so ./$(CMD_DIR)
+	@echo "Android build complete"
 
 ## install: Install clawdroid to system and copy builtin skills
 install: build
