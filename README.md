@@ -6,7 +6,7 @@
 
 **[日本語版](README.ja.md)**
 
-Ultra-lightweight personal AI assistant for Android. A Go backend runs in Termux while a native Kotlin/Jetpack Compose app provides the chat UI, voice assistant, and device automation.
+Android AI assistant with an embedded Go backend. Install the APK, launch, and start chatting — no separate server setup needed. A Kotlin/Jetpack Compose app provides the chat UI, voice assistant, and device automation. For advanced users, a [Termux-based setup](#termux-version) is also available.
 
 Forked from [PicoClaw](https://github.com/sipeed/picoclaw).
 
@@ -14,17 +14,19 @@ Forked from [PicoClaw](https://github.com/sipeed/picoclaw).
 
 ```mermaid
 graph TB
-    subgraph android["Android App (Kotlin)"]
-        ChatUI["Chat UI<br/>(Compose)"]
-        Overlay["Assistant<br/>Overlay"]
-    end
+    subgraph apk["Android APK"]
+        subgraph android["Kotlin App"]
+            ChatUI["Chat UI<br/>(Compose)"]
+            Overlay["Assistant<br/>Overlay"]
+        end
 
-    subgraph backend["Go Backend (Termux)"]
-        Agent["Agent Loop"]
-        Tools["Tool Loop<br/>(16+ tools)"]
-        LLM["LLM"]
-        Services["MCP / Cron /<br/>Skills / Memory"]
-        Channels["Channels<br/>(Telegram, Discord, Slack, LINE etc.)"]
+        subgraph backend["Go Backend (embedded)"]
+            Agent["Agent Loop"]
+            Tools["Tool Loop<br/>(16+ tools)"]
+            LLM["LLM"]
+            Services["MCP / Cron /<br/>Skills / Memory"]
+            Channels["Channels<br/>(Telegram, Discord, Slack, LINE etc.)"]
+        end
     end
 
     ChatUI -- "WebSocket<br/>ws://127.0.0.1:18793" --> Agent
@@ -35,86 +37,44 @@ graph TB
     Agent --> Channels
 ```
 
-- **Go backend** (`cmd/clawdroid/`): Single binary. Agent loop, tool execution, LLM calls, messaging channels, cron, heartbeat
+- **Go backend**: Single binary bundled inside the APK. Agent loop, tool execution, LLM calls, messaging channels, cron, heartbeat
 - **Android app** (`android/`): Chat UI, floating assistant overlay, accessibility-based device control, voice mode
 
 ## Quick Start
 
 ### Prerequisites
 
-- Android device with [Termux](https://termux.dev) installed
+- Android device
 - LLM API key (OpenAI, Anthropic, Gemini, etc.)
 
 ### 1. Download
 
-Download the latest Go backend binary and Android app APK from [GitHub Releases](https://github.com/KarakuriAgent/clawdroid/releases).
+Download the APK from [GitHub Releases](https://github.com/KarakuriAgent/clawdroid/releases).
 
-Choose the binary matching your device architecture:
+Choose the APK matching your device architecture:
 
-| Architecture | Binary |
-|-------------|--------|
-| 64-bit ARM (most modern devices) | `clawdroid-linux-arm64` |
-| 32-bit ARM | `clawdroid-linux-arm` |
+| Architecture | APK |
+|-------------|-----|
+| 64-bit ARM (most modern devices) | `clawdroid-embedded-arm64-v8a-release.apk` |
+| 32-bit ARM | `clawdroid-embedded-armeabi-v7a-release.apk` |
+| x86_64 (emulators) | `clawdroid-embedded-x86_64-release.apk` |
+| Universal (all architectures) | `clawdroid-embedded-universal-release.apk` |
 
-You can check your architecture in Termux with `uname -m`.
+### 2. Install & Launch
 
-### 2. Install the Go Backend
-
-In Termux:
-
-```bash
-# Place the binary and make it executable (example for arm64)
-cp ~/storage/downloads/clawdroid-linux-arm64 ~/.local/bin/clawdroid
-chmod +x ~/.local/bin/clawdroid
-```
+Install the APK and open the app. The Go backend starts automatically in the background.
 
 ### 3. Initial Setup
 
-```bash
-clawdroid onboard
-```
+On first launch, a setup wizard guides you through the configuration:
 
-This creates `~/.clawdroid/config.json` and workspace templates.
-
-Edit the config to add your API key:
-
-```bash
-vi ~/.clawdroid/config.json
-```
-
-### 4. Install the Android App
-
-Install the downloaded APK on the same device.
-
-### 5. Run
-
-```bash
-# Start the gateway server (connects to Android app + messaging channels)
-clawdroid gateway
-
-# Or interact directly from the terminal
-clawdroid agent
-clawdroid agent -m "Hello!"
-```
-
-## CLI Commands
-
-| Command | Description |
-|---------|-------------|
-| `clawdroid gateway` | Start the full server (channels, cron, heartbeat, HTTP gateway) |
-| `clawdroid agent` | Interactive REPL mode |
-| `clawdroid agent -m "..."` | Send a single message |
-| `clawdroid onboard` | First-time setup wizard |
-| `clawdroid status` | Show config and connection status |
-| `clawdroid cron list\|add\|remove\|enable\|disable` | Manage scheduled tasks |
-| `clawdroid skills list\|show\|remove` | Manage skills |
-| `clawdroid version` | Print version info |
-
-Use `--debug` / `-d` with `gateway` or `agent` for verbose logging.
+- Set your LLM model in `provider/model` format (e.g. `openai/gpt-4o`) and API key
+- See [Supported LLM Providers](#supported-llm-providers) for the full list
+- All settings can be changed later from the in-app settings screen
 
 ## Configuration
 
-Configuration file: `~/.clawdroid/config.json`
+The embedded version uses the in-app settings GUI. The Termux version uses `~/.clawdroid/config.json`.
 
 All settings can be overridden by environment variables with the `CLAWDROID_` prefix (e.g. `CLAWDROID_LLM_API_KEY`). The env var name corresponds to the JSON path in uppercase with `_` separators.
 
@@ -280,6 +240,78 @@ Uses [any-llm-go](https://github.com/mozilla-ai/any-llm-go) as a unified adapter
 | ZhiPu | `zhipu/model` | `zhipu/glm-4.7` |
 
 `base_url` can point to any OpenAI-compatible endpoint (OpenRouter, local proxies, etc.).
+
+## Termux Version
+
+### Overview
+
+The Termux version runs the Go backend as a separate process in Termux instead of embedding it in the APK. The APK does not include the backend binary.
+
+### Prerequisites
+
+- Android device with [Termux](https://termux.dev) installed
+- LLM API key (OpenAI, Anthropic, Gemini, etc.)
+
+### Setup
+
+**1. Download the Go backend binary**
+
+Download from [GitHub Releases](https://github.com/KarakuriAgent/clawdroid/releases). Choose the binary matching your device architecture:
+
+| Architecture | Binary |
+|-------------|--------|
+| 64-bit ARM (most modern devices) | `clawdroid-linux-arm64` |
+| 32-bit ARM | `clawdroid-linux-arm` |
+
+You can check your architecture in Termux with `uname -m`.
+
+**2. Install the binary**
+
+```bash
+cp ~/storage/downloads/clawdroid-linux-arm64 ~/.local/bin/clawdroid
+chmod +x ~/.local/bin/clawdroid
+```
+
+**3. Run initial setup**
+
+```bash
+clawdroid onboard
+```
+
+This creates `~/.clawdroid/config.json` and workspace templates.
+
+**4. Configure**
+
+```bash
+vi ~/.clawdroid/config.json
+```
+
+Add your LLM model and API key.
+
+**5. Install the Termux APK**
+
+Install the Termux-flavor APK (`clawdroid-termux-*.apk`) on the same device.
+
+**6. Start the backend**
+
+```bash
+clawdroid gateway
+```
+
+### CLI Commands
+
+| Command | Description |
+|---------|-------------|
+| `clawdroid gateway` | Start the full server (channels, cron, heartbeat, HTTP gateway) |
+| `clawdroid agent` | Interactive REPL mode |
+| `clawdroid agent -m "..."` | Send a single message |
+| `clawdroid onboard` | First-time setup wizard |
+| `clawdroid status` | Show config and connection status |
+| `clawdroid cron list\|add\|remove\|enable\|disable` | Manage scheduled tasks |
+| `clawdroid skills list\|show\|remove` | Manage skills |
+| `clawdroid version` | Print version info |
+
+Use `--debug` / `-d` with `gateway` or `agent` for verbose logging.
 
 ## Tools
 
@@ -483,7 +515,13 @@ Open `android/` in Android Studio or build with Gradle:
 
 ```bash
 cd android
-./gradlew assembleDebug
+
+# Embedded version (includes Go backend in APK)
+make build-android           # Build Go backend as jniLibs
+./gradlew assembleEmbeddedDebug
+
+# Termux version (no backend in APK)
+./gradlew assembleTermuxDebug
 ```
 
 Package name: `io.clawdroid`
@@ -509,6 +547,9 @@ clawdroid/
 │   └── tools/                # All tool implementations
 ├── android/
 │   ├── app/                  # Main app (AssistantService, AccessibilityService, DeviceController)
+│   ├── backend/
+│   │   ├── loader/           # Embedded backend loader (GatewayProcessManager)
+│   │   └── loader-noop/      # No-op loader for Termux flavor
 │   ├── core/                 # Shared core (data, domain, model, ui)
 │   └── feature/              # Feature modules (chat, settings)
 ├── workspace/                # Template files (IDENTITY.md, SOUL.md, etc.)

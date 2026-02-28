@@ -4,7 +4,7 @@
 
 # ClawDroid
 
-Android 向け超軽量パーソナル AI アシスタント。Go バックエンドが Termux 上で動作し、ネイティブ Kotlin/Jetpack Compose アプリがチャット UI、音声アシスタント、デバイス自動操作を提供します。
+Go バックエンドを内蔵した Android AI アシスタント。APK をインストールして起動するだけですぐに使えます。Kotlin/Jetpack Compose アプリがチャット UI、音声アシスタント、デバイス自動操作を提供します。上級者向けに [Termux 版](#termux-版)も利用可能です。
 
 [PicoClaw](https://github.com/sipeed/picoclaw) からフォークしたプロジェクトです。
 
@@ -12,17 +12,19 @@ Android 向け超軽量パーソナル AI アシスタント。Go バックエ�
 
 ```mermaid
 graph TB
-    subgraph android["Android アプリ (Kotlin)"]
-        ChatUI["チャット UI<br/>(Compose)"]
-        Overlay["アシスタント<br/>オーバーレイ"]
-    end
+    subgraph apk["Android APK"]
+        subgraph android["Kotlin アプリ"]
+            ChatUI["チャット UI<br/>(Compose)"]
+            Overlay["アシスタント<br/>オーバーレイ"]
+        end
 
-    subgraph backend["Go バックエンド (Termux)"]
-        Agent["エージェントループ"]
-        Tools["ツールループ<br/>(16以上)"]
-        LLM["LLM"]
-        Services["MCP / Cron /<br/>Skills / Memory"]
-        Channels["チャンネル<br/>(Telegram, Discord, Slack, LINE 等)"]
+        subgraph backend["Go バックエンド (組み込み)"]
+            Agent["エージェントループ"]
+            Tools["ツールループ<br/>(16以上)"]
+            LLM["LLM"]
+            Services["MCP / Cron /<br/>Skills / Memory"]
+            Channels["チャンネル<br/>(Telegram, Discord, Slack, LINE 等)"]
+        end
     end
 
     ChatUI -- "WebSocket<br/>ws://127.0.0.1:18793" --> Agent
@@ -33,86 +35,44 @@ graph TB
     Agent --> Channels
 ```
 
-- **Go バックエンド** (`cmd/clawdroid/`): シングルバイナリ。エージェントループ、ツール実行、LLM 呼び出し、メッセージングチャンネル、Cron、ハートビート
+- **Go バックエンド**: APK 内にバンドルされたシングルバイナリ。エージェントループ、ツール実行、LLM 呼び出し、メッセージングチャンネル、Cron、ハートビート
 - **Android アプリ** (`android/`): チャット UI、フローティングアシスタントオーバーレイ、アクセシビリティベースのデバイス制御、音声モード
 
 ## クイックスタート
 
 ### 前提条件
 
-- [Termux](https://termux.dev) がインストールされた Android デバイス
+- Android デバイス
 - LLM API キー（OpenAI、Anthropic、Gemini 等）
 
 ### 1. ダウンロード
 
-[GitHub Releases](https://github.com/KarakuriAgent/clawdroid/releases) から最新の Go バックエンドバイナリと Android アプリ APK をダウンロードします。
+[GitHub Releases](https://github.com/KarakuriAgent/clawdroid/releases) から APK をダウンロードします。
 
-デバイスのアーキテクチャに合ったバイナリを選択してください:
+デバイスのアーキテクチャに合った APK を選択してください:
 
-| アーキテクチャ | バイナリ |
-|-------------|---------|
-| 64-bit ARM（最近のデバイスの大半） | `clawdroid-linux-arm64` |
-| 32-bit ARM | `clawdroid-linux-arm` |
+| アーキテクチャ | APK |
+|-------------|-----|
+| 64-bit ARM（最近のデバイスの大半） | `clawdroid-embedded-arm64-v8a-release.apk` |
+| 32-bit ARM | `clawdroid-embedded-armeabi-v7a-release.apk` |
+| x86_64（エミュレーター） | `clawdroid-embedded-x86_64-release.apk` |
+| ユニバーサル（全アーキテクチャ） | `clawdroid-embedded-universal-release.apk` |
 
-Termux で `uname -m` を実行するとアーキテクチャを確認できます。
+### 2. インストール & 起動
 
-### 2. Go バックエンドのインストール
-
-Termux で:
-
-```bash
-# バイナリを配置して実行権限を付与（arm64 の例）
-cp ~/storage/downloads/clawdroid-linux-arm64 ~/.local/bin/clawdroid
-chmod +x ~/.local/bin/clawdroid
-```
+APK をインストールしてアプリを起動します。Go バックエンドはバックグラウンドで自動的に起動します。
 
 ### 3. 初期セットアップ
 
-```bash
-clawdroid onboard
-```
+初回起動時にセットアップウィザードが表示されます:
 
-`~/.clawdroid/config.json` とワークスペーステンプレートが作成されます。
-
-設定ファイルを編集して API キーを追加:
-
-```bash
-vi ~/.clawdroid/config.json
-```
-
-### 4. Android アプリのインストール
-
-ダウンロードした APK を同じデバイスにインストールします。
-
-### 5. 実行
-
-```bash
-# ゲートウェイサーバーを起動（Android アプリ + メッセージングチャンネルに接続）
-clawdroid gateway
-
-# またはターミナルから直接対話
-clawdroid agent
-clawdroid agent -m "こんにちは！"
-```
-
-## CLI コマンド
-
-| コマンド | 説明 |
-|---------|------|
-| `clawdroid gateway` | フルサーバー起動（チャンネル、Cron、ハートビート、HTTP ゲートウェイ） |
-| `clawdroid agent` | 対話型 REPL モード |
-| `clawdroid agent -m "..."` | 単発メッセージ送信 |
-| `clawdroid onboard` | 初回セットアップウィザード |
-| `clawdroid status` | 設定と接続状態の表示 |
-| `clawdroid cron list\|add\|remove\|enable\|disable` | スケジュールタスクの管理 |
-| `clawdroid skills list\|show\|remove` | スキルの管理 |
-| `clawdroid version` | バージョン情報の表示 |
-
-`gateway` または `agent` に `--debug` / `-d` を付けると詳細ログが有効になります。
+- LLM モデルを `プロバイダー/モデル名` 形式（例: `openai/gpt-4o`）と API キーを設定
+- 対応プロバイダーの一覧は「[対応 LLM プロバイダー](#対応-llm-プロバイダー)」を参照
+- すべての設定はアプリ内の設定画面から後で変更可能
 
 ## 設定
 
-設定ファイル: `~/.clawdroid/config.json`
+組み込み版はアプリ内の設定 GUI で変更できます。Termux 版は `~/.clawdroid/config.json` を使用します。
 
 すべての設定は `CLAWDROID_` プレフィックスの環境変数で上書きできます（例: `CLAWDROID_LLM_API_KEY`）。環境変数名は JSON パスを大文字・`_` 区切りにしたものです。
 
@@ -278,6 +238,78 @@ clawdroid agent -m "こんにちは！"
 | ZhiPu | `zhipu/model` | `zhipu/glm-4.7` |
 
 `base_url` で任意の OpenAI 互換エンドポイント（OpenRouter、ローカルプロキシ等）を指定できます。
+
+## Termux 版
+
+### 概要
+
+Termux 版は Go バックエンドを APK に内蔵せず、Termux 上で別プロセスとして実行する構成です。APK にバックエンドバイナリは含まれません。
+
+### 前提条件
+
+- [Termux](https://termux.dev) がインストールされた Android デバイス
+- LLM API キー（OpenAI、Anthropic、Gemini 等）
+
+### セットアップ
+
+**1. Go バックエンドバイナリのダウンロード**
+
+[GitHub Releases](https://github.com/KarakuriAgent/clawdroid/releases) からダウンロードします。デバイスのアーキテクチャに合ったバイナリを選択してください:
+
+| アーキテクチャ | バイナリ |
+|-------------|---------|
+| 64-bit ARM（最近のデバイスの大半） | `clawdroid-linux-arm64` |
+| 32-bit ARM | `clawdroid-linux-arm` |
+
+Termux で `uname -m` を実行するとアーキテクチャを確認できます。
+
+**2. バイナリのインストール**
+
+```bash
+cp ~/storage/downloads/clawdroid-linux-arm64 ~/.local/bin/clawdroid
+chmod +x ~/.local/bin/clawdroid
+```
+
+**3. 初期セットアップの実行**
+
+```bash
+clawdroid onboard
+```
+
+`~/.clawdroid/config.json` とワークスペーステンプレートが作成されます。
+
+**4. 設定**
+
+```bash
+vi ~/.clawdroid/config.json
+```
+
+LLM モデルと API キーを設定します。
+
+**5. Termux 版 APK のインストール**
+
+Termux フレーバーの APK（`clawdroid-termux-*.apk`）を同じデバイスにインストールします。
+
+**6. バックエンドの起動**
+
+```bash
+clawdroid gateway
+```
+
+### CLI コマンド
+
+| コマンド | 説明 |
+|---------|------|
+| `clawdroid gateway` | フルサーバー起動（チャンネル、Cron、ハートビート、HTTP ゲートウェイ） |
+| `clawdroid agent` | 対話型 REPL モード |
+| `clawdroid agent -m "..."` | 単発メッセージ送信 |
+| `clawdroid onboard` | 初回セットアップウィザード |
+| `clawdroid status` | 設定と接続状態の表示 |
+| `clawdroid cron list\|add\|remove\|enable\|disable` | スケジュールタスクの管理 |
+| `clawdroid skills list\|show\|remove` | スキルの管理 |
+| `clawdroid version` | バージョン情報の表示 |
+
+`gateway` または `agent` に `--debug` / `-d` を付けると詳細ログが有効になります。
 
 ## ツール
 
@@ -481,7 +513,13 @@ Android Studio で `android/` を開くか、Gradle でビルド:
 
 ```bash
 cd android
-./gradlew assembleDebug
+
+# 組み込み版（Go バックエンドを APK に内蔵）
+make build-android           # Go バックエンドを jniLibs としてビルド
+./gradlew assembleEmbeddedDebug
+
+# Termux 版（バックエンドなし）
+./gradlew assembleTermuxDebug
 ```
 
 パッケージ名: `io.clawdroid`
@@ -507,6 +545,9 @@ clawdroid/
 │   └── tools/                # 全ツール実装
 ├── android/
 │   ├── app/                  # メインアプリ (AssistantService, AccessibilityService, DeviceController)
+│   ├── backend/
+│   │   ├── loader/           # 組み込みバックエンドローダー (GatewayProcessManager)
+│   │   └── loader-noop/      # Termux フレーバー用 No-op ローダー
 │   ├── core/                 # 共有コア (data, domain, model, ui)
 │   └── feature/              # 機能モジュール (chat, settings)
 ├── workspace/                # テンプレートファイル (IDENTITY.md, SOUL.md 等)
