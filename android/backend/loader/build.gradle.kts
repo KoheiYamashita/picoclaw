@@ -15,4 +15,7 @@ android {
 dependencies {
     implementation(project(":backend:api"))
     implementation(libs.coroutines.android)
+    implementation(libs.lifecycle.service)
+    implementation(libs.core.ktx)
+    implementation(libs.koin.android)
 }

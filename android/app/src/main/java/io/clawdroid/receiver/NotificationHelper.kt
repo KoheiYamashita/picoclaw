@@ -15,6 +15,9 @@ object NotificationHelper {
     const val ASSISTANT_CHANNEL_ID = "clawdroid_assistant"
     private const val ASSISTANT_CHANNEL_NAME = "Assistant"
 
+    const val GATEWAY_CHANNEL_ID = "clawdroid_gateway"
+    private const val GATEWAY_CHANNEL_NAME = "Gateway"
+
     fun createNotificationChannel(context: Context) {
         val manager = context.getSystemService(NotificationManager::class.java)
 
@@ -36,6 +39,16 @@ object NotificationHelper {
             setShowBadge(false)
         }
         manager.createNotificationChannel(assistantChannel)
+
+        val gatewayChannel = NotificationChannel(
+            GATEWAY_CHANNEL_ID,
+            GATEWAY_CHANNEL_NAME,
+            NotificationManager.IMPORTANCE_LOW
+        ).apply {
+            description = "Gateway backend service"
+            setShowBadge(false)
+        }
+        manager.createNotificationChannel(gatewayChannel)
     }
 
     fun showMessageNotification(context: Context, content: String) {
