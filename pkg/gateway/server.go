@@ -32,6 +32,8 @@ func (s *Server) Start() error {
 	mux.HandleFunc("GET /api/config/schema", s.authMiddleware(s.handleGetSchema))
 	mux.HandleFunc("GET /api/config", s.authMiddleware(s.handleGetConfig))
 	mux.HandleFunc("PUT /api/config", s.authMiddleware(s.handlePutConfig))
+	mux.HandleFunc("POST /api/setup/init", s.handleSetupInit)
+	mux.HandleFunc("PUT /api/setup/complete", s.authMiddleware(s.handleSetupComplete))
 
 	addr := fmt.Sprintf("127.0.0.1:%d", s.cfg.Gateway.Port)
 	s.server = &http.Server{

@@ -56,7 +56,7 @@ class ChatRepositoryImpl(
                     "status" -> _statusLabel.value = dto.content
                     "status_end" -> _statusLabel.value = null
                     "tool_request" -> handleToolRequest(dto.content)
-                    "exit" -> { /* ignored in chat mode */ }
+                    "exit", "setup_required" -> { /* ignored in chat mode */ }
                     else -> {
                         _statusLabel.value = null
                         val entity = MessageMapper.toEntity(dto)

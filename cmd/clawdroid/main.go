@@ -523,7 +523,7 @@ func gatewayCmd() {
 		return tools.SilentResult(response)
 	})
 
-	channelManager, err := channels.NewManager(cfg, msgBus)
+	channelManager, err := channels.NewManager(cfg, msgBus, configPath)
 	if err != nil {
 		fmt.Printf("Error creating channel manager: %v\n", err)
 		os.Exit(1)

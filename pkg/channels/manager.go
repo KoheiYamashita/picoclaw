@@ -21,6 +21,7 @@ type Manager struct {
 	channels     map[string]Channel
 	bus          *bus.MessageBus
 	config       *config.Config
+	configPath   string
 	dispatchTask *asyncTask
 	mu           sync.RWMutex
 }
@@ -29,11 +30,12 @@ type asyncTask struct {
 	cancel context.CancelFunc
 }
 
-func NewManager(cfg *config.Config, messageBus *bus.MessageBus) (*Manager, error) {
+func NewManager(cfg *config.Config, messageBus *bus.MessageBus, configPath string) (*Manager, error) {
 	m := &Manager{
-		channels: make(map[string]Channel),
-		bus:      messageBus,
-		config:   cfg,
+		channels:   make(map[string]Channel),
+		bus:        messageBus,
+		config:     cfg,
+		configPath: configPath,
 	}
 
 	if err := m.initChannels(); err != nil {
@@ -113,7 +115,7 @@ func (m *Manager) initChannels() error {
 
 	if m.config.Channels.WebSocket.Enabled {
 		logger.DebugC("channels", "Attempting to initialize WebSocket channel")
-		ws, err := NewWebSocketChannel(m.config.Channels.WebSocket, m.bus)
+		ws, err := NewWebSocketChannel(m.config.Channels.WebSocket, m.bus, m.configPath)
 		if err != nil {
 			logger.ErrorCF("channels", "Failed to initialize WebSocket channel", map[string]interface{}{
 				"error": err.Error(),

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"sync"
 
 	"github.com/KarakuriAgent/clawdroid/pkg/broadcast"
@@ -38,6 +39,7 @@ type wsOutgoing struct {
 type WebSocketChannel struct {
 	*BaseChannel
 	config      config.WebSocketConfig
+	configPath  string
 	server      *http.Server
 	upgrader    websocket.Upgrader
 	clients     map[*websocket.Conn]string // conn → clientID
@@ -48,12 +50,13 @@ type WebSocketChannel struct {
 	cancel      context.CancelFunc
 }
 
-func NewWebSocketChannel(cfg config.WebSocketConfig, msgBus *bus.MessageBus) (*WebSocketChannel, error) {
+func NewWebSocketChannel(cfg config.WebSocketConfig, msgBus *bus.MessageBus, configPath string) (*WebSocketChannel, error) {
 	base := NewBaseChannel("websocket", cfg, msgBus, cfg.AllowFrom)
 
 	return &WebSocketChannel{
 		BaseChannel: base,
 		config:      cfg,
+		configPath:  configPath,
 		upgrader: websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool { return true },
 		},
@@ -241,6 +244,24 @@ func (c *WebSocketChannel) handleWS(w http.ResponseWriter, r *http.Request) {
 	c.chatConns[chatID] = conn
 	c.clientTypes[chatID] = clientType
 	c.mu.Unlock()
+
+	// Send setup_required if config.json does not exist
+	if c.configPath != "" {
+		if _, err := os.Stat(c.configPath); os.IsNotExist(err) {
+			setupMsg := wsOutgoing{
+				Content: "Configuration required",
+				Type:    "setup_required",
+			}
+			if data, err := json.Marshal(setupMsg); err == nil {
+				if err := conn.WriteMessage(websocket.TextMessage, data); err != nil {
+					logger.ErrorCF("websocket", "Failed to send setup_required", map[string]interface{}{
+						"client_id": clientID,
+						"error":     err.Error(),
+					})
+				}
+			}
+		}
+	}
 
 	go c.readPump(conn, clientID, chatID, clientType)
 }

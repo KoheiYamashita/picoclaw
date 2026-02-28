@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -19,12 +20,15 @@ import androidx.navigation.navArgument
 import io.clawdroid.backend.config.ConfigSectionDetailScreen
 import io.clawdroid.backend.config.ConfigSectionListScreen
 import io.clawdroid.backend.config.ConfigViewModel
+import io.clawdroid.core.data.remote.WebSocketClient
 import io.clawdroid.core.ui.theme.ClawDroidTheme
 import io.clawdroid.feature.chat.screen.ChatScreen
 import io.clawdroid.feature.chat.screen.SettingsScreen
 import io.clawdroid.navigation.NavRoutes
 import io.clawdroid.settings.AppSettingsScreen
+import io.clawdroid.setup.SetupWizardScreen
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 class MainActivity : ComponentActivity() {
 
@@ -39,6 +43,22 @@ class MainActivity : ComponentActivity() {
         setContent {
             ClawDroidTheme {
                 val navController = rememberNavController()
+                val wsClient: WebSocketClient = koinInject()
+
+                // Observe setup_required messages from server
+                LaunchedEffect(Unit) {
+                    wsClient.incomingMessages.collect { msg ->
+                        if (msg.type == "setup_required") {
+                            val current = navController.currentDestination?.route
+                            if (current != NavRoutes.SETUP) {
+                                navController.navigate(NavRoutes.SETUP) {
+                                    launchSingleTop = true
+                                }
+                            }
+                        }
+                    }
+                }
+
                 NavHost(navController = navController, startDestination = NavRoutes.CHAT) {
                     composable(NavRoutes.CHAT) {
                         ChatScreen(
@@ -87,6 +107,15 @@ class MainActivity : ComponentActivity() {
                     composable(NavRoutes.APP_SETTINGS) {
                         AppSettingsScreen(
                             onNavigateBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable(NavRoutes.SETUP) {
+                        SetupWizardScreen(
+                            onSetupComplete = {
+                                navController.navigate(NavRoutes.CHAT) {
+                                    popUpTo(NavRoutes.CHAT) { inclusive = true }
+                                }
+                            },
                         )
                     }
                 }
