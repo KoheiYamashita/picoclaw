@@ -123,6 +123,15 @@ func init() {
 	net.DefaultResolver.Dial = func(ctx context.Context, network, address string) (net.Conn, error) {
 		return (&net.Dialer{}).DialContext(ctx, "udp", "8.8.8.8:53")
 	}
+
+	// Set CA certificate location for CGO_ENABLED=0 builds (Android APK).
+	// The pure-Go TLS stack cannot find Android's CA certs at their
+	// non-standard path. Only set if not already configured.
+	if os.Getenv("SSL_CERT_FILE") == "" && os.Getenv("SSL_CERT_DIR") == "" {
+		if _, err := os.Stat("/system/etc/security/cacerts"); err == nil {
+			os.Setenv("SSL_CERT_DIR", "/system/etc/security/cacerts")
+		}
+	}
 }
 
 func main() {
