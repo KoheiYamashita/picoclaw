@@ -48,6 +48,7 @@ import io.clawdroid.core.ui.theme.TextSecondary
 fun ConfigSectionListScreen(
     onNavigateBack: () -> Unit,
     onSectionSelected: (sectionKey: String) -> Unit,
+    onNavigateToAppSettings: () -> Unit,
     viewModel: ConfigViewModel,
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -104,6 +105,43 @@ fun ConfigSectionListScreen(
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = NeonCyan,
                                     contentColor = DeepBlack,
+                                ),
+                            ) {
+                                Text("Retry")
+                            }
+                        }
+                    }
+                }
+
+                is ListState.AuthRequired -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(padding),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                listState.message,
+                                color = TextSecondary,
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                            Spacer(Modifier.height(16.dp))
+                            Button(
+                                onClick = onNavigateToAppSettings,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = NeonCyan,
+                                    contentColor = DeepBlack,
+                                ),
+                            ) {
+                                Text("Connection Settings")
+                            }
+                            Spacer(Modifier.height(8.dp))
+                            Button(
+                                onClick = viewModel::retry,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.Transparent,
+                                    contentColor = NeonCyan,
                                 ),
                             ) {
                                 Text("Retry")

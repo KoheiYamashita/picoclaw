@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -134,18 +135,28 @@ class ConfigViewModel(private val apiClient: ConfigApiClient) : ViewModel() {
         _uiState.update { it.copy(listState = ListState.Loading) }
         viewModelScope.launch {
             try {
-                val schemaDeferred = async { apiClient.getSchema() }
-                val configDeferred = async { apiClient.getConfig() }
-                val s = schemaDeferred.await()
-                val c = configDeferred.await()
-                schema = s
-                configValues = c
-                _uiState.update {
-                    it.copy(listState = ListState.Loaded(s.toSummaries()))
+                coroutineScope {
+                    val schemaDeferred = async { apiClient.getSchema() }
+                    val configDeferred = async { apiClient.getConfig() }
+                    val s = schemaDeferred.await()
+                    val c = configDeferred.await()
+                    schema = s
+                    configValues = c
+                    _uiState.update {
+                        it.copy(listState = ListState.Loaded(s.toSummaries()))
+                    }
+                    pendingSectionKey?.let { key ->
+                        pendingSectionKey = null
+                        loadSection(key)
+                    }
                 }
-                pendingSectionKey?.let { key ->
-                    pendingSectionKey = null
-                    loadSection(key)
+            } catch (e: AuthException) {
+                _uiState.update {
+                    it.copy(
+                        listState = ListState.AuthRequired(
+                            e.message ?: "Authentication failed"
+                        )
+                    )
                 }
             } catch (e: Exception) {
                 _uiState.update {

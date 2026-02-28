@@ -44,6 +44,8 @@ data class SaveConfigResult(
     val error: String? = null,
 )
 
+class AuthException(message: String) : IOException(message)
+
 class ConfigApiClient(private val settingsStore: GatewaySettingsStore) : Closeable {
     private val baseUrl: String
         get() = settingsStore.settings.value.httpBaseUrl
@@ -84,7 +86,9 @@ class ConfigApiClient(private val settingsStore: GatewaySettingsStore) : Closeab
     private suspend fun HttpResponse.ensureSuccess(): HttpResponse {
         if (!status.isSuccess()) {
             val error = runCatching { body<SaveConfigResult>().error }.getOrNull()
-            throw IOException("HTTP ${status.value}: ${error ?: "request failed"}")
+            val message = "HTTP ${status.value}: ${error ?: "request failed"}"
+            if (status.value == 403) throw AuthException(message)
+            throw IOException(message)
         }
         return this
     }

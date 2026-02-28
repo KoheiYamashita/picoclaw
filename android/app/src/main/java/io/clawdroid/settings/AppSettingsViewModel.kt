@@ -1,5 +1,6 @@
 package io.clawdroid.settings
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.clawdroid.backend.api.GatewaySettings
@@ -30,9 +31,12 @@ private fun portError(value: String): String? {
 }
 
 class AppSettingsViewModel(
+    savedStateHandle: SavedStateHandle,
     private val settingsStore: GatewaySettingsStore,
     private val configApiClient: ConfigApiClient,
 ) : ViewModel() {
+
+    private val localOnly: Boolean = savedStateHandle["localOnly"] ?: false
 
     private val _uiState = MutableStateFlow(AppSettingsUiState())
     val uiState: StateFlow<AppSettingsUiState> = _uiState.asStateFlow()
@@ -75,8 +79,9 @@ class AppSettingsViewModel(
             }
 
             try {
-                configApiClient.saveConfig(payload)
-                // Persist new values locally after remote success
+                if (!localOnly) {
+                    configApiClient.saveConfig(payload)
+                }
                 settingsStore.update(GatewaySettings(httpPort = newPort, apiKey = newKey))
                 _uiState.update { it.copy(saving = false) }
                 onComplete()

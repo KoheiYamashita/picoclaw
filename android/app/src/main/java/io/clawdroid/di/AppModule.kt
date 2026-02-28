@@ -135,6 +135,6 @@ val appModule = module {
     // ViewModel
     viewModel { ChatViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { SettingsViewModel(get(), get(), get()) }
-    viewModel { AppSettingsViewModel(get(), get()) }
+    viewModel { AppSettingsViewModel(get(), get(), get()) }
     viewModel { SetupViewModel(get(), get()) }
 }

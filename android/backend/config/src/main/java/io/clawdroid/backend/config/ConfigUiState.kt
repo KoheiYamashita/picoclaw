@@ -9,6 +9,7 @@ data class ConfigUiState(
 sealed interface ListState {
     data object Loading : ListState
     data class Error(val message: String) : ListState
+    data class AuthRequired(val message: String) : ListState
     data class Loaded(val sections: List<SectionSummary>) : ListState
 }
 

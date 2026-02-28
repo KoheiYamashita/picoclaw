@@ -69,7 +69,7 @@ class MainActivity : ComponentActivity() {
                         SettingsScreen(
                             onNavigateBack = { navController.popBackStack() },
                             onNavigateToBackendSettings = { navController.navigate(NavRoutes.BACKEND_SETTINGS) },
-                            onNavigateToAppSettings = { navController.navigate(NavRoutes.APP_SETTINGS) },
+                            onNavigateToAppSettings = { navController.navigate(NavRoutes.appSettings()) },
                         )
                     }
                     navigation(
@@ -85,6 +85,9 @@ class MainActivity : ComponentActivity() {
                                 onNavigateBack = { navController.popBackStack() },
                                 onSectionSelected = { sectionKey ->
                                     navController.navigate("backend_settings/$sectionKey")
+                                },
+                                onNavigateToAppSettings = {
+                                    navController.navigate(NavRoutes.appSettings(localOnly = true))
                                 },
                                 viewModel = viewModel,
                             )
@@ -104,7 +107,15 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                     }
-                    composable(NavRoutes.APP_SETTINGS) {
+                    composable(
+                        NavRoutes.APP_SETTINGS,
+                        arguments = listOf(
+                            navArgument("localOnly") {
+                                type = NavType.BoolType
+                                defaultValue = false
+                            },
+                        ),
+                    ) {
                         AppSettingsScreen(
                             onNavigateBack = { navController.popBackStack() },
                         )
