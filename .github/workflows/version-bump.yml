@@ -13,6 +13,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   bump:
@@ -45,10 +46,11 @@ jobs:
           sed -i "s/versionCode\s*=\s*[0-9]\+/versionCode = $((CODE+1))/" "$FILE"
           echo "versionCode: $CODE -> $((CODE+1))"
 
-      - name: Commit and push
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add VERSION android/app/build.gradle.kts
-          git commit -m "chore: bump version to ${{ steps.next.outputs.version }}"
-          git push
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "chore: bump version to ${{ steps.next.outputs.version }}"
+          title: "chore: bump version to ${{ steps.next.outputs.version }}"
+          body: "Automated version bump: `${{ steps.current.outputs.version }}` → `${{ steps.next.outputs.version }}`"
+          branch: chore/bump-${{ steps.next.outputs.version }}
+          delete-branch: true
