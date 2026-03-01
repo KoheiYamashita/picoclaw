@@ -117,10 +117,10 @@ class SetupViewModel(
                 }
                 setupApiClient.init(initBody)
 
-                // 2. Persist gateway settings locally so complete() can authenticate
-                settingsStore.update(GatewaySettings(httpPort = port, apiKey = state.gatewayApiKey))
-
-                // 3. Merge remaining settings into config.json
+                // 2. Merge remaining settings into config.json
+                // Pass the new apiKey directly so the request can authenticate
+                // without updating settingsStore yet (which would trigger a
+                // process restart and kill the gateway mid-request).
                 val completeBody = buildJsonObject {
                     if (!state.step2Skipped) {
                         put("llm", buildJsonObject {
@@ -138,7 +138,10 @@ class SetupViewModel(
                         })
                     }
                 }
-                setupApiClient.complete(completeBody)
+                setupApiClient.complete(completeBody, overrideApiKey = state.gatewayApiKey)
+
+                // 3. Persist gateway settings locally (triggers process restart)
+                settingsStore.update(GatewaySettings(httpPort = port, apiKey = state.gatewayApiKey))
 
                 _uiState.update { it.copy(loading = false) }
                 onComplete()

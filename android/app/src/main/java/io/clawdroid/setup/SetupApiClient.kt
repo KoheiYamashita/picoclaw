@@ -37,11 +37,12 @@ class SetupApiClient(private val settingsStore: GatewaySettingsStore) : Closeabl
         }
     }
 
-    suspend fun complete(body: JsonObject) {
+    suspend fun complete(body: JsonObject, overrideApiKey: String? = null) {
+        val key = overrideApiKey ?: apiKey
         val response = client.put("$baseUrl/api/setup/complete") {
             contentType(ContentType.Application.Json)
             setBody(body.toString())
-            if (apiKey.isNotEmpty()) header("Authorization", "Bearer $apiKey")
+            if (key.isNotEmpty()) header("Authorization", "Bearer $key")
         }
         if (!response.status.isSuccess()) {
             val errorMsg = parseError(response.bodyAsText())

@@ -17,6 +17,8 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.io.BufferedReader
 import java.net.HttpURLConnection
 import java.net.URL
@@ -30,6 +32,7 @@ class GatewayProcessManager(
     private val _state = MutableStateFlow(BackendState.STOPPED)
     val state: StateFlow<BackendState> = _state.asStateFlow()
 
+    private val mutex = Mutex()
     private var process: Process? = null
     private var logJob: Job? = null
     private var watchdogJob: Job? = null
@@ -40,15 +43,19 @@ class GatewayProcessManager(
         get() = context.applicationInfo.nativeLibraryDir + "/libclawdroid.so"
 
     suspend fun start() {
-        ensureApiKey()
-        startProcess()
-        startSettingsObserver()
+        mutex.withLock {
+            ensureApiKey()
+            startProcess()
+            startSettingsObserver()
+        }
     }
 
     suspend fun stop() {
-        settingsObserverJob?.cancel()
-        settingsObserverJob = null
-        stopProcess()
+        mutex.withLock {
+            settingsObserverJob?.cancel()
+            settingsObserverJob = null
+            stopProcess()
+        }
     }
 
     private suspend fun ensureApiKey() {
@@ -59,6 +66,12 @@ class GatewayProcessManager(
     }
 
     private fun startProcess() {
+        // Guard: stop existing process before starting a new one
+        if (process != null) {
+            Log.w(TAG, "Existing process found, stopping before restart")
+            stopProcess()
+        }
+
         _state.value = BackendState.STARTING
 
         val settings = settingsStore.settings.value
@@ -90,19 +103,55 @@ class GatewayProcessManager(
         logJob = null
 
         process?.let { proc ->
+            val port = settingsStore.settings.value.httpPort
             proc.destroy()
             proc.waitFor()
             Log.i(TAG, "Stopped gateway process")
+            awaitPortRelease(port)
         }
         process = null
         _state.value = BackendState.STOPPED
     }
 
-    private fun forwardLogs(proc: Process) {
-        proc.inputStream.bufferedReader().use { reader: BufferedReader ->
-            reader.forEachLine { line ->
-                Log.i(TAG, line)
+    /**
+     * Wait until the gateway port is no longer accepting connections.
+     * This ensures the OS has fully released the socket before we attempt
+     * to start a new process on the same port.
+     */
+    private fun awaitPortRelease(port: Int, timeoutMs: Long = 5000) {
+        val deadline = System.currentTimeMillis() + timeoutMs
+        while (System.currentTimeMillis() < deadline) {
+            try {
+                val conn = URL("http://127.0.0.1:$port/api/config")
+                    .openConnection() as HttpURLConnection
+                conn.connectTimeout = 200
+                conn.readTimeout = 200
+                try {
+                    conn.responseCode
+                } finally {
+                    conn.disconnect()
+                }
+                // Port still open – wait and retry
+                Thread.sleep(100)
+            } catch (_: Exception) {
+                // Connection refused – port is released
+                return
             }
+        }
+        Log.w(TAG, "Port $port still in use after ${timeoutMs}ms timeout")
+    }
+
+    private fun forwardLogs(proc: Process) {
+        try {
+            proc.inputStream.bufferedReader().use { reader: BufferedReader ->
+                reader.forEachLine { line ->
+                    Log.i(TAG, line)
+                }
+            }
+        } catch (_: java.io.InterruptedIOException) {
+            // Process was destroyed while reading – expected during shutdown
+        } catch (_: java.io.IOException) {
+            // Stream closed – expected when process exits
         }
     }
 
@@ -146,8 +195,10 @@ class GatewayProcessManager(
             delay(backoffMs)
             backoffMs = (backoffMs * 2).coerceAtMost(30_000)
             try {
-                stopProcess()
-                startProcess()
+                mutex.withLock {
+                    stopProcess()
+                    startProcess()
+                }
                 return
             } catch (e: Exception) {
                 Log.e(TAG, "Restart failed", e)
@@ -163,10 +214,12 @@ class GatewayProcessManager(
                 .distinctUntilChanged()
                 .drop(1)
                 .collect { apiKey ->
-                    if (process != null && apiKey.isNotEmpty()) {
-                        Log.i(TAG, "API key changed, restarting gateway")
-                        stopProcess()
-                        startProcess()
+                    mutex.withLock {
+                        if (process != null && apiKey.isNotEmpty()) {
+                            Log.i(TAG, "API key changed, restarting gateway")
+                            stopProcess()
+                            startProcess()
+                        }
                     }
                 }
         }
