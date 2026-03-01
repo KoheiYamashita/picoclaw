@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.serialization) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.ktlint) apply false
+    alias(libs.plugins.kover) apply false
 }
 
 subprojects {
@@ -12,5 +13,11 @@ subprojects {
 
     tasks.withType<Test> {
         useJUnitPlatform()
+    }
+
+    afterEvaluate {
+        configurations.findByName("testRuntimeOnly")?.let {
+            dependencies.add("testRuntimeOnly", libs.junit5.launcher.get().toString())
+        }
     }
 }

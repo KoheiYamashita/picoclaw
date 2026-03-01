@@ -315,7 +315,7 @@ func (sl *SkillsLoader) extractFrontmatter(content string) string {
 }
 
 func (sl *SkillsLoader) stripFrontmatter(content string) string {
-	re := regexp.MustCompile(`^---\n.*?\n---\n`)
+	re := regexp.MustCompile(`(?s)^---\n.*?\n---\n`)
 	return re.ReplaceAllString(content, "")
 }
 
