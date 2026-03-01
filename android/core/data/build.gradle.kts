@@ -33,4 +33,7 @@ dependencies {
 
     implementation(libs.coroutines.android)
     implementation(libs.datastore.preferences)
+
+    testImplementation(libs.junit5.api)
+    testRuntimeOnly(libs.junit5.engine)
 }

@@ -114,3 +114,18 @@ jobs:
         with:
           name: clawdroid-embedded-release-apks
           path: android/app/build/outputs/apk/embedded/release/*.apk
+
+  gate:
+    if: always()
+    needs: [termux, embedded]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check results
+        run: |
+          for result in \
+            "${{ needs.termux.result }}" \
+            "${{ needs.embedded.result }}"; do
+            if [ "$result" = "failure" ] || [ "$result" = "cancelled" ]; then
+              exit 1
+            fi
+          done

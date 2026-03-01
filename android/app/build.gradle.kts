@@ -81,6 +81,11 @@ android {
         getByName("embedded") { java.srcDirs("src/embedded/java") }
     }
 
+    lint {
+        abortOnError = true
+        checkDependencies = true
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -123,6 +128,9 @@ dependencies {
     implementation(libs.serialization.json)
 
     implementation(libs.icons.lucide)
+
+    testImplementation(libs.junit5.api)
+    testRuntimeOnly(libs.junit5.engine)
 
     debugImplementation(libs.compose.ui.tooling)
 }

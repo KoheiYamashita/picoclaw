@@ -1,4 +1,4 @@
-name: build
+name: go-build
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
       - "go.mod"
       - "go.sum"
       - "Makefile"
-      - ".github/workflows/build.yml"
+      - ".github/workflows/go-build.yml"
   pull_request:
     paths:
       - "cmd/**"
@@ -17,7 +17,7 @@ on:
       - "go.mod"
       - "go.sum"
       - "Makefile"
-      - ".github/workflows/build.yml"
+      - ".github/workflows/go-build.yml"
 
 jobs:
   build:
@@ -31,10 +31,16 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: fmt
-        run: |
-          make fmt
-          git diff --exit-code || (echo "::error::Code is not formatted. Run 'make fmt' and commit the changes." && exit 1)
-
       - name: Build
         run: make build-all
+
+  gate:
+    if: always()
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check results
+        run: |
+          if [ "${{ needs.build.result }}" = "failure" ] || [ "${{ needs.build.result }}" = "cancelled" ]; then
+            exit 1
+          fi

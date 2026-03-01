@@ -18,4 +18,7 @@ android {
 
 dependencies {
     implementation(libs.coroutines.android)
+
+    testImplementation(libs.junit5.api)
+    testRuntimeOnly(libs.junit5.engine)
 }
