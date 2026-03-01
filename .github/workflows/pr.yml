@@ -32,6 +32,9 @@ jobs:
         with:
           go-version-file: go.mod
 
+      - name: Run go generate
+        run: go generate ./...
+
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
