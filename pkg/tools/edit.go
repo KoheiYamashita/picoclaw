@@ -155,7 +155,7 @@ func (t *AppendFileTool) Execute(ctx context.Context, args map[string]interface{
 	if err != nil {
 		return ErrorResult(fmt.Sprintf("failed to open file: %v", err))
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	if _, err := f.WriteString(content); err != nil {
 		return ErrorResult(fmt.Sprintf("failed to append to file: %v", err))

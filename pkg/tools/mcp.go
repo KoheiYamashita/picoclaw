@@ -86,7 +86,7 @@ func (t *MCPBridgeTool) listServers() *ToolResult {
 	var sb strings.Builder
 	sb.WriteString("Available MCP servers:\n")
 	for _, s := range servers {
-		sb.WriteString(fmt.Sprintf("- %s: %s [%s]\n", s.Name, s.Description, s.Status))
+		fmt.Fprintf(&sb, "- %s: %s [%s]\n", s.Name, s.Description, s.Status)
 	}
 	return SilentResult(sb.String())
 }
@@ -107,15 +107,15 @@ func (t *MCPBridgeTool) getTools(ctx context.Context, args map[string]interface{
 	}
 
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("Tools from server %q:\n\n", server))
+	fmt.Fprintf(&sb, "Tools from server %q:\n\n", server)
 	for _, tool := range tools {
-		sb.WriteString(fmt.Sprintf("## %s\n", tool.Name))
+		fmt.Fprintf(&sb, "## %s\n", tool.Name)
 		if tool.Description != "" {
-			sb.WriteString(fmt.Sprintf("%s\n", tool.Description))
+			fmt.Fprintf(&sb, "%s\n", tool.Description)
 		}
 		if tool.InputSchema != nil {
 			schema, _ := json.MarshalIndent(tool.InputSchema, "", "  ")
-			sb.WriteString(fmt.Sprintf("Input schema:\n```json\n%s\n```\n", string(schema)))
+			fmt.Fprintf(&sb, "Input schema:\n```json\n%s\n```\n", string(schema))
 		}
 		sb.WriteString("\n")
 	}

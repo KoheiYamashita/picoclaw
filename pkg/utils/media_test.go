@@ -155,7 +155,7 @@ func TestDownloadFile_Success(t *testing.T) {
 	if result == "" {
 		t.Fatal("expected non-empty path")
 	}
-	defer os.Remove(result)
+	defer func() { _ = os.Remove(result) }()
 
 	data, err := os.ReadFile(result)
 	if err != nil {
@@ -174,7 +174,7 @@ func TestDownloadFile_404(t *testing.T) {
 
 	result := DownloadFile(ts.URL, "test.txt", DownloadOptions{})
 	if result != "" {
-		os.Remove(result)
+		_ = os.Remove(result)
 		t.Error("expected empty string for 404 response")
 	}
 }
@@ -198,7 +198,7 @@ func TestDownloadFile_ExtraHeaders(t *testing.T) {
 	if result == "" {
 		t.Fatal("expected non-empty path with correct auth header")
 	}
-	defer os.Remove(result)
+	defer func() { _ = os.Remove(result) }()
 }
 
 func TestDownloadFile_Timeout(t *testing.T) {
@@ -212,7 +212,7 @@ func TestDownloadFile_Timeout(t *testing.T) {
 		Timeout: 100 * time.Millisecond,
 	})
 	if result != "" {
-		os.Remove(result)
+		_ = os.Remove(result)
 		t.Error("expected empty string for timeout")
 	}
 }
@@ -228,7 +228,7 @@ func TestDownloadFileSimple(t *testing.T) {
 	if result == "" {
 		t.Fatal("expected non-empty path")
 	}
-	defer os.Remove(result)
+	defer func() { _ = os.Remove(result) }()
 
 	data, err := os.ReadFile(result)
 	if err != nil {

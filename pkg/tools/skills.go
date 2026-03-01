@@ -56,7 +56,7 @@ func (t *SkillTool) Execute(ctx context.Context, args map[string]interface{}) *T
 		}
 		var sb strings.Builder
 		for _, s := range allSkills {
-			sb.WriteString(fmt.Sprintf("- %s (%s): %s\n", s.Name, s.Source, s.Description))
+			fmt.Fprintf(&sb, "- %s (%s): %s\n", s.Name, s.Source, s.Description)
 		}
 		return SilentResult(sb.String())
 

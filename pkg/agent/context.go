@@ -315,7 +315,7 @@ func (cb *ContextBuilder) buildChannelsSection() string {
 	sb.WriteString("## Connected Channels\n\n")
 	sb.WriteString("You can send messages to any of these channels using the message tool:\n")
 	for _, ch := range cb.enabledChannels {
-		sb.WriteString(fmt.Sprintf("- %s\n", ch))
+		fmt.Fprintf(&sb, "- %s\n", ch)
 	}
 	sb.WriteString("- app (alias for the current Android app WebSocket session)\n")
 	return sb.String()
