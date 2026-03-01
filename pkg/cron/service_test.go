@@ -477,3 +477,64 @@ func TestEnableJob_NotFound(t *testing.T) {
 		t.Error("expected nil for nonexistent job")
 	}
 }
+
+// --- Timer-based runLoop ---
+
+func TestRunLoop_TimerBasedExecution(t *testing.T) {
+	storePath := filepath.Join(t.TempDir(), "cron.json")
+	executed := make(chan string, 1)
+	cs := NewCronService(storePath, func(job *CronJob) (string, error) {
+		executed <- job.ID
+		return "ok", nil
+	})
+
+	futureMS := time.Now().Add(100 * time.Millisecond).UnixMilli()
+	job, err := cs.AddJob("quick", CronSchedule{Kind: "at", AtMS: &futureMS}, "msg", false, "", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := cs.Start(); err != nil {
+		t.Fatal(err)
+	}
+	defer cs.Stop()
+
+	select {
+	case id := <-executed:
+		if id != job.ID {
+			t.Errorf("got job %s, want %s", id, job.ID)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("job was not executed within 2 seconds")
+	}
+}
+
+func TestRunLoop_RescheduleOnAddJob(t *testing.T) {
+	storePath := filepath.Join(t.TempDir(), "cron.json")
+	executed := make(chan string, 1)
+	cs := NewCronService(storePath, func(job *CronJob) (string, error) {
+		executed <- job.ID
+		return "ok", nil
+	})
+
+	if err := cs.Start(); err != nil {
+		t.Fatal(err)
+	}
+	defer cs.Stop()
+
+	// Service is running with no jobs. Add a job due 100ms from now.
+	futureMS := time.Now().Add(100 * time.Millisecond).UnixMilli()
+	job, err := cs.AddJob("dynamic", CronSchedule{Kind: "at", AtMS: &futureMS}, "msg", false, "", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	select {
+	case id := <-executed:
+		if id != job.ID {
+			t.Errorf("got job %s, want %s", id, job.ID)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("dynamically added job was not executed")
+	}
+}
