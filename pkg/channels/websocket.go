@@ -112,7 +112,7 @@ func (c *WebSocketChannel) Stop(ctx context.Context) error {
 		logger.DebugCF("websocket", "Closing client connection", map[string]interface{}{
 			"client_id": clientID,
 		})
-		conn.Close()
+		_ = conn.Close()
 	}
 	c.clients = make(map[*websocket.Conn]string)
 	c.chatConns = make(map[string]*websocket.Conn)
@@ -238,7 +238,7 @@ func (c *WebSocketChannel) handleWS(w http.ResponseWriter, r *http.Request) {
 	c.mu.Lock()
 	if oldConn, ok := c.chatConns[chatID]; ok {
 		delete(c.clients, oldConn)
-		oldConn.Close()
+		_ = oldConn.Close()
 	}
 	c.clients[conn] = clientID
 	c.chatConns[chatID] = conn
@@ -281,7 +281,7 @@ func (c *WebSocketChannel) readPump(conn *websocket.Conn, clientID, chatID, clie
 		delete(c.clients, conn)
 		delete(c.chatConns, chatID)
 		c.mu.Unlock()
-		conn.Close()
+		_ = conn.Close()
 
 		logger.InfoCF("websocket", "Client disconnected", map[string]interface{}{
 			"client_id": clientID,

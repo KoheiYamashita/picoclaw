@@ -104,10 +104,10 @@ func TestEncodeFileToDataURL_TooLarge(t *testing.T) {
 	}
 	// Write just the header to fake the size - use Truncate to set size
 	if err := f.Truncate(51 * 1024 * 1024); err != nil {
-		f.Close()
+		_ = f.Close()
 		t.Fatal(err)
 	}
-	f.Close()
+	_ = f.Close()
 
 	result := EncodeFileToDataURL(path)
 	if result != "" {
@@ -147,7 +147,7 @@ func TestEncodeFileToDataURL_AllSupportedExtensions(t *testing.T) {
 func TestDownloadFile_Success(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("file content"))
+		_, _ = w.Write([]byte("file content"))
 	}))
 	defer ts.Close()
 
@@ -186,7 +186,7 @@ func TestDownloadFile_ExtraHeaders(t *testing.T) {
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("ok"))
+		_, _ = w.Write([]byte("ok"))
 	}))
 	defer ts.Close()
 
@@ -220,7 +220,7 @@ func TestDownloadFile_Timeout(t *testing.T) {
 func TestDownloadFileSimple(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("simple content"))
+		_, _ = w.Write([]byte("simple content"))
 	}))
 	defer ts.Close()
 

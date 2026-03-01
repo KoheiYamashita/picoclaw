@@ -135,7 +135,7 @@ func DownloadFile(url, filename string, opts DownloadOptions) string {
 		})
 		return ""
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		logger.ErrorCF(opts.LoggerPrefix, "File download returned non-200 status", map[string]interface{}{
@@ -152,11 +152,11 @@ func DownloadFile(url, filename string, opts DownloadOptions) string {
 		})
 		return ""
 	}
-	defer out.Close()
+	defer func() { _ = out.Close() }()
 
 	if _, err := io.Copy(out, resp.Body); err != nil {
-		out.Close()
-		os.Remove(localPath)
+		_ = out.Close()
+		_ = os.Remove(localPath)
 		logger.ErrorCF(opts.LoggerPrefix, "Failed to write file", map[string]interface{}{
 			"error": err.Error(),
 		})

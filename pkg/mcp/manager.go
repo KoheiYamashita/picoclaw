@@ -214,15 +214,15 @@ func (m *Manager) BuildSummary() string {
 	sb.WriteString("<mcp_servers>\n")
 	for i, cfg := range enabled {
 		sb.WriteString("  <server>\n")
-		sb.WriteString(fmt.Sprintf("    <name>%s</name>\n", names[i]))
+		fmt.Fprintf(&sb, "    <name>%s</name>\n", names[i])
 		if cfg.Description != "" {
-			sb.WriteString(fmt.Sprintf("    <description>%s</description>\n", cfg.Description))
+			fmt.Fprintf(&sb, "    <description>%s</description>\n", cfg.Description)
 		}
 		transport := "stdio"
 		if cfg.URL != "" {
 			transport = "http"
 		}
-		sb.WriteString(fmt.Sprintf("    <transport>%s</transport>\n", transport))
+		fmt.Fprintf(&sb, "    <transport>%s</transport>\n", transport)
 		sb.WriteString("  </server>\n")
 	}
 	sb.WriteString("</mcp_servers>")
@@ -239,7 +239,7 @@ func (m *Manager) Stop() {
 		inst.mu.Lock()
 		if inst.session != nil {
 			logger.InfoCF("mcp", fmt.Sprintf("Stopping server %q", name), nil)
-			inst.session.Close()
+			_ = inst.session.Close()
 			inst.session = nil
 		}
 		inst.mu.Unlock()
@@ -390,7 +390,7 @@ func (m *Manager) handleSessionError(serverName string, inst *ServerInstance, er
 	if isTransportError {
 		logger.WarnCF("mcp", fmt.Sprintf("Server %q transport error, marking for restart: %v", serverName, err), nil)
 		if inst.session != nil {
-			inst.session.Close()
+			_ = inst.session.Close()
 			inst.session = nil
 		}
 		inst.tools = nil
@@ -444,7 +444,7 @@ func (m *Manager) reapIdleServers() {
 			} else {
 				logger.InfoCF("mcp", fmt.Sprintf("Stopping idle server %q (idle %v)", name, time.Since(inst.lastUsed).Round(time.Second)), nil)
 			}
-			inst.session.Close()
+			_ = inst.session.Close()
 			inst.session = nil
 			inst.tools = nil
 		}

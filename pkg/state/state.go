@@ -229,7 +229,7 @@ func (sm *Manager) saveAtomic() error {
 	// Atomic rename from temp to target
 	if err := os.Rename(tempFile, sm.stateFile); err != nil {
 		// Cleanup temp file if rename fails
-		os.Remove(tempFile)
+		_ = os.Remove(tempFile)
 		return fmt.Errorf("failed to rename temp file: %w", err)
 	}
 
