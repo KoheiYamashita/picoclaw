@@ -58,13 +58,14 @@ type CronStore struct {
 type JobHandler func(job *CronJob) (string, error)
 
 type CronService struct {
-	storePath string
-	store     *CronStore
-	onJob     JobHandler
-	mu        sync.RWMutex
-	running   bool
-	stopChan  chan struct{}
-	gronx     *gronx.Gronx
+	storePath    string
+	store        *CronStore
+	onJob        JobHandler
+	mu           sync.RWMutex
+	running      bool
+	stopChan     chan struct{}
+	rescheduleCh chan struct{}
+	gronx        *gronx.Gronx
 }
 
 func NewCronService(storePath string, onJob JobHandler) *CronService {
@@ -96,8 +97,9 @@ func (cs *CronService) Start() error {
 	}
 
 	cs.stopChan = make(chan struct{})
+	cs.rescheduleCh = make(chan struct{}, 1)
 	cs.running = true
-	go cs.runLoop(cs.stopChan)
+	go cs.runLoop(cs.stopChan, cs.rescheduleCh)
 
 	return nil
 }
@@ -115,19 +117,53 @@ func (cs *CronService) Stop() {
 		close(cs.stopChan)
 		cs.stopChan = nil
 	}
+	cs.rescheduleCh = nil
 }
 
-func (cs *CronService) runLoop(stopChan chan struct{}) {
-	ticker := time.NewTicker(1 * time.Second)
-	defer ticker.Stop()
-
+func (cs *CronService) runLoop(stopChan chan struct{}, rescheduleCh chan struct{}) {
 	for {
+		cs.mu.RLock()
+		nextWake := cs.getNextWakeMS()
+		cs.mu.RUnlock()
+
+		var timerCh <-chan time.Time
+		var timer *time.Timer
+
+		if nextWake != nil {
+			delay := *nextWake - time.Now().UnixMilli()
+			if delay < 0 {
+				delay = 0
+			}
+			timer = time.NewTimer(time.Duration(delay) * time.Millisecond)
+			timerCh = timer.C
+		}
+
 		select {
 		case <-stopChan:
+			if timer != nil {
+				timer.Stop()
+			}
 			return
-		case <-ticker.C:
+		case <-rescheduleCh:
+			if timer != nil {
+				timer.Stop()
+			}
+			continue
+		case <-timerCh:
 			cs.checkJobs()
 		}
+	}
+}
+
+// notifyReschedule signals the run loop to recalculate its sleep timer.
+// Must be called while cs.mu is held.
+func (cs *CronService) notifyReschedule() {
+	if cs.rescheduleCh == nil {
+		return
+	}
+	select {
+	case cs.rescheduleCh <- struct{}{}:
+	default:
 	}
 }
 
@@ -240,6 +276,7 @@ func (cs *CronService) executeJobByID(jobID string) {
 	if err := cs.saveStoreUnsafe(); err != nil {
 		log.Printf("[cron] failed to save store: %v", err)
 	}
+	cs.notifyReschedule()
 }
 
 func (cs *CronService) computeNextRun(schedule *CronSchedule, nowMS int64) *int64 {
@@ -376,6 +413,7 @@ func (cs *CronService) AddJob(name string, schedule CronSchedule, message string
 	if err := cs.saveStoreUnsafe(); err != nil {
 		return nil, err
 	}
+	cs.notifyReschedule()
 
 	return &job, nil
 }
@@ -388,7 +426,11 @@ func (cs *CronService) UpdateJob(job *CronJob) error {
 		if cs.store.Jobs[i].ID == job.ID {
 			cs.store.Jobs[i] = *job
 			cs.store.Jobs[i].UpdatedAtMS = time.Now().UnixMilli()
-			return cs.saveStoreUnsafe()
+			if err := cs.saveStoreUnsafe(); err != nil {
+				return err
+			}
+			cs.notifyReschedule()
+			return nil
 		}
 	}
 	return fmt.Errorf("job not found")
@@ -416,6 +458,7 @@ func (cs *CronService) removeJobUnsafe(jobID string) bool {
 		if err := cs.saveStoreUnsafe(); err != nil {
 			log.Printf("[cron] failed to save store after remove: %v", err)
 		}
+		cs.notifyReschedule()
 	}
 
 	return removed
@@ -440,6 +483,7 @@ func (cs *CronService) EnableJob(jobID string, enabled bool) *CronJob {
 			if err := cs.saveStoreUnsafe(); err != nil {
 				log.Printf("[cron] failed to save store after enable: %v", err)
 			}
+			cs.notifyReschedule()
 			return job
 		}
 	}

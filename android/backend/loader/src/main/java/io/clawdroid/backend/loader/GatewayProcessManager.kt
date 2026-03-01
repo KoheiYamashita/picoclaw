@@ -118,6 +118,7 @@ class GatewayProcessManager(
                         if (_state.value == BackendState.STARTING) {
                             _state.value = BackendState.RUNNING
                             Log.i(TAG, "Gateway health check passed")
+                            return
                         }
                     }
                 } finally {
