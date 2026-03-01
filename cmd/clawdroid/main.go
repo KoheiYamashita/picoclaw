@@ -605,7 +605,7 @@ func gatewayCmd() {
 	fmt.Println("Press Ctrl+C to stop")
 
 	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, os.Interrupt)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 
 	restart := false
 	select {
@@ -692,7 +692,7 @@ func gatewaySetupMode(cfg *config.Config, configPath string) {
 	fmt.Println("Press Ctrl+C to stop")
 
 	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, os.Interrupt)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 
 	restart := false
 	select {

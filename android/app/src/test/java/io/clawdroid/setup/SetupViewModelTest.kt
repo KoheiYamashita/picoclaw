@@ -179,7 +179,7 @@ class SetupViewModelTest {
         @Test
         fun `submitComplete calls init and complete APIs`() = runTest {
             coEvery { setupApiClient.init(any()) } returns Unit
-            coEvery { setupApiClient.complete(any()) } returns Unit
+            coEvery { setupApiClient.complete(any(), any()) } returns Unit
 
             viewModel.onGatewayPortChange("18790")
             viewModel.onGatewayApiKeyChange("test-key")
@@ -192,7 +192,7 @@ class SetupViewModelTest {
             assertTrue(completed)
             assertFalse(viewModel.uiState.value.loading)
             coVerify { setupApiClient.init(any()) }
-            coVerify { setupApiClient.complete(any()) }
+            coVerify { setupApiClient.complete(any(), overrideApiKey = "test-key") }
             coVerify { settingsStore.update(any()) }
         }
 
@@ -216,7 +216,7 @@ class SetupViewModelTest {
         @Test
         fun `submitComplete does not double-submit while loading`() = runTest {
             coEvery { setupApiClient.init(any()) } returns Unit
-            coEvery { setupApiClient.complete(any()) } returns Unit
+            coEvery { setupApiClient.complete(any(), any()) } returns Unit
 
             viewModel.onGatewayPortChange("18790")
             viewModel.onGatewayApiKeyChange("key")
