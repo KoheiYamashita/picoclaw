@@ -18,8 +18,8 @@ func setupSkillFixture(t *testing.T) (string, *skills.SkillsLoader) {
 
 	// Create a test skill
 	skillDir := filepath.Join(tmpDir, "skills", "test-skill")
-	os.MkdirAll(skillDir, 0755)
-	os.WriteFile(filepath.Join(skillDir, "SKILL.md"), []byte(`---
+	_ = os.MkdirAll(skillDir, 0755)
+	_ = os.WriteFile(filepath.Join(skillDir, "SKILL.md"), []byte(`---
 name: test-skill
 description: "A test skill for unit testing"
 ---

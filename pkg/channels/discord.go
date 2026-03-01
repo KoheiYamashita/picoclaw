@@ -41,13 +41,6 @@ func NewDiscordChannel(cfg config.DiscordConfig, bus *bus.MessageBus) (*DiscordC
 	}, nil
 }
 
-func (c *DiscordChannel) getContext() context.Context {
-	if c.ctx == nil {
-		return context.Background()
-	}
-	return c.ctx
-}
-
 func (c *DiscordChannel) Start(ctx context.Context) error {
 	logger.InfoC("discord", "Starting Discord bot")
 
@@ -120,10 +113,8 @@ func splitMessage(content string, limit int) []string {
 			break
 		}
 
-		msgEnd := limit
-
 		// Find natural split point within the limit
-		msgEnd = findLastNewline(content[:limit], 200)
+		msgEnd := findLastNewline(content[:limit], 200)
 		if msgEnd <= 0 {
 			msgEnd = findLastSpace(content[:limit], 100)
 		}

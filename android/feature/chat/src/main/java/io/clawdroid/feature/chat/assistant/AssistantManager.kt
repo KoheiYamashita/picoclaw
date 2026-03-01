@@ -3,6 +3,7 @@ package io.clawdroid.feature.chat.assistant
 import android.content.ContentResolver
 import android.speech.SpeechRecognizer
 import android.util.Base64
+import androidx.core.net.toUri
 import android.util.Log
 import io.clawdroid.core.domain.model.AssistantMessage
 import io.clawdroid.core.domain.model.VoicePhase
@@ -298,7 +299,7 @@ class AssistantManager(
             _state.value.isCameraActive -> cameraCaptureManager.captureFrame()
             else -> null
         } ?: return emptyList()
-        val uri = android.net.Uri.parse(attachment.uri)
+        val uri = attachment.uri.toUri()
         return try {
             val bytes = contentResolver.openInputStream(uri)?.use { it.readBytes() }
                 ?: return emptyList()

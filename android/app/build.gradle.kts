@@ -7,11 +7,12 @@ plugins {
 }
 
 val keystorePropertiesFile = rootProject.file("keystore.properties")
-val keystoreProperties = Properties().apply {
-    if (keystorePropertiesFile.exists()) {
-        keystorePropertiesFile.inputStream().use { load(it) }
+val keystoreProperties =
+    Properties().apply {
+        if (keystorePropertiesFile.exists()) {
+            keystorePropertiesFile.inputStream().use { load(it) }
+        }
     }
-}
 
 val versionFile = rootProject.file("../VERSION")
 val appVersionName = if (versionFile.exists()) versionFile.readText().trim() else "0.1.0"
@@ -30,8 +31,9 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = keystoreProperties.getProperty("storeFile", "")
-                .takeIf { it.isNotEmpty() }?.let { rootProject.file(it) }
+            storeFile =
+                keystoreProperties.getProperty("storeFile", "")
+                    .takeIf { it.isNotEmpty() }?.let { rootProject.file(it) }
             storePassword = keystoreProperties.getProperty("storePassword", "")
             keyAlias = keystoreProperties.getProperty("keyAlias", "")
             keyPassword = keystoreProperties.getProperty("keyPassword", "")
@@ -47,7 +49,7 @@ android {
             signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -84,6 +86,7 @@ android {
     lint {
         abortOnError = true
         checkDependencies = true
+        lintConfig = file("lint.xml")
     }
 
     compileOptions {

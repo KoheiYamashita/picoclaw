@@ -6,9 +6,9 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Rect
-import android.net.Uri
 import android.os.Build
 import android.util.Base64
+import androidx.core.net.toUri
 import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
 import io.clawdroid.core.data.remote.dto.ToolRequest
@@ -141,9 +141,7 @@ class ToolRequestHandler(
             sb.appendLine("Package: $packageName")
             sb.appendLine("Version: ${info.versionName ?: "unknown"}")
             sb.appendLine("System app: $isSystem")
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                sb.appendLine("Version code: ${info.longVersionCode}")
-            }
+            sb.appendLine("Version code: ${info.longVersionCode}")
 
             ToolResponse(request.requestId, true, result = sb.toString())
         } catch (e: PackageManager.NameNotFoundException) {
@@ -195,26 +193,18 @@ class ToolRequestHandler(
         return withOverlayHidden {
             val root = deviceController.getRootNode()
                 ?: return@withOverlayHidden ToolResponse(request.requestId, false, error = "Could not get UI tree")
-            try {
-                val startNode = resolveStartNode(root, resourceId, index, boundsX, boundsY)
-                    ?: return@withOverlayHidden ToolResponse(request.requestId, false, error = buildString {
-                        if (resourceId != null) append("No node found with resource_id=$resourceId (index=$index)")
-                        else append("No node found at bounds ($boundsX, $boundsY)")
-                    })
-                try {
-                    val sb = StringBuilder()
-                    val nodeCount = intArrayOf(0)
-                    dumpNode(startNode, sb, 0, maxDepth, maxNodes, nodeCount)
-                    if (nodeCount[0] >= maxNodes) {
-                        sb.appendLine("[truncated: max_nodes=$maxNodes reached]")
-                    }
-                    ToolResponse(request.requestId, true, result = sb.toString())
-                } finally {
-                    if (startNode !== root) startNode.recycle()
-                }
-            } finally {
-                root.recycle()
+            val startNode = resolveStartNode(root, resourceId, index, boundsX, boundsY)
+                ?: return@withOverlayHidden ToolResponse(request.requestId, false, error = buildString {
+                    if (resourceId != null) append("No node found with resource_id=$resourceId (index=$index)")
+                    else append("No node found at bounds ($boundsX, $boundsY)")
+                })
+            val sb = StringBuilder()
+            val nodeCount = intArrayOf(0)
+            dumpNode(startNode, sb, 0, maxDepth, maxNodes, nodeCount)
+            if (nodeCount[0] >= maxNodes) {
+                sb.appendLine("[truncated: max_nodes=$maxNodes reached]")
             }
+            ToolResponse(request.requestId, true, result = sb.toString())
         }
     }
 
@@ -228,12 +218,7 @@ class ToolRequestHandler(
         if (resourceId != null) {
             val matches = root.findAccessibilityNodeInfosByViewId(resourceId)
             if (matches.isNullOrEmpty()) return null
-            val target = matches.getOrNull(index)
-            // Recycle unused matches
-            for ((i, node) in matches.withIndex()) {
-                if (i != index) node.recycle()
-            }
-            return target
+            return matches.getOrNull(index)
         }
         if (boundsX != null && boundsY != null) {
             return findNodeAtPoint(root, boundsX.toInt(), boundsY.toInt())
@@ -250,7 +235,6 @@ class ToolRequestHandler(
             val child = node.getChild(i) ?: continue
             val found = findNodeAtPoint(child, x, y)
             if (found != null) return found
-            child.recycle()
         }
         return node
     }
@@ -299,11 +283,7 @@ class ToolRequestHandler(
         for (i in 0 until node.childCount) {
             if (nodeCount[0] >= maxNodes) return
             val child = node.getChild(i) ?: continue
-            try {
-                dumpNode(child, sb, depth + 1, maxDepth, maxNodes, nodeCount)
-            } finally {
-                child.recycle()
-            }
+            dumpNode(child, sb, depth + 1, maxDepth, maxNodes, nodeCount)
         }
     }
 
@@ -403,7 +383,7 @@ class ToolRequestHandler(
         val intent = Intent(action).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
         request.params?.get("intent_data")?.jsonPrimitive?.contentOrNull?.let {
-            intent.data = Uri.parse(it)
+            intent.data = it.toUri()
         }
         request.params?.get("intent_package")?.jsonPrimitive?.contentOrNull?.let {
             intent.setPackage(it)

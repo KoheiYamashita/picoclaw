@@ -125,7 +125,7 @@ func (c *SlackChannel) Send(ctx context.Context, msg bus.OutboundMessage) error 
 
 	if ref, ok := c.pendingAcks.LoadAndDelete(msg.ChatID); ok {
 		msgRef := ref.(slackMessageRef)
-		c.api.AddReaction("white_check_mark", slack.ItemRef{
+		_ = c.api.AddReaction("white_check_mark", slack.ItemRef{
 			Channel:   msgRef.ChannelID,
 			Timestamp: msgRef.Timestamp,
 		})
@@ -209,7 +209,7 @@ func (c *SlackChannel) handleMessageEvent(ev *slackevents.MessageEvent) {
 		chatID = channelID + "/" + threadTS
 	}
 
-	c.api.AddReaction("eyes", slack.ItemRef{
+	_ = c.api.AddReaction("eyes", slack.ItemRef{
 		Channel:   channelID,
 		Timestamp: messageTS,
 	})
@@ -298,7 +298,7 @@ func (c *SlackChannel) handleAppMention(ev *slackevents.AppMentionEvent) {
 		chatID = channelID + "/" + messageTS
 	}
 
-	c.api.AddReaction("eyes", slack.ItemRef{
+	_ = c.api.AddReaction("eyes", slack.ItemRef{
 		Channel:   channelID,
 		Timestamp: messageTS,
 	})

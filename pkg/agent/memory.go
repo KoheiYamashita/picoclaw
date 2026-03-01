@@ -29,7 +29,7 @@ func NewMemoryStore(dataDir string) *MemoryStore {
 	memoryFile := filepath.Join(memoryDir, "MEMORY.md")
 
 	// Ensure memory directory exists
-	os.MkdirAll(memoryDir, 0755)
+	_ = os.MkdirAll(memoryDir, 0755)
 
 	return &MemoryStore{
 		dataDir:    dataDir,
@@ -77,7 +77,7 @@ func (ms *MemoryStore) AppendToday(content string) error {
 
 	// Ensure month directory exists
 	monthDir := filepath.Dir(todayFile)
-	os.MkdirAll(monthDir, 0755)
+	_ = os.MkdirAll(monthDir, 0755)
 
 	var existingContent string
 	if data, err := os.ReadFile(todayFile); err == nil {

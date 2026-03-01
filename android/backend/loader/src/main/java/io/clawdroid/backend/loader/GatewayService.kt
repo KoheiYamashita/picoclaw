@@ -24,6 +24,7 @@ class GatewayService : LifecycleService() {
         serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     }
 
+    @android.annotation.SuppressLint("InlinedApi")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
 

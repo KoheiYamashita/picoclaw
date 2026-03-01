@@ -138,7 +138,7 @@ func TestConcurrentAccess(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		go func(idx int) {
 			channel := fmt.Sprintf("channel-%d", idx)
-			sm.SetLastChannel(channel)
+			_ = sm.SetLastChannel(channel)
 			done <- true
 		}(i)
 	}
@@ -176,8 +176,8 @@ func TestNewManager_ExistingState(t *testing.T) {
 
 	// Create initial state
 	sm1 := NewManager(tmpDir)
-	sm1.SetLastChannel("existing-channel")
-	sm1.SetLastChatID("existing-chat-id")
+	_ = sm1.SetLastChannel("existing-channel")
+	_ = sm1.SetLastChatID("existing-chat-id")
 
 	// Create new manager with same workspace
 	sm2 := NewManager(tmpDir)

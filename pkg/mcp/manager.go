@@ -364,7 +364,7 @@ func (m *Manager) ensureRunning(ctx context.Context, serverName string) (*Server
 	// Monitor session lifecycle — single goroutine per session
 	inst.done = make(chan struct{})
 	go func() {
-		session.Wait()
+		_ = session.Wait()
 		close(inst.done)
 	}()
 

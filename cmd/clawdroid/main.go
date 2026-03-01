@@ -227,7 +227,7 @@ func onboard() {
 		fmt.Printf("Config already exists at %s\n", configPath)
 		fmt.Print("Overwrite? (y/n): ")
 		var response string
-		fmt.Scanln(&response)
+		_, _ = fmt.Scanln(&response)
 		if response != "y" {
 			fmt.Println("Aborted.")
 			return
@@ -242,7 +242,7 @@ func onboard() {
 
 	workspace := cfg.WorkspacePath()
 	dataDir := cfg.DataPath()
-	os.MkdirAll(workspace, 0755)
+	_ = os.MkdirAll(workspace, 0755)
 	createWorkspaceTemplates(dataDir)
 
 	fmt.Printf("%s clawdroid is ready!\n", logo)
@@ -421,7 +421,7 @@ func interactiveMode(agentLoop *agent.AgentLoop, sessionKey string) {
 func simpleInteractiveMode(agentLoop *agent.AgentLoop, sessionKey string) {
 	reader := bufio.NewReader(os.Stdin)
 	for {
-		fmt.Print(fmt.Sprintf("%s You: ", logo))
+		fmt.Printf("%s You: ", logo)
 		line, err := reader.ReadString('\n')
 		if err != nil {
 			if err == io.EOF {
@@ -598,7 +598,7 @@ func gatewayCmd() {
 		}
 		fmt.Println("✓ Heartbeat service started")
 
-		go agentLoop.Run(ctx)
+		go func() { _ = agentLoop.Run(ctx) }()
 	}
 
 	fmt.Printf("✓ Gateway started on 127.0.0.1:%d\n", cfg.Gateway.Port)
@@ -620,7 +620,7 @@ func gatewayCmd() {
 	cancel()
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer shutdownCancel()
-	gwServer.Stop(shutdownCtx)
+	_ = gwServer.Stop(shutdownCtx)
 	if heartbeatService != nil {
 		heartbeatService.Stop()
 	}
@@ -630,7 +630,7 @@ func gatewayCmd() {
 	if agentLoop != nil {
 		agentLoop.Stop()
 	}
-	channelManager.StopAll(shutdownCtx)
+	_ = channelManager.StopAll(shutdownCtx)
 	fmt.Println("✓ Gateway stopped")
 
 	if restart {
@@ -706,8 +706,8 @@ func gatewaySetupMode(cfg *config.Config, configPath string) {
 	cancel()
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer shutdownCancel()
-	gwServer.Stop(shutdownCtx)
-	channelManager.StopAll(shutdownCtx)
+	_ = gwServer.Stop(shutdownCtx)
+	_ = channelManager.StopAll(shutdownCtx)
 	fmt.Println("✓ Gateway stopped")
 
 	if restart {
@@ -906,7 +906,7 @@ func cronAddCmd(storePath string) {
 		case "-e", "--every":
 			if i+1 < len(args) {
 				var sec int64
-				fmt.Sscanf(args[i+1], "%d", &sec)
+				_, _ = fmt.Sscanf(args[i+1], "%d", &sec)
 				everySec = &sec
 				i++
 			}
