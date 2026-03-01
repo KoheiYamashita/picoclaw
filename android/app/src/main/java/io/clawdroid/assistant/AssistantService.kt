@@ -396,6 +396,7 @@ class AssistantService : LifecycleService(), SavedStateRegistryOwner {
         }
     }
 
+    @android.annotation.SuppressLint("InlinedApi")
     private fun computeForegroundTypes(): Int {
         var types = ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE or
             ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE

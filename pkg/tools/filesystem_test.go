@@ -12,7 +12,7 @@ import (
 func TestFilesystemTool_ReadFile_Success(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test.txt")
-	os.WriteFile(testFile, []byte("test content"), 0644)
+	_ = os.WriteFile(testFile, []byte("test content"), 0644)
 
 	tool := &ReadFileTool{}
 	ctx := context.Background()
@@ -187,9 +187,9 @@ func TestFilesystemTool_WriteFile_MissingContent(t *testing.T) {
 // TestFilesystemTool_ListDir_Success verifies successful directory listing
 func TestFilesystemTool_ListDir_Success(t *testing.T) {
 	tmpDir := t.TempDir()
-	os.WriteFile(filepath.Join(tmpDir, "file1.txt"), []byte("content"), 0644)
-	os.WriteFile(filepath.Join(tmpDir, "file2.txt"), []byte("content"), 0644)
-	os.Mkdir(filepath.Join(tmpDir, "subdir"), 0755)
+	_ = os.WriteFile(filepath.Join(tmpDir, "file1.txt"), []byte("content"), 0644)
+	_ = os.WriteFile(filepath.Join(tmpDir, "file2.txt"), []byte("content"), 0644)
+	_ = os.Mkdir(filepath.Join(tmpDir, "subdir"), 0755)
 
 	tool := &ListDirTool{}
 	ctx := context.Background()

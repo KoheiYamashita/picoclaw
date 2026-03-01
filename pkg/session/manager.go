@@ -32,8 +32,8 @@ func NewSessionManager(storage string) *SessionManager {
 	}
 
 	if storage != "" {
-		os.MkdirAll(storage, 0755)
-		sm.loadSessions()
+		_ = os.MkdirAll(storage, 0755)
+		_ = sm.loadSessions()
 	}
 
 	return sm

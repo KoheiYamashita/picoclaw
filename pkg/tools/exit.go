@@ -61,6 +61,6 @@ func (t *ExitTool) Execute(ctx context.Context, args map[string]interface{}) *To
 
 	message, _ := args["message"].(string)
 
-	t.sendCallback(t.channel, t.chatID, message, "exit")
+	_ = t.sendCallback(t.channel, t.chatID, message, "exit")
 	return SilentResult("Exit signal sent.")
 }

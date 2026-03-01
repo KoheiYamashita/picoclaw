@@ -1,6 +1,5 @@
 package io.clawdroid.feature.chat.component
 
-import android.net.Uri
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +17,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import coil3.compose.AsyncImage
 import io.clawdroid.core.domain.model.ImageAttachment
 import io.clawdroid.core.ui.theme.GlassBorder
@@ -39,7 +39,7 @@ fun ImagePreviewRow(
         itemsIndexed(images) { index, attachment ->
             Box {
                 AsyncImage(
-                    model = Uri.parse(attachment.uri),
+                    model = attachment.uri.toUri(),
                     contentDescription = null,
                     modifier = Modifier
                         .size(64.dp)

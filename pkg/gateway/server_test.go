@@ -420,7 +420,7 @@ func TestHandleGetConfig_SecretsReturnedAsIs(t *testing.T) {
 	}
 
 	var result map[string]interface{}
-	json.NewDecoder(rr.Body).Decode(&result)
+	_ = json.NewDecoder(rr.Body).Decode(&result)
 
 	// Secrets are returned as-is (no masking)
 	llm := result["llm"].(map[string]interface{})
@@ -460,7 +460,7 @@ func TestHandleGetConfig_NonSecretValues(t *testing.T) {
 	}
 
 	var result map[string]interface{}
-	json.NewDecoder(rr.Body).Decode(&result)
+	_ = json.NewDecoder(rr.Body).Decode(&result)
 
 	llm := result["llm"].(map[string]interface{})
 	if llm["model"] != "test-model" {
@@ -486,7 +486,7 @@ func TestHandleGetConfig_GatewayAPIKeyReturnedAsIs(t *testing.T) {
 	s.handleGetConfig(rr, req)
 
 	var result map[string]interface{}
-	json.NewDecoder(rr.Body).Decode(&result)
+	_ = json.NewDecoder(rr.Body).Decode(&result)
 
 	gw := result["gateway"].(map[string]interface{})
 	if gw["api_key"] != "my-gateway-secret" {
@@ -504,7 +504,7 @@ func TestHandleGetConfig_EmptySecretsReturnedEmpty(t *testing.T) {
 	s.handleGetConfig(rr, req)
 
 	var result map[string]interface{}
-	json.NewDecoder(rr.Body).Decode(&result)
+	_ = json.NewDecoder(rr.Body).Decode(&result)
 
 	llm := result["llm"].(map[string]interface{})
 	if llm["api_key"] != "" {
@@ -526,7 +526,7 @@ func TestHandleGetConfig_MarshalError_500(t *testing.T) {
 	}
 
 	var result map[string]interface{}
-	json.NewDecoder(rr.Body).Decode(&result)
+	_ = json.NewDecoder(rr.Body).Decode(&result)
 	if _, ok := result["error"]; !ok {
 		t.Error("expected error field in response")
 	}
@@ -540,7 +540,7 @@ func TestHandlePutConfig_UpdateNonSecret(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cfgPath := filepath.Join(tmpDir, "config.json")
-	config.SaveConfig(cfgPath, cfg)
+	_ = config.SaveConfig(cfgPath, cfg)
 
 	s := &Server{cfg: cfg, configPath: cfgPath}
 	body := `{"llm":{"model":"new-model"}}`
@@ -565,7 +565,7 @@ func TestHandlePutConfig_SecretPreservedViaPartialUpdate(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cfgPath := filepath.Join(tmpDir, "config.json")
-	config.SaveConfig(cfgPath, cfg)
+	_ = config.SaveConfig(cfgPath, cfg)
 
 	s := &Server{cfg: cfg, configPath: cfgPath}
 	// Only send model — api_key should be preserved via partial update
@@ -593,7 +593,7 @@ func TestHandlePutConfig_SecretUpdatedWithNewValue(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cfgPath := filepath.Join(tmpDir, "config.json")
-	config.SaveConfig(cfgPath, cfg)
+	_ = config.SaveConfig(cfgPath, cfg)
 
 	s := &Server{cfg: cfg, configPath: cfgPath}
 	// Send a new secret value — should save the new value
@@ -617,7 +617,7 @@ func TestHandlePutConfig_NilOnRestart_NoPanic(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cfgPath := filepath.Join(tmpDir, "config.json")
-	config.SaveConfig(cfgPath, cfg)
+	_ = config.SaveConfig(cfgPath, cfg)
 
 	// onRestart is nil
 	s := &Server{cfg: cfg, configPath: cfgPath, onRestart: nil}
@@ -638,7 +638,7 @@ func TestHandlePutConfig_InvalidJSON_400(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cfgPath := filepath.Join(tmpDir, "config.json")
-	config.SaveConfig(cfgPath, cfg)
+	_ = config.SaveConfig(cfgPath, cfg)
 
 	s := &Server{cfg: cfg, configPath: cfgPath}
 	body := `{invalid json`
@@ -651,7 +651,7 @@ func TestHandlePutConfig_InvalidJSON_400(t *testing.T) {
 	}
 
 	var result map[string]interface{}
-	json.NewDecoder(rr.Body).Decode(&result)
+	_ = json.NewDecoder(rr.Body).Decode(&result)
 	if _, ok := result["error"]; !ok {
 		t.Error("expected error field in response")
 	}
@@ -662,7 +662,7 @@ func TestHandlePutConfig_InvalidFieldType_400(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cfgPath := filepath.Join(tmpDir, "config.json")
-	config.SaveConfig(cfgPath, cfg)
+	_ = config.SaveConfig(cfgPath, cfg)
 
 	s := &Server{cfg: cfg, configPath: cfgPath}
 	// gateway.port expects int, so string should fail during unmarshal to Config
@@ -676,7 +676,7 @@ func TestHandlePutConfig_InvalidFieldType_400(t *testing.T) {
 	}
 
 	var result map[string]interface{}
-	json.NewDecoder(rr.Body).Decode(&result)
+	_ = json.NewDecoder(rr.Body).Decode(&result)
 	errMsg, ok := result["error"].(string)
 	if !ok || errMsg == "" {
 		t.Fatal("expected non-empty error message")
@@ -703,7 +703,7 @@ func TestHandlePutConfig_SaveError_500(t *testing.T) {
 	}
 
 	var result map[string]interface{}
-	json.NewDecoder(rr.Body).Decode(&result)
+	_ = json.NewDecoder(rr.Body).Decode(&result)
 	errMsg, ok := result["error"].(string)
 	if !ok || errMsg == "" {
 		t.Fatal("expected non-empty error message")
@@ -722,7 +722,7 @@ func TestHandlePutConfig_PartialUpdatePreservesOtherSections(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cfgPath := filepath.Join(tmpDir, "config.json")
-	config.SaveConfig(cfgPath, cfg)
+	_ = config.SaveConfig(cfgPath, cfg)
 
 	s := &Server{cfg: cfg, configPath: cfgPath}
 	// Only send LLM update — everything else should be preserved
@@ -759,7 +759,7 @@ func TestHandlePutConfig_ResponseBody(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cfgPath := filepath.Join(tmpDir, "config.json")
-	config.SaveConfig(cfgPath, cfg)
+	_ = config.SaveConfig(cfgPath, cfg)
 
 	s := &Server{cfg: cfg, configPath: cfgPath}
 	body := `{"llm":{"model":"test"}}`
@@ -772,7 +772,7 @@ func TestHandlePutConfig_ResponseBody(t *testing.T) {
 	}
 
 	var result map[string]interface{}
-	json.NewDecoder(rr.Body).Decode(&result)
+	_ = json.NewDecoder(rr.Body).Decode(&result)
 
 	if result["status"] != "ok" {
 		t.Errorf("status = %v, want %q", result["status"], "ok")
@@ -787,7 +787,7 @@ func TestHandlePutConfig_OnRestartCalled(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cfgPath := filepath.Join(tmpDir, "config.json")
-	config.SaveConfig(cfgPath, cfg)
+	_ = config.SaveConfig(cfgPath, cfg)
 
 	var mu sync.Mutex
 	restarted := false
@@ -913,7 +913,7 @@ func TestAuthMiddleware_ErrorResponseJSON(t *testing.T) {
 		t.Errorf("401 Content-Type = %q, want %q", ct, "application/json")
 	}
 	var body401 map[string]interface{}
-	json.NewDecoder(rr.Body).Decode(&body401)
+	_ = json.NewDecoder(rr.Body).Decode(&body401)
 	if _, ok := body401["error"]; !ok {
 		t.Error("401 response should have error field")
 	}
@@ -928,7 +928,7 @@ func TestAuthMiddleware_ErrorResponseJSON(t *testing.T) {
 		t.Errorf("403 Content-Type = %q, want %q", ct, "application/json")
 	}
 	var body403 map[string]interface{}
-	json.NewDecoder(rr.Body).Decode(&body403)
+	_ = json.NewDecoder(rr.Body).Decode(&body403)
 	if _, ok := body403["error"]; !ok {
 		t.Error("403 response should have error field")
 	}
@@ -980,7 +980,7 @@ func TestHandlePutConfig_NestedSecretPreservedViaPartialUpdate(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cfgPath := filepath.Join(tmpDir, "config.json")
-	config.SaveConfig(cfgPath, cfg)
+	_ = config.SaveConfig(cfgPath, cfg)
 
 	s := &Server{cfg: cfg, configPath: cfgPath}
 	// Only send non-secret fields — secrets should be preserved via partial update
@@ -1017,7 +1017,7 @@ func TestHandlePutConfig_EmptyBody(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cfgPath := filepath.Join(tmpDir, "config.json")
-	config.SaveConfig(cfgPath, cfg)
+	_ = config.SaveConfig(cfgPath, cfg)
 
 	s := &Server{cfg: cfg, configPath: cfgPath}
 	body := `{}`
@@ -1069,7 +1069,7 @@ func TestHandlePutConfig_ContentType(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cfgPath := filepath.Join(tmpDir, "config.json")
-	config.SaveConfig(cfgPath, cfg)
+	_ = config.SaveConfig(cfgPath, cfg)
 
 	s := &Server{cfg: cfg, configPath: cfgPath}
 	body := `{"llm":{"model":"test"}}`
@@ -1194,13 +1194,13 @@ func TestServerRouting_PutConfig_AuthRequired(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cfgPath := filepath.Join(tmpDir, "config.json")
-	config.SaveConfig(cfgPath, cfg)
+	_ = config.SaveConfig(cfgPath, cfg)
 
 	s := NewServer(cfg, cfgPath, nil)
 	if err := s.Start(); err != nil {
 		t.Fatalf("Start() error = %v", err)
 	}
-	defer s.Stop(context.Background())
+	defer func() { _ = s.Stop(context.Background()) }()
 
 	// PUT without auth should be rejected
 	rr := httptest.NewRecorder()
@@ -1237,7 +1237,7 @@ func TestHandlePutConfig_SecretClearedWithEmptyString(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cfgPath := filepath.Join(tmpDir, "config.json")
-	config.SaveConfig(cfgPath, cfg)
+	_ = config.SaveConfig(cfgPath, cfg)
 
 	s := &Server{cfg: cfg, configPath: cfgPath}
 	// Send empty string to clear the secret
@@ -1269,7 +1269,7 @@ func TestHandlePutConfig_MultipleSectionsSimultaneous(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cfgPath := filepath.Join(tmpDir, "config.json")
-	config.SaveConfig(cfgPath, cfg)
+	_ = config.SaveConfig(cfgPath, cfg)
 
 	s := &Server{cfg: cfg, configPath: cfgPath}
 	body := `{"llm":{"model":"new-model"},"gateway":{"port":9999},"heartbeat":{"interval":60}}`
@@ -1304,7 +1304,7 @@ func TestHandlePutConfig_InMemoryConfigUpdated(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cfgPath := filepath.Join(tmpDir, "config.json")
-	config.SaveConfig(cfgPath, cfg)
+	_ = config.SaveConfig(cfgPath, cfg)
 
 	s := &Server{cfg: cfg, configPath: cfgPath}
 	body := `{"llm":{"model":"updated"}}`
@@ -1344,7 +1344,7 @@ func TestHandleGetConfig_DiscordTokenReturnedAsIs(t *testing.T) {
 	}
 
 	var result map[string]interface{}
-	json.NewDecoder(rr.Body).Decode(&result)
+	_ = json.NewDecoder(rr.Body).Decode(&result)
 
 	discord := result["channels"].(map[string]interface{})["discord"].(map[string]interface{})
 	if discord["token"] != "discord-secret-token" {
@@ -1474,7 +1474,7 @@ func TestHandlePutConfig_IntraSectionPartialUpdate(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cfgPath := filepath.Join(tmpDir, "config.json")
-	config.SaveConfig(cfgPath, cfg)
+	_ = config.SaveConfig(cfgPath, cfg)
 
 	s := &Server{cfg: cfg, configPath: cfgPath}
 	// Only send model — api_key and base_url should be preserved
@@ -1511,7 +1511,7 @@ func TestHandlePutConfig_BoolTrueToFalse(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cfgPath := filepath.Join(tmpDir, "config.json")
-	config.SaveConfig(cfgPath, cfg)
+	_ = config.SaveConfig(cfgPath, cfg)
 
 	s := &Server{cfg: cfg, configPath: cfgPath}
 	body := `{"channels":{"telegram":{"enabled":false}},"heartbeat":{"enabled":false}}`
@@ -1543,7 +1543,7 @@ func TestHandlePutConfig_IntSetToZero(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cfgPath := filepath.Join(tmpDir, "config.json")
-	config.SaveConfig(cfgPath, cfg)
+	_ = config.SaveConfig(cfgPath, cfg)
 
 	s := &Server{cfg: cfg, configPath: cfgPath}
 	body := `{"rate_limits":{"max_tool_calls_per_minute":0}}`
@@ -1572,7 +1572,7 @@ func TestHandlePutConfig_FloatSetToZero(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cfgPath := filepath.Join(tmpDir, "config.json")
-	config.SaveConfig(cfgPath, cfg)
+	_ = config.SaveConfig(cfgPath, cfg)
 
 	s := &Server{cfg: cfg, configPath: cfgPath}
 	body := `{"agents":{"defaults":{"temperature":0}}}`
@@ -1603,7 +1603,7 @@ func TestHandlePutConfig_MCPMapUpdate(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cfgPath := filepath.Join(tmpDir, "config.json")
-	config.SaveConfig(cfgPath, cfg)
+	_ = config.SaveConfig(cfgPath, cfg)
 
 	s := &Server{cfg: cfg, configPath: cfgPath}
 	body := `{"tools":{"mcp":{"server1":{"command":"cmd1","enabled":false,"description":"first"},"server2":{"command":"cmd2","enabled":true,"description":"second"}}}}`
@@ -1646,7 +1646,7 @@ func TestHandlePutConfig_MCPMapInMemoryUpdated(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cfgPath := filepath.Join(tmpDir, "config.json")
-	config.SaveConfig(cfgPath, cfg)
+	_ = config.SaveConfig(cfgPath, cfg)
 
 	s := &Server{cfg: cfg, configPath: cfgPath}
 	body := `{"tools":{"mcp":{"original":{"command":"orig","enabled":true},"added":{"command":"new","enabled":true}}}}`
@@ -1674,7 +1674,7 @@ func TestHandlePutConfig_ConcurrentPUT(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cfgPath := filepath.Join(tmpDir, "config.json")
-	config.SaveConfig(cfgPath, cfg)
+	_ = config.SaveConfig(cfgPath, cfg)
 
 	s := &Server{cfg: cfg, configPath: cfgPath}
 
@@ -1712,7 +1712,7 @@ func TestHandlePutConfig_ConcurrentGETAndPUT(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cfgPath := filepath.Join(tmpDir, "config.json")
-	config.SaveConfig(cfgPath, cfg)
+	_ = config.SaveConfig(cfgPath, cfg)
 
 	s := &Server{cfg: cfg, configPath: cfgPath}
 
@@ -1767,7 +1767,7 @@ func TestHandleGetConfig_BraveAPIKeyReturnedAsIs(t *testing.T) {
 	}
 
 	var result map[string]interface{}
-	json.NewDecoder(rr.Body).Decode(&result)
+	_ = json.NewDecoder(rr.Body).Decode(&result)
 
 	tools := result["tools"].(map[string]interface{})
 	web := tools["web"].(map[string]interface{})
@@ -1801,7 +1801,7 @@ func TestHandleGetConfig_WithMCPServers(t *testing.T) {
 	}
 
 	var result map[string]interface{}
-	json.NewDecoder(rr.Body).Decode(&result)
+	_ = json.NewDecoder(rr.Body).Decode(&result)
 
 	tools := result["tools"].(map[string]interface{})
 	mcp, ok := tools["mcp"].(map[string]interface{})
@@ -1836,7 +1836,7 @@ func TestHandleGetConfig_FlexibleStringSliceSerialization(t *testing.T) {
 	}
 
 	var result map[string]interface{}
-	json.NewDecoder(rr.Body).Decode(&result)
+	_ = json.NewDecoder(rr.Body).Decode(&result)
 
 	channels := result["channels"].(map[string]interface{})
 	tg := channels["telegram"].(map[string]interface{})
@@ -1859,7 +1859,7 @@ func TestHandlePutConfig_FlexibleStringSliceUpdate(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cfgPath := filepath.Join(tmpDir, "config.json")
-	config.SaveConfig(cfgPath, cfg)
+	_ = config.SaveConfig(cfgPath, cfg)
 
 	s := &Server{cfg: cfg, configPath: cfgPath}
 	body := `{"channels":{"telegram":{"allow_from":["user1",456,"user3"]}}}`
@@ -1903,7 +1903,7 @@ func TestHandlePutConfig_DeepNestedPartialUpdate(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cfgPath := filepath.Join(tmpDir, "config.json")
-	config.SaveConfig(cfgPath, cfg)
+	_ = config.SaveConfig(cfgPath, cfg)
 
 	s := &Server{cfg: cfg, configPath: cfgPath}
 	// Only update brave.api_key — everything else should be preserved
@@ -1948,7 +1948,7 @@ func TestHandlePutConfig_AgentsDefaultsPartialUpdate(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cfgPath := filepath.Join(tmpDir, "config.json")
-	config.SaveConfig(cfgPath, cfg)
+	_ = config.SaveConfig(cfgPath, cfg)
 
 	s := &Server{cfg: cfg, configPath: cfgPath}
 	body := `{"agents":{"defaults":{"max_tokens":4096}}}`
@@ -1985,7 +1985,7 @@ func TestHandlePutConfig_EmptyBodyZeroBytes(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cfgPath := filepath.Join(tmpDir, "config.json")
-	config.SaveConfig(cfgPath, cfg)
+	_ = config.SaveConfig(cfgPath, cfg)
 
 	s := &Server{cfg: cfg, configPath: cfgPath}
 	rr := httptest.NewRecorder()
@@ -2005,7 +2005,7 @@ func TestHandlePutConfig_ThenGetRoundTrip(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	cfgPath := filepath.Join(tmpDir, "config.json")
-	config.SaveConfig(cfgPath, cfg)
+	_ = config.SaveConfig(cfgPath, cfg)
 
 	s := &Server{cfg: cfg, configPath: cfgPath}
 
@@ -2034,7 +2034,7 @@ func TestHandlePutConfig_ThenGetRoundTrip(t *testing.T) {
 	}
 
 	var result map[string]interface{}
-	json.NewDecoder(rr.Body).Decode(&result)
+	_ = json.NewDecoder(rr.Body).Decode(&result)
 	llm := result["llm"].(map[string]interface{})
 	if llm["model"] != "new-model" {
 		t.Errorf("GET model = %v, want %q", llm["model"], "new-model")
@@ -2055,7 +2055,7 @@ func TestServerStop_CalledTwice(t *testing.T) {
 	cfg.Gateway.Port = -1
 
 	s := NewServer(cfg, "/tmp/config.json", nil)
-	s.Start()
+	_ = s.Start()
 
 	ctx := context.Background()
 	if err := s.Stop(ctx); err != nil {
@@ -2075,8 +2075,8 @@ func TestServerRouting_UnsupportedMethods(t *testing.T) {
 	cfg.Gateway.Port = -1
 
 	s := NewServer(cfg, "/tmp/config.json", nil)
-	s.Start()
-	defer s.Stop(context.Background())
+	_ = s.Start()
+	defer func() { _ = s.Stop(context.Background()) }()
 
 	methods := []string{http.MethodDelete, http.MethodPatch}
 	for _, method := range methods {
@@ -2096,8 +2096,8 @@ func TestServerRouting_UnknownPath(t *testing.T) {
 	cfg.Gateway.Port = -1
 
 	s := NewServer(cfg, "/tmp/config.json", nil)
-	s.Start()
-	defer s.Stop(context.Background())
+	_ = s.Start()
+	defer func() { _ = s.Stop(context.Background()) }()
 
 	rr := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/api/unknown", nil)
@@ -2157,8 +2157,8 @@ func TestServerRouting_SchemaAuthRequired(t *testing.T) {
 	cfg.Gateway.APIKey = "schema-auth-key"
 
 	s := NewServer(cfg, "/tmp/config.json", nil)
-	s.Start()
-	defer s.Stop(context.Background())
+	_ = s.Start()
+	defer func() { _ = s.Stop(context.Background()) }()
 
 	// Without auth
 	rr := httptest.NewRecorder()
@@ -2190,7 +2190,7 @@ func TestHandleGetConfig_WhatsAppBridgeURLNotMasked(t *testing.T) {
 	s.handleGetConfig(rr, req)
 
 	var result map[string]interface{}
-	json.NewDecoder(rr.Body).Decode(&result)
+	_ = json.NewDecoder(rr.Body).Decode(&result)
 
 	wa := result["channels"].(map[string]interface{})["whatsapp"].(map[string]interface{})
 	if wa["bridge_url"] != "ws://localhost:3001" {
@@ -2209,7 +2209,7 @@ func TestHandleGetConfig_AllSectionsPresent(t *testing.T) {
 	s.handleGetConfig(rr, req)
 
 	var result map[string]interface{}
-	json.NewDecoder(rr.Body).Decode(&result)
+	_ = json.NewDecoder(rr.Body).Decode(&result)
 
 	wantSections := []string{"llm", "agents", "channels", "gateway", "tools", "heartbeat", "rate_limits"}
 	for _, sec := range wantSections {

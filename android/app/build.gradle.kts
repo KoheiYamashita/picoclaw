@@ -4,14 +4,16 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.serialization)
+    alias(libs.plugins.kover)
 }
 
 val keystorePropertiesFile = rootProject.file("keystore.properties")
-val keystoreProperties = Properties().apply {
-    if (keystorePropertiesFile.exists()) {
-        keystorePropertiesFile.inputStream().use { load(it) }
+val keystoreProperties =
+    Properties().apply {
+        if (keystorePropertiesFile.exists()) {
+            keystorePropertiesFile.inputStream().use { load(it) }
+        }
     }
-}
 
 val versionFile = rootProject.file("../VERSION")
 val appVersionName = if (versionFile.exists()) versionFile.readText().trim() else "0.1.0"
@@ -30,8 +32,9 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = keystoreProperties.getProperty("storeFile", "")
-                .takeIf { it.isNotEmpty() }?.let { rootProject.file(it) }
+            storeFile =
+                keystoreProperties.getProperty("storeFile", "")
+                    .takeIf { it.isNotEmpty() }?.let { rootProject.file(it) }
             storePassword = keystoreProperties.getProperty("storePassword", "")
             keyAlias = keystoreProperties.getProperty("keyAlias", "")
             keyPassword = keystoreProperties.getProperty("keyPassword", "")
@@ -47,7 +50,7 @@ android {
             signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -81,9 +84,19 @@ android {
         getByName("embedded") { java.srcDirs("src/embedded/java") }
     }
 
+    lint {
+        abortOnError = true
+        checkDependencies = true
+        lintConfig = file("lint.xml")
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    testOptions {
+        unitTests.isReturnDefaultValues = true
     }
 }
 
@@ -123,6 +136,12 @@ dependencies {
     implementation(libs.serialization.json)
 
     implementation(libs.icons.lucide)
+
+    testImplementation(libs.junit5.api)
+    testRuntimeOnly(libs.junit5.engine)
+    testImplementation(libs.mockk)
+    testImplementation(libs.coroutines.test)
+    testImplementation(libs.turbine)
 
     debugImplementation(libs.compose.ui.tooling)
 }

@@ -14,7 +14,7 @@ func TestExecuteHeartbeat_Async(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	hs := NewHeartbeatService(tmpDir, tmpDir, 30, true, nil)
 	hs.stopChan = make(chan struct{}) // Enable for testing
@@ -37,7 +37,7 @@ func TestExecuteHeartbeat_Async(t *testing.T) {
 	})
 
 	// Create HEARTBEAT.md
-	os.WriteFile(filepath.Join(tmpDir, "HEARTBEAT.md"), []byte("Test task"), 0644)
+	_ = os.WriteFile(filepath.Join(tmpDir, "HEARTBEAT.md"), []byte("Test task"), 0644)
 
 	// Execute heartbeat directly (internal method for testing)
 	hs.executeHeartbeat()
@@ -52,7 +52,7 @@ func TestExecuteHeartbeat_Error(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	hs := NewHeartbeatService(tmpDir, tmpDir, 30, true, nil)
 	hs.stopChan = make(chan struct{}) // Enable for testing
@@ -68,7 +68,7 @@ func TestExecuteHeartbeat_Error(t *testing.T) {
 	})
 
 	// Create HEARTBEAT.md
-	os.WriteFile(filepath.Join(tmpDir, "HEARTBEAT.md"), []byte("Test task"), 0644)
+	_ = os.WriteFile(filepath.Join(tmpDir, "HEARTBEAT.md"), []byte("Test task"), 0644)
 
 	hs.executeHeartbeat()
 
@@ -90,7 +90,7 @@ func TestExecuteHeartbeat_Silent(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	hs := NewHeartbeatService(tmpDir, tmpDir, 30, true, nil)
 	hs.stopChan = make(chan struct{}) // Enable for testing
@@ -106,7 +106,7 @@ func TestExecuteHeartbeat_Silent(t *testing.T) {
 	})
 
 	// Create HEARTBEAT.md
-	os.WriteFile(filepath.Join(tmpDir, "HEARTBEAT.md"), []byte("Test task"), 0644)
+	_ = os.WriteFile(filepath.Join(tmpDir, "HEARTBEAT.md"), []byte("Test task"), 0644)
 
 	hs.executeHeartbeat()
 
@@ -128,7 +128,7 @@ func TestHeartbeatService_StartStop(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	hs := NewHeartbeatService(tmpDir, tmpDir, 1, true, nil)
 
@@ -147,7 +147,7 @@ func TestHeartbeatService_Disabled(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	hs := NewHeartbeatService(tmpDir, tmpDir, 1, false, nil)
 
@@ -164,7 +164,7 @@ func TestExecuteHeartbeat_NilResult(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	hs := NewHeartbeatService(tmpDir, tmpDir, 30, true, nil)
 	hs.stopChan = make(chan struct{}) // Enable for testing
@@ -174,7 +174,7 @@ func TestExecuteHeartbeat_NilResult(t *testing.T) {
 	})
 
 	// Create HEARTBEAT.md
-	os.WriteFile(filepath.Join(tmpDir, "HEARTBEAT.md"), []byte("Test task"), 0644)
+	_ = os.WriteFile(filepath.Join(tmpDir, "HEARTBEAT.md"), []byte("Test task"), 0644)
 
 	// Should not panic with nil result
 	hs.executeHeartbeat()
@@ -186,7 +186,7 @@ func TestLogPath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	hs := NewHeartbeatService(tmpDir, tmpDir, 30, true, nil)
 
@@ -206,7 +206,7 @@ func TestHeartbeatFilePath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	hs := NewHeartbeatService(tmpDir, tmpDir, 30, true, nil)
 

@@ -315,7 +315,7 @@ func (cb *ContextBuilder) buildChannelsSection() string {
 	sb.WriteString("## Connected Channels\n\n")
 	sb.WriteString("You can send messages to any of these channels using the message tool:\n")
 	for _, ch := range cb.enabledChannels {
-		sb.WriteString(fmt.Sprintf("- %s\n", ch))
+		fmt.Fprintf(&sb, "- %s\n", ch)
 	}
 	sb.WriteString("- app (alias for the current Android app WebSocket session)\n")
 	return sb.String()
@@ -489,25 +489,6 @@ func (cb *ContextBuilder) AddAssistantMessage(messages []providers.Message, cont
 	// Always add assistant message, whether or not it has tool calls
 	messages = append(messages, msg)
 	return messages
-}
-
-func (cb *ContextBuilder) loadSkills() string {
-	allSkills := cb.skillsLoader.ListSkills()
-	if len(allSkills) == 0 {
-		return ""
-	}
-
-	var skillNames []string
-	for _, s := range allSkills {
-		skillNames = append(skillNames, s.Name)
-	}
-
-	content := cb.skillsLoader.LoadSkillsForContext(skillNames)
-	if content == "" {
-		return ""
-	}
-
-	return "# Skill Definitions\n\n" + content
 }
 
 // GetSkillsInfo returns information about loaded skills.

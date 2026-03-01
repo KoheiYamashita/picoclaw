@@ -14,7 +14,7 @@ func TestAtomicSave(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	sm := NewManager(tmpDir)
 
@@ -53,7 +53,7 @@ func TestSetLastChatID(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	sm := NewManager(tmpDir)
 
@@ -86,7 +86,7 @@ func TestAtomicity_NoCorruptionOnInterrupt(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	sm := NewManager(tmpDir)
 
@@ -110,7 +110,7 @@ func TestAtomicity_NoCorruptionOnInterrupt(t *testing.T) {
 	}
 
 	// Clean up the temp file manually
-	os.Remove(tempFile)
+	_ = os.Remove(tempFile)
 
 	// Now do a proper save
 	err = sm.SetLastChannel("new-channel")
@@ -129,7 +129,7 @@ func TestConcurrentAccess(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	sm := NewManager(tmpDir)
 
@@ -138,7 +138,7 @@ func TestConcurrentAccess(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		go func(idx int) {
 			channel := fmt.Sprintf("channel-%d", idx)
-			sm.SetLastChannel(channel)
+			_ = sm.SetLastChannel(channel)
 			done <- true
 		}(i)
 	}
@@ -172,12 +172,12 @@ func TestNewManager_ExistingState(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	// Create initial state
 	sm1 := NewManager(tmpDir)
-	sm1.SetLastChannel("existing-channel")
-	sm1.SetLastChatID("existing-chat-id")
+	_ = sm1.SetLastChannel("existing-channel")
+	_ = sm1.SetLastChatID("existing-chat-id")
 
 	// Create new manager with same workspace
 	sm2 := NewManager(tmpDir)
@@ -197,7 +197,7 @@ func TestNewManager_EmptyWorkspace(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	sm := NewManager(tmpDir)
 

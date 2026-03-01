@@ -235,7 +235,7 @@ func (sl *SkillsLoader) BuildSkillsSummary() string {
 		escapedName := escapeXML(s.Name)
 		escapedDesc := escapeXML(s.Description)
 
-		lines = append(lines, fmt.Sprintf("  <skill>"))
+		lines = append(lines, "  <skill>")
 		lines = append(lines, fmt.Sprintf("    <name>%s</name>", escapedName))
 		lines = append(lines, fmt.Sprintf("    <description>%s</description>", escapedDesc))
 		lines = append(lines, fmt.Sprintf("    <source>%s</source>", s.Source))
@@ -315,7 +315,7 @@ func (sl *SkillsLoader) extractFrontmatter(content string) string {
 }
 
 func (sl *SkillsLoader) stripFrontmatter(content string) string {
-	re := regexp.MustCompile(`^---\n.*?\n---\n`)
+	re := regexp.MustCompile(`(?s)^---\n.*?\n---\n`)
 	return re.ReplaceAllString(content, "")
 }
 

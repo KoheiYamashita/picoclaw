@@ -18,8 +18,8 @@ func setupSkillFixture(t *testing.T) (string, *skills.SkillsLoader) {
 
 	// Create a test skill
 	skillDir := filepath.Join(tmpDir, "skills", "test-skill")
-	os.MkdirAll(skillDir, 0755)
-	os.WriteFile(filepath.Join(skillDir, "SKILL.md"), []byte(`---
+	_ = os.MkdirAll(skillDir, 0755)
+	_ = os.WriteFile(filepath.Join(skillDir, "SKILL.md"), []byte(`---
 name: test-skill
 description: "A test skill for unit testing"
 ---
@@ -35,7 +35,7 @@ This is the skill content.
 
 func TestSkillTool_SkillList(t *testing.T) {
 	tmpDir, loader := setupSkillFixture(t)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	tool := NewSkillTool(loader)
 	result := tool.Execute(context.Background(), map[string]interface{}{
@@ -55,7 +55,7 @@ func TestSkillTool_SkillList_Empty(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	loader := skills.NewSkillsLoader(tmpDir, "", "")
 	tool := NewSkillTool(loader)
@@ -74,7 +74,7 @@ func TestSkillTool_SkillList_Empty(t *testing.T) {
 
 func TestSkillTool_SkillRead(t *testing.T) {
 	tmpDir, loader := setupSkillFixture(t)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	tool := NewSkillTool(loader)
 	result := tool.Execute(context.Background(), map[string]interface{}{
@@ -92,7 +92,7 @@ func TestSkillTool_SkillRead(t *testing.T) {
 
 func TestSkillTool_SkillRead_NotFound(t *testing.T) {
 	tmpDir, loader := setupSkillFixture(t)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	tool := NewSkillTool(loader)
 	result := tool.Execute(context.Background(), map[string]interface{}{
@@ -107,7 +107,7 @@ func TestSkillTool_SkillRead_NotFound(t *testing.T) {
 
 func TestSkillTool_SkillRead_MissingName(t *testing.T) {
 	tmpDir, loader := setupSkillFixture(t)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	tool := NewSkillTool(loader)
 	result := tool.Execute(context.Background(), map[string]interface{}{
@@ -121,7 +121,7 @@ func TestSkillTool_SkillRead_MissingName(t *testing.T) {
 
 func TestSkillTool_UnknownAction(t *testing.T) {
 	tmpDir, loader := setupSkillFixture(t)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	tool := NewSkillTool(loader)
 	result := tool.Execute(context.Background(), map[string]interface{}{
@@ -135,7 +135,7 @@ func TestSkillTool_UnknownAction(t *testing.T) {
 
 func TestSkillTool_MissingAction(t *testing.T) {
 	tmpDir, loader := setupSkillFixture(t)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	tool := NewSkillTool(loader)
 	result := tool.Execute(context.Background(), map[string]interface{}{})
@@ -147,7 +147,7 @@ func TestSkillTool_MissingAction(t *testing.T) {
 
 func TestSkillTool_NameAndDescription(t *testing.T) {
 	tmpDir, loader := setupSkillFixture(t)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	tool := NewSkillTool(loader)
 

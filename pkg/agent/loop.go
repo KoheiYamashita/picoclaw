@@ -142,14 +142,14 @@ func createToolRegistry(workspace string, restrict bool, cfg *config.Config, msg
 func NewAgentLoop(cfg *config.Config, msgBus *bus.MessageBus, provider providers.LLMProvider) *AgentLoop {
 	workspace := cfg.WorkspacePath()
 	dataDir := cfg.DataPath()
-	os.MkdirAll(workspace, 0755)
-	os.MkdirAll(dataDir, 0755)
+	_ = os.MkdirAll(workspace, 0755)
+	_ = os.MkdirAll(dataDir, 0755)
 
 	restrict := cfg.Agents.Defaults.RestrictToWorkspace
 
 	// Create media directory for persisting images
 	mediaDir := filepath.Join(dataDir, "media")
-	os.MkdirAll(mediaDir, 0755)
+	_ = os.MkdirAll(mediaDir, 0755)
 
 	// Create tool registry for main agent
 	toolsRegistry := createToolRegistry(workspace, restrict, cfg, msgBus, dataDir)
@@ -617,7 +617,7 @@ func (al *AgentLoop) runAgentLoop(ctx context.Context, opts processOptions) (str
 	if ctx.Err() != nil {
 		// Processing was cancelled (e.g., new message from same session)
 		al.sessions.AddMessage(opts.SessionKey, "assistant", "[応答は中断されました]")
-		al.sessions.Save(opts.SessionKey)
+		_ = al.sessions.Save(opts.SessionKey)
 		return "", nil
 	}
 
@@ -628,7 +628,7 @@ func (al *AgentLoop) runAgentLoop(ctx context.Context, opts processOptions) (str
 	// Handle NO_REPLY token — suppress sending to user
 	if strings.TrimSpace(finalContent) == SilentReplyToken {
 		al.sessions.AddMessage(opts.SessionKey, "assistant", "[silent]")
-		al.sessions.Save(opts.SessionKey)
+		_ = al.sessions.Save(opts.SessionKey)
 		if opts.EnableSummary {
 			al.maybeSummarize(opts.SessionKey, opts.Channel, opts.ChatID)
 		}
@@ -642,7 +642,7 @@ func (al *AgentLoop) runAgentLoop(ctx context.Context, opts processOptions) (str
 
 	// 6. Save final assistant message to session
 	al.sessions.AddMessage(opts.SessionKey, "assistant", finalContent)
-	al.sessions.Save(opts.SessionKey)
+	_ = al.sessions.Save(opts.SessionKey)
 
 	// 7. Optional: summarization
 	if opts.EnableSummary {
@@ -772,72 +772,9 @@ func (al *AgentLoop) runLLMIteration(ctx context.Context, messages []providers.M
 				newHistory := al.sessions.GetHistory(opts.SessionKey)
 				newSummary := al.sessions.GetSummary(opts.SessionKey)
 
-				// Re-create messages for the next attempt
-				// We keep the current user message (opts.UserMessage) effectively
-				messages = al.contextBuilder.BuildMessages(
-					newHistory,
-					newSummary,
-					opts.UserMessage,
-					nil,
-					opts.Channel,
-					opts.ChatID,
-					opts.InputMode,
-				)
-
-				// Important: If we are in the middle of a tool loop (iteration > 1),
-				// rebuilding messages from session history might duplicate the flow or miss context
-				// if intermediate steps weren't saved correctly.
-				// However, al.sessions.AddFullMessage is called after every tool execution,
-				// so GetHistory should reflect the current state including partial tool execution.
-				// But we need to ensure we don't duplicate the user message which is appended in BuildMessages.
-				// BuildMessages(history...) takes the stored history and appends the *current* user message.
-				// If iteration > 1, the "current user message" was already added to history in step 3 of runAgentLoop.
-				// So if we pass opts.UserMessage again, we might duplicate it?
-				// Actually, step 3 is: al.sessions.AddMessage(opts.SessionKey, "user", opts.UserMessage)
-				// So GetHistory ALREADY contains the user message!
-
-				// CORRECTION:
-				// BuildMessages combines: [System] + [History] + [CurrentMessage]
-				// But Step 3 added CurrentMessage to History.
-				// So if we use GetHistory now, it has the user message.
-				// If we pass opts.UserMessage to BuildMessages, it adds it AGAIN.
-
-				// For retry in the middle of a loop, we should rely on what's in the session.
-				// BUT checking BuildMessages implementation:
-				// It appends history... then appends currentMessage.
-
-				// Logic fix for retry:
-				// If iteration == 1, opts.UserMessage corresponds to the user input.
-				// If iteration > 1, we are processing tool results. The "messages" passed to Chat
-				// already accumulated tool outputs.
-				// Rebuilding from session history is safest because it persists state.
-				// Start fresh with rebuilt history.
-
-				// Special case: standard BuildMessages appends "currentMessage".
-				// If we are strictly retrying the *LLM call*, we want the exact same state as before but compressed.
-				// However, the "messages" argument passed to runLLMIteration is constructed by the caller.
-				// If we rebuild from Session, we need to know if "currentMessage" should be appended or is already in history.
-
-				// In runAgentLoop:
-				// 3. sessions.AddMessage(userMsg)
-				// 4. runLLMIteration(..., UserMessage)
-
-				// So History contains the user message.
-				// BuildMessages typically appends the user message as a *new* pending message.
-				// Wait, standard BuildMessages usage in runAgentLoop:
-				// messages := BuildMessages(history (has old), UserMessage)
-				// THEN AddMessage(UserMessage).
-				// So "history" passed to BuildMessages does NOT contain the current UserMessage yet.
-
-				// But here, inside the loop, we have already saved it.
-				// So GetHistory() includes the current user message.
-				// If we call BuildMessages(GetHistory(), UserMessage), we get duplicates.
-
-				// Hack/Fix:
-				// If we are retrying, we rebuild from Session History ONLY.
-				// We pass empty string as "currentMessage" to BuildMessages
-				// because the "current message" is already saved in history (step 3).
-
+				// Rebuild from Session History ONLY.
+				// Pass empty string as "currentMessage" to BuildMessages
+				// because the "current message" is already saved in history (step 3 of runAgentLoop).
 				messages = al.contextBuilder.BuildMessages(
 					newHistory,
 					newSummary,
@@ -1158,7 +1095,7 @@ func (al *AgentLoop) forceCompression(sessionKey string) {
 
 	// Update session
 	al.sessions.SetHistory(sessionKey, newHistory)
-	al.sessions.Save(sessionKey)
+	_ = al.sessions.Save(sessionKey)
 
 	logger.WarnCF("agent", "Forced compression executed", map[string]interface{}{
 		"session_key":  sessionKey,
@@ -1307,7 +1244,7 @@ func (al *AgentLoop) summarizeSession(sessionKey string) {
 		CleanupMediaFiles(toSummarize)
 		al.sessions.SetSummary(sessionKey, finalSummary)
 		al.sessions.TruncateHistory(sessionKey, 4)
-		al.sessions.Save(sessionKey)
+		_ = al.sessions.Save(sessionKey)
 	}
 }
 

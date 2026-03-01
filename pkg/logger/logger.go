@@ -30,12 +30,8 @@ var (
 	}
 
 	currentLevel = INFO
-	logger       *Logger
-	once         sync.Once
 	mu           sync.RWMutex
 )
-
-type Logger struct{}
 
 type LogEntry struct {
 	Level     string                 `json:"level"`
@@ -44,12 +40,6 @@ type LogEntry struct {
 	Message   string                 `json:"message"`
 	Fields    map[string]interface{} `json:"fields,omitempty"`
 	Caller    string                 `json:"caller,omitempty"`
-}
-
-func init() {
-	once.Do(func() {
-		logger = &Logger{}
-	})
 }
 
 func SetLevel(level LogLevel) {

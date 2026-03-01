@@ -91,7 +91,7 @@ func TestShellTool_WorkingDir(t *testing.T) {
 	// Create temp directory
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test.txt")
-	os.WriteFile(testFile, []byte("test content"), 0644)
+	_ = os.WriteFile(testFile, []byte("test content"), 0644)
 
 	tool := NewExecTool("", false)
 

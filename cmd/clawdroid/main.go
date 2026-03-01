@@ -102,13 +102,13 @@ func copyDirectory(src, dst string) error {
 		if err != nil {
 			return err
 		}
-		defer srcFile.Close()
+		defer func() { _ = srcFile.Close() }()
 
 		dstFile, err := os.OpenFile(dstPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, info.Mode())
 		if err != nil {
 			return err
 		}
-		defer dstFile.Close()
+		defer func() { _ = dstFile.Close() }()
 
 		_, err = io.Copy(dstFile, srcFile)
 		return err
@@ -129,7 +129,7 @@ func init() {
 	// non-standard path. Only set if not already configured.
 	if os.Getenv("SSL_CERT_FILE") == "" && os.Getenv("SSL_CERT_DIR") == "" {
 		if _, err := os.Stat("/system/etc/security/cacerts"); err == nil {
-			os.Setenv("SSL_CERT_DIR", "/system/etc/security/cacerts")
+			_ = os.Setenv("SSL_CERT_DIR", "/system/etc/security/cacerts")
 		}
 	}
 }
@@ -227,7 +227,7 @@ func onboard() {
 		fmt.Printf("Config already exists at %s\n", configPath)
 		fmt.Print("Overwrite? (y/n): ")
 		var response string
-		fmt.Scanln(&response)
+		_, _ = fmt.Scanln(&response)
 		if response != "y" {
 			fmt.Println("Aborted.")
 			return
@@ -242,7 +242,7 @@ func onboard() {
 
 	workspace := cfg.WorkspacePath()
 	dataDir := cfg.DataPath()
-	os.MkdirAll(workspace, 0755)
+	_ = os.MkdirAll(workspace, 0755)
 	createWorkspaceTemplates(dataDir)
 
 	fmt.Printf("%s clawdroid is ready!\n", logo)
@@ -255,7 +255,7 @@ func onboard() {
 func copyEmbeddedToTarget(targetDir string) error {
 	// Ensure target directory exists
 	if err := os.MkdirAll(targetDir, 0755); err != nil {
-		return fmt.Errorf("Failed to create target directory: %w", err)
+		return fmt.Errorf("failed to create target directory: %w", err)
 	}
 
 	// Walk through all files in embed.FS
@@ -272,12 +272,12 @@ func copyEmbeddedToTarget(targetDir string) error {
 		// Read embedded file
 		data, err := embeddedFiles.ReadFile(path)
 		if err != nil {
-			return fmt.Errorf("Failed to read embedded file %s: %w", path, err)
+			return fmt.Errorf("failed to read embedded file %s: %w", path, err)
 		}
 
 		new_path, err := filepath.Rel("workspace", path)
 		if err != nil {
-			return fmt.Errorf("Failed to get relative path for %s: %v\n", path, err)
+			return fmt.Errorf("failed to get relative path for %s: %w", path, err)
 		}
 
 		// Build target file path
@@ -285,12 +285,12 @@ func copyEmbeddedToTarget(targetDir string) error {
 
 		// Ensure target file's directory exists
 		if err := os.MkdirAll(filepath.Dir(targetPath), 0755); err != nil {
-			return fmt.Errorf("Failed to create directory %s: %w", filepath.Dir(targetPath), err)
+			return fmt.Errorf("failed to create directory %s: %w", filepath.Dir(targetPath), err)
 		}
 
 		// Write file
 		if err := os.WriteFile(targetPath, data, 0644); err != nil {
-			return fmt.Errorf("Failed to write file %s: %w", targetPath, err)
+			return fmt.Errorf("failed to write file %s: %w", targetPath, err)
 		}
 
 		return nil
@@ -384,7 +384,7 @@ func interactiveMode(agentLoop *agent.AgentLoop, sessionKey string) {
 		simpleInteractiveMode(agentLoop, sessionKey)
 		return
 	}
-	defer rl.Close()
+	defer func() { _ = rl.Close() }()
 
 	for {
 		line, err := rl.Readline()
@@ -421,7 +421,7 @@ func interactiveMode(agentLoop *agent.AgentLoop, sessionKey string) {
 func simpleInteractiveMode(agentLoop *agent.AgentLoop, sessionKey string) {
 	reader := bufio.NewReader(os.Stdin)
 	for {
-		fmt.Print(fmt.Sprintf("%s You: ", logo))
+		fmt.Printf("%s You: ", logo)
 		line, err := reader.ReadString('\n')
 		if err != nil {
 			if err == io.EOF {
@@ -598,7 +598,7 @@ func gatewayCmd() {
 		}
 		fmt.Println("✓ Heartbeat service started")
 
-		go agentLoop.Run(ctx)
+		go func() { _ = agentLoop.Run(ctx) }()
 	}
 
 	fmt.Printf("✓ Gateway started on 127.0.0.1:%d\n", cfg.Gateway.Port)
@@ -620,7 +620,7 @@ func gatewayCmd() {
 	cancel()
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer shutdownCancel()
-	gwServer.Stop(shutdownCtx)
+	_ = gwServer.Stop(shutdownCtx)
 	if heartbeatService != nil {
 		heartbeatService.Stop()
 	}
@@ -630,7 +630,7 @@ func gatewayCmd() {
 	if agentLoop != nil {
 		agentLoop.Stop()
 	}
-	channelManager.StopAll(shutdownCtx)
+	_ = channelManager.StopAll(shutdownCtx)
 	fmt.Println("✓ Gateway stopped")
 
 	if restart {
@@ -706,8 +706,8 @@ func gatewaySetupMode(cfg *config.Config, configPath string) {
 	cancel()
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer shutdownCancel()
-	gwServer.Stop(shutdownCtx)
-	channelManager.StopAll(shutdownCtx)
+	_ = gwServer.Stop(shutdownCtx)
+	_ = channelManager.StopAll(shutdownCtx)
 	fmt.Println("✓ Gateway stopped")
 
 	if restart {
@@ -906,7 +906,7 @@ func cronAddCmd(storePath string) {
 		case "-e", "--every":
 			if i+1 < len(args) {
 				var sec int64
-				fmt.Sscanf(args[i+1], "%d", &sec)
+				_, _ = fmt.Sscanf(args[i+1], "%d", &sec)
 				everySec = &sec
 				i++
 			}

@@ -14,7 +14,7 @@ func TestWebTool_WebFetch_Success(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("<html><body><h1>Test Page</h1><p>Content here</p></body></html>"))
+		_, _ = w.Write([]byte("<html><body><h1>Test Page</h1><p>Content here</p></body></html>"))
 	}))
 	defer server.Close()
 
@@ -50,7 +50,7 @@ func TestWebTool_WebFetch_JSON(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write(expectedJSON)
+		_, _ = w.Write(expectedJSON)
 	}))
 	defer server.Close()
 
@@ -141,7 +141,7 @@ func TestWebTool_WebFetch_Truncation(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(longContent))
+		_, _ = w.Write([]byte(longContent))
 	}))
 	defer server.Close()
 
@@ -160,7 +160,7 @@ func TestWebTool_WebFetch_Truncation(t *testing.T) {
 
 	// ForUser should contain truncated content (not the full 20000 chars)
 	resultMap := make(map[string]interface{})
-	json.Unmarshal([]byte(result.ForUser), &resultMap)
+	_ = json.Unmarshal([]byte(result.ForUser), &resultMap)
 	if text, ok := resultMap["text"].(string); ok {
 		if len(text) > 1100 { // Allow some margin
 			t.Errorf("Expected content to be truncated to ~1000 chars, got: %d", len(text))
@@ -206,7 +206,7 @@ func TestWebTool_WebFetch_HTMLExtraction(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`<html><body><script>alert('test');</script><style>body{color:red;}</style><h1>Title</h1><p>Content</p></body></html>`))
+		_, _ = w.Write([]byte(`<html><body><script>alert('test');</script><style>body{color:red;}</style><h1>Title</h1><p>Content</p></body></html>`))
 	}))
 	defer server.Close()
 
