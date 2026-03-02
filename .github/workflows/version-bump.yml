@@ -40,11 +40,35 @@ jobs:
         run: echo "${{ steps.next.outputs.version }}" > VERSION
 
       - name: Increment versionCode
+        id: vcode
         run: |
           FILE=android/app/build.gradle.kts
           CODE=$(grep -oP 'versionCode\s*=\s*\K\d+' "$FILE")
-          sed -i "s/versionCode\s*=\s*[0-9]\+/versionCode = $((CODE+1))/" "$FILE"
-          echo "versionCode: $CODE -> $((CODE+1))"
+          NEW_CODE=$((CODE+1))
+          sed -i "s/versionCode\s*=\s*[0-9]\+/versionCode = $NEW_CODE/" "$FILE"
+          echo "versionCode: $CODE -> $NEW_CODE"
+          echo "code=$NEW_CODE" >> "$GITHUB_OUTPUT"
+
+      - name: Generate fastlane changelog
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -n "$PREV_TAG" ]; then
+            MERGED_SINCE=$(git log -1 --format=%aI "$PREV_TAG")
+            NOTES=$(gh pr list --state merged --base main \
+              --search "merged:>$MERGED_SINCE" \
+              --json title --jq '.[].title | "* " + .' | head -20)
+          fi
+          if [ -z "${NOTES:-}" ]; then
+            NOTES="* v${{ steps.next.outputs.version }}"
+          fi
+          CODE=${{ steps.vcode.outputs.code }}
+          for locale in en-US ja; do
+            dir="android/fastlane/metadata/android/${locale}/changelogs"
+            mkdir -p "$dir"
+            printf '%s\n' "$NOTES" > "${dir}/${CODE}.txt"
+          done
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
@@ -54,3 +78,7 @@ jobs:
           body: "Automated version bump: `${{ steps.current.outputs.version }}` → `${{ steps.next.outputs.version }}`"
           branch: chore/bump-${{ steps.next.outputs.version }}
           delete-branch: true
+          add-paths: |
+            VERSION
+            android/app/build.gradle.kts
+            android/fastlane/metadata/android/
