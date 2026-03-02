@@ -1,5 +1,9 @@
 package io.clawdroid.feature.chat.screen
 
+import android.media.RingtoneManager
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -46,6 +50,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import io.clawdroid.core.domain.model.TtsEngineInfo
@@ -128,6 +133,17 @@ fun SettingsScreen(
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 Text(
+                    "Speech Recognition",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = NeonCyan
+                )
+
+                ListenBeepSoundSelector(
+                    currentUri = uiState.sttConfig.listenBeepUri,
+                    onUriChanged = viewModel::onListenBeepUriChanged
+                )
+
+                Text(
                     "Text-to-Speech",
                     style = MaterialTheme.typography.titleMedium,
                     color = NeonCyan
@@ -191,6 +207,65 @@ fun SettingsScreen(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun ListenBeepSoundSelector(
+    currentUri: String,
+    onUriChanged: (String) -> Unit
+) {
+    val context = LocalContext.current
+    val ringtoneName = remember(currentUri) {
+        if (currentUri.isEmpty()) {
+            "Silent"
+        } else {
+            try {
+                RingtoneManager.getRingtone(context, Uri.parse(currentUri))?.getTitle(context)
+                    ?: "Unknown"
+            } catch (_: Exception) {
+                "Unknown"
+            }
+        }
+    }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val uri: Uri? = result.data
+            ?.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
+        onUriChanged(uri?.toString() ?: "")
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                val intent = android.content.Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
+                    putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION)
+                    putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, true)
+                    putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
+                    putExtra(
+                        RingtoneManager.EXTRA_RINGTONE_EXISTING_URI,
+                        if (currentUri.isEmpty()) null else Uri.parse(currentUri)
+                    )
+                }
+                launcher.launch(intent)
+            }
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            "Listen start sound",
+            style = MaterialTheme.typography.bodyLarge,
+            color = TextPrimary
+        )
+        Text(
+            ringtoneName,
+            style = MaterialTheme.typography.bodyMedium,
+            color = TextSecondary
+        )
     }
 }
 

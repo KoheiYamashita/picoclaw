@@ -2,10 +2,13 @@ package io.clawdroid.feature.chat.voice
 
 import android.content.Context
 import android.content.Intent
+import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -21,11 +24,20 @@ sealed interface SttResult {
 
 class SpeechRecognizerWrapper(private val context: Context) {
 
-    fun startListening(): Flow<SttResult> = callbackFlow {
+    fun startListening(listenBeepUri: String = ""): Flow<SttResult> = callbackFlow {
         val recognizer = SpeechRecognizer.createSpeechRecognizer(context)
 
         val listener = object : RecognitionListener {
-            override fun onReadyForSpeech(params: Bundle?) {}
+            override fun onReadyForSpeech(params: Bundle?) {
+                if (listenBeepUri.isNotEmpty()) {
+                    try {
+                        val ringtone = RingtoneManager.getRingtone(context, Uri.parse(listenBeepUri))
+                        ringtone?.play()
+                    } catch (e: Exception) {
+                        Log.d(TAG, "Ringtone play failed", e)
+                    }
+                }
+            }
             override fun onBeginningOfSpeech() {}
             override fun onBufferReceived(buffer: ByteArray?) {}
             override fun onEndOfSpeech() {}
@@ -73,4 +85,8 @@ class SpeechRecognizerWrapper(private val context: Context) {
             recognizer.destroy()
         }
     }.flowOn(Dispatchers.Main)
+
+    companion object {
+        private const val TAG = "SpeechRecognizerWrapper"
+    }
 }
