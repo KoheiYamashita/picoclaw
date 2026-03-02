@@ -61,8 +61,8 @@ class SettingsViewModel(
         viewModelScope.launch { ttsSettingsRepository.updatePitch(pitch) }
     }
 
-    fun onListenBeepChanged(enabled: Boolean) {
-        viewModelScope.launch { sttSettingsRepository.updateListenBeepEnabled(enabled) }
+    fun onListenBeepUriChanged(uri: String) {
+        viewModelScope.launch { sttSettingsRepository.updateListenBeepUri(uri) }
     }
 
     fun onTestSpeak() {

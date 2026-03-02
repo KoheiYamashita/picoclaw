@@ -1,8 +1,10 @@
 package io.clawdroid.feature.chat
 
+import io.clawdroid.core.domain.model.SttConfig
 import io.clawdroid.core.domain.model.TtsConfig
 import io.clawdroid.core.domain.model.TtsEngineInfo
 import io.clawdroid.core.domain.model.TtsVoiceInfo
+import io.clawdroid.core.domain.repository.SttSettingsRepository
 import io.clawdroid.core.domain.repository.TtsCatalogRepository
 import io.clawdroid.core.domain.repository.TtsSettingsRepository
 import io.clawdroid.feature.chat.voice.TextToSpeechWrapper
@@ -13,7 +15,6 @@ import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -30,11 +31,15 @@ class SettingsViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
 
     private val ttsConfigFlow = MutableStateFlow(TtsConfig())
+    private val sttConfigFlow = MutableStateFlow(SttConfig())
     private val enginesFlow = MutableStateFlow<List<TtsEngineInfo>>(emptyList())
     private val voicesFlow = MutableStateFlow<List<TtsVoiceInfo>>(emptyList())
 
     private val ttsSettingsRepository = mockk<TtsSettingsRepository>(relaxed = true) {
         every { ttsConfig } returns ttsConfigFlow
+    }
+    private val sttSettingsRepository = mockk<SttSettingsRepository>(relaxed = true) {
+        every { sttConfig } returns sttConfigFlow
     }
     private val ttsCatalogRepository = mockk<TtsCatalogRepository> {
         every { availableEngines } returns enginesFlow
@@ -47,7 +52,7 @@ class SettingsViewModelTest {
     @BeforeEach
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = SettingsViewModel(ttsSettingsRepository, ttsCatalogRepository, ttsWrapper)
+        viewModel = SettingsViewModel(ttsSettingsRepository, sttSettingsRepository, ttsCatalogRepository, ttsWrapper)
     }
 
     @AfterEach
@@ -61,6 +66,14 @@ class SettingsViewModelTest {
         ttsConfigFlow.value = config
 
         assertEquals(config, viewModel.uiState.value.ttsConfig)
+    }
+
+    @Test
+    fun `init collects sttConfig`() {
+        val config = SttConfig(listenBeepUri = "content://settings/system/notification_sound")
+        sttConfigFlow.value = config
+
+        assertEquals(config, viewModel.uiState.value.sttConfig)
     }
 
     @Test
@@ -105,6 +118,20 @@ class SettingsViewModelTest {
         viewModel.onPitchChanged(0.8f)
 
         coVerify { ttsSettingsRepository.updatePitch(0.8f) }
+    }
+
+    @Test
+    fun `onListenBeepUriChanged delegates to repository`() = runTest {
+        viewModel.onListenBeepUriChanged("content://settings/system/notification_sound")
+
+        coVerify { sttSettingsRepository.updateListenBeepUri("content://settings/system/notification_sound") }
+    }
+
+    @Test
+    fun `onListenBeepUriChanged with empty string sets silent`() = runTest {
+        viewModel.onListenBeepUriChanged("")
+
+        coVerify { sttSettingsRepository.updateListenBeepUri("") }
     }
 
     @Test

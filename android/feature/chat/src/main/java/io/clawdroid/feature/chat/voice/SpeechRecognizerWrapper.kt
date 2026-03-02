@@ -2,11 +2,9 @@ package io.clawdroid.feature.chat.voice
 
 import android.content.Context
 import android.content.Intent
-import android.media.AudioManager
-import android.media.ToneGenerator
+import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
@@ -26,18 +24,17 @@ sealed interface SttResult {
 
 class SpeechRecognizerWrapper(private val context: Context) {
 
-    fun startListening(listenBeepEnabled: Boolean = true): Flow<SttResult> = callbackFlow {
+    fun startListening(listenBeepUri: String = ""): Flow<SttResult> = callbackFlow {
         val recognizer = SpeechRecognizer.createSpeechRecognizer(context)
 
         val listener = object : RecognitionListener {
             override fun onReadyForSpeech(params: Bundle?) {
-                if (listenBeepEnabled) {
+                if (listenBeepUri.isNotEmpty()) {
                     try {
-                        val toneGen = ToneGenerator(AudioManager.STREAM_NOTIFICATION, 100)
-                        toneGen.startTone(ToneGenerator.TONE_PROP_BEEP, 100)
-                        Handler(Looper.getMainLooper()).postDelayed({ toneGen.release() }, 150)
+                        val ringtone = RingtoneManager.getRingtone(context, Uri.parse(listenBeepUri))
+                        ringtone?.play()
                     } catch (e: Exception) {
-                        Log.d(TAG, "ToneGenerator failed", e)
+                        Log.d(TAG, "Ringtone play failed", e)
                     }
                 }
             }

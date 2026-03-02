@@ -262,9 +262,9 @@ class AssistantManager(
     }
 
     private suspend fun listen(): String? {
-        val beepEnabled = sttSettingsRepository.sttConfig.first().listenBeepEnabled
+        val beepUri = sttSettingsRepository.sttConfig.first().listenBeepUri
         var finalText: String? = null
-        sttWrapper.startListening(beepEnabled).collect { result ->
+        sttWrapper.startListening(beepUri).collect { result ->
             when (result) {
                 is SttResult.Partial -> {
                     _state.update { it.copy(recognizedText = result.text) }

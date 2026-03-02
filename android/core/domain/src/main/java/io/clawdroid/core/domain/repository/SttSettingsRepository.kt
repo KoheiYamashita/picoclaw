@@ -5,5 +5,5 @@ import kotlinx.coroutines.flow.Flow
 
 interface SttSettingsRepository {
     val sttConfig: Flow<SttConfig>
-    suspend fun updateListenBeepEnabled(enabled: Boolean)
+    suspend fun updateListenBeepUri(uri: String)
 }
