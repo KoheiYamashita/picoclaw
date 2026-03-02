@@ -30,7 +30,6 @@ Builds:
     commit: '0.4.0'
     timeout: 20000
     subdir: android/app
-    submodules: true
 
     sudo:
       - apt-get update
@@ -56,10 +55,6 @@ Builds:
       - embedded
 
     ndk: r27c
-
-    antifeatures:
-      NonFreeNet:
-        en-US: Requires a third-party LLM API to function.
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
