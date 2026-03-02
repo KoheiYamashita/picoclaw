@@ -30,11 +30,9 @@ Builds:
     commit: '0.4.0'
     timeout: 20000
     subdir: android/app
-
     sudo:
       - apt-get update
-      - apt-get install -y make
-
+      - apt-get install -y make wget
     init: |-
       cd ../..
       # Extract Go version from go.mod
@@ -43,20 +41,18 @@ Builds:
       wget -q https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz
       tar -C $HOME -xzf go${GO_VERSION}.linux-amd64.tar.gz
       rm go${GO_VERSION}.linux-amd64.tar.gz
-
+    gradle:
+      - embedded
     prebuild: |-
       cd ../..
       export PATH=$HOME/go/bin:$PATH
       export GOPATH=$HOME/gopath
       # Build Go backend for all Android architectures
       make build-android
-
-    gradle:
-      - embedded
-
     ndk: r27c
 
 AutoUpdateMode: Version
-UpdateCheckMode: Tags
+UpdateCheckMode: HTTP
+UpdateCheckData: https://raw.githubusercontent.com/KarakuriAgent/clawdroid/main/android/app/build.gradle.kts|versionCode\s*=\s*(\d+)|https://raw.githubusercontent.com/KarakuriAgent/clawdroid/main/VERSION|(.+)
 CurrentVersion: 0.4.0
 CurrentVersionCode: 4
