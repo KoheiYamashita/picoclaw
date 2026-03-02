@@ -2,10 +2,15 @@ package io.clawdroid.feature.chat.voice
 
 import android.content.Context
 import android.content.Intent
+import android.media.AudioManager
+import android.media.ToneGenerator
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -21,11 +26,21 @@ sealed interface SttResult {
 
 class SpeechRecognizerWrapper(private val context: Context) {
 
-    fun startListening(): Flow<SttResult> = callbackFlow {
+    fun startListening(listenBeepEnabled: Boolean = true): Flow<SttResult> = callbackFlow {
         val recognizer = SpeechRecognizer.createSpeechRecognizer(context)
 
         val listener = object : RecognitionListener {
-            override fun onReadyForSpeech(params: Bundle?) {}
+            override fun onReadyForSpeech(params: Bundle?) {
+                if (listenBeepEnabled) {
+                    try {
+                        val toneGen = ToneGenerator(AudioManager.STREAM_NOTIFICATION, 100)
+                        toneGen.startTone(ToneGenerator.TONE_PROP_BEEP, 100)
+                        Handler(Looper.getMainLooper()).postDelayed({ toneGen.release() }, 150)
+                    } catch (e: Exception) {
+                        Log.d(TAG, "ToneGenerator failed", e)
+                    }
+                }
+            }
             override fun onBeginningOfSpeech() {}
             override fun onBufferReceived(buffer: ByteArray?) {}
             override fun onEndOfSpeech() {}
@@ -73,4 +88,8 @@ class SpeechRecognizerWrapper(private val context: Context) {
             recognizer.destroy()
         }
     }.flowOn(Dispatchers.Main)
+
+    companion object {
+        private const val TAG = "SpeechRecognizerWrapper"
+    }
 }

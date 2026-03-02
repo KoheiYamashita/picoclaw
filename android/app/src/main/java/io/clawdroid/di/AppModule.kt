@@ -12,9 +12,11 @@ import io.clawdroid.feature.chat.voice.ScreenshotSource
 import io.clawdroid.core.data.remote.WebSocketClient
 import io.clawdroid.assistant.ToolRequestHandler
 import io.clawdroid.core.data.repository.ChatRepositoryImpl
+import io.clawdroid.core.data.repository.SttSettingsRepositoryImpl
 import io.clawdroid.core.data.repository.TtsCatalogRepositoryImpl
 import io.clawdroid.core.data.repository.TtsSettingsRepositoryImpl
 import io.clawdroid.core.domain.repository.ChatRepository
+import io.clawdroid.core.domain.repository.SttSettingsRepository
 import io.clawdroid.core.domain.repository.TtsCatalogRepository
 import io.clawdroid.core.domain.repository.TtsSettingsRepository
 import io.clawdroid.core.domain.usecase.ConnectChatUseCase
@@ -104,6 +106,7 @@ val appModule = module {
         repo
     }
     single<TtsSettingsRepository> { TtsSettingsRepositoryImpl(androidContext()) }
+    single<SttSettingsRepository> { SttSettingsRepositoryImpl(androidContext()) }
     single<TtsCatalogRepository> {
         TtsCatalogRepositoryImpl(androidContext(), get<TtsSettingsRepository>().ttsConfig, get())
     }
@@ -128,14 +131,14 @@ val appModule = module {
     factory { SpeechRecognizerWrapper(androidContext()) }
     single { TextToSpeechWrapper(androidContext(), get<TtsSettingsRepository>().ttsConfig) }
     single { CameraCaptureManager(androidContext()) }
-    single { VoiceModeManager(get(), get(), get(), get(), get(), get()) }
+    single { VoiceModeManager(get(), get(), get(), get(), get(), get(), get()) }
 
     // Setup
     single { SetupApiClient(get()) }
 
     // ViewModel
     viewModel { ChatViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
-    viewModel { SettingsViewModel(get(), get(), get()) }
+    viewModel { SettingsViewModel(get(), get(), get(), get()) }
     viewModel { AppSettingsViewModel(get(), get(), get()) }
     viewModel { SetupViewModel(get(), get()) }
 }

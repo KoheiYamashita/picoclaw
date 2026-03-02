@@ -30,6 +30,8 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -127,6 +129,34 @@ fun SettingsScreen(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
+                Text(
+                    "Speech Recognition",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = NeonCyan
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Listen start sound",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = TextPrimary
+                    )
+                    Switch(
+                        checked = uiState.sttConfig.listenBeepEnabled,
+                        onCheckedChange = viewModel::onListenBeepChanged,
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = DeepBlack,
+                            checkedTrackColor = NeonCyan,
+                            uncheckedThumbColor = TextSecondary,
+                            uncheckedTrackColor = GlassWhite
+                        )
+                    )
+                }
+
                 Text(
                     "Text-to-Speech",
                     style = MaterialTheme.typography.titleMedium,

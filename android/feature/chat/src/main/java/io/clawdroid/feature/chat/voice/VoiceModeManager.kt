@@ -4,6 +4,7 @@ import android.speech.SpeechRecognizer
 import io.clawdroid.core.domain.model.MessageSender
 import io.clawdroid.core.domain.model.MessageStatus
 import io.clawdroid.core.domain.model.VoicePhase
+import io.clawdroid.core.domain.repository.SttSettingsRepository
 import io.clawdroid.core.domain.usecase.ObserveMessagesUseCase
 import io.clawdroid.core.domain.usecase.ObserveStatusUseCase
 import io.clawdroid.core.domain.usecase.SendMessageUseCase
@@ -16,6 +17,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -29,7 +31,8 @@ class VoiceModeManager(
     private val sendMessage: SendMessageUseCase,
     private val observeMessages: ObserveMessagesUseCase,
     private val observeStatus: ObserveStatusUseCase,
-    private val cameraCaptureManager: CameraCaptureManager
+    private val cameraCaptureManager: CameraCaptureManager,
+    private val sttSettingsRepository: SttSettingsRepository
 ) {
 
     private val _state = MutableStateFlow(VoiceModeState())
@@ -224,8 +227,9 @@ class VoiceModeManager(
     }
 
     private suspend fun listen(): String? {
+        val beepEnabled = sttSettingsRepository.sttConfig.first().listenBeepEnabled
         var finalText: String? = null
-        sttWrapper.startListening().collect { result ->
+        sttWrapper.startListening(beepEnabled).collect { result ->
             when (result) {
                 is SttResult.Partial -> {
                     _state.update { it.copy(recognizedText = result.text) }

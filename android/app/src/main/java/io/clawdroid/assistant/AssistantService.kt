@@ -54,6 +54,7 @@ import io.clawdroid.PermissionRequestActivity
 import io.clawdroid.core.data.remote.WebSocketClient
 import io.clawdroid.core.data.repository.AssistantConnectionImpl
 import io.clawdroid.core.domain.repository.AssistantConnection
+import io.clawdroid.core.domain.repository.SttSettingsRepository
 import io.clawdroid.core.domain.repository.TtsSettingsRepository
 import io.clawdroid.core.ui.theme.ClawDroidTheme
 import io.clawdroid.feature.chat.assistant.AssistantManager
@@ -75,6 +76,7 @@ class AssistantService : LifecycleService(), SavedStateRegistryOwner {
 
     private val httpClient: HttpClient by inject()
     private val ttsSettingsRepo: TtsSettingsRepository by inject()
+    private val sttSettingsRepo: SttSettingsRepository by inject()
     private val screenshotSource: ScreenshotSource by inject()
     private val deviceController: DeviceController by inject()
 
@@ -148,7 +150,8 @@ class AssistantService : LifecycleService(), SavedStateRegistryOwner {
             connection = connection,
             cameraCaptureManager = cameraCaptureManager,
             screenCaptureManager = screenCaptureManager,
-            contentResolver = contentResolver
+            contentResolver = contentResolver,
+            sttSettingsRepository = sttSettingsRepo
         )
 
         ContextCompat.registerReceiver(

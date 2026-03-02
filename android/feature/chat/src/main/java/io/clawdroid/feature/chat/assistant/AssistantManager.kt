@@ -8,6 +8,7 @@ import android.util.Log
 import io.clawdroid.core.domain.model.AssistantMessage
 import io.clawdroid.core.domain.model.VoicePhase
 import io.clawdroid.core.domain.repository.AssistantConnection
+import io.clawdroid.core.domain.repository.SttSettingsRepository
 import io.clawdroid.feature.chat.voice.CameraCaptureManager
 import io.clawdroid.feature.chat.voice.ScreenCaptureManager
 import io.clawdroid.feature.chat.voice.SpeechRecognizerWrapper
@@ -24,6 +25,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -37,7 +39,8 @@ class AssistantManager(
     private val connection: AssistantConnection,
     private val cameraCaptureManager: CameraCaptureManager,
     private val screenCaptureManager: ScreenCaptureManager,
-    private val contentResolver: ContentResolver
+    private val contentResolver: ContentResolver,
+    private val sttSettingsRepository: SttSettingsRepository
 ) {
 
     private val _state = MutableStateFlow(VoiceModeState())
@@ -259,8 +262,9 @@ class AssistantManager(
     }
 
     private suspend fun listen(): String? {
+        val beepEnabled = sttSettingsRepository.sttConfig.first().listenBeepEnabled
         var finalText: String? = null
-        sttWrapper.startListening().collect { result ->
+        sttWrapper.startListening(beepEnabled).collect { result ->
             when (result) {
                 is SttResult.Partial -> {
                     _state.update { it.copy(recognizedText = result.text) }

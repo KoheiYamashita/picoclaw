@@ -2,6 +2,7 @@ package io.clawdroid.feature.chat
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import io.clawdroid.core.domain.repository.SttSettingsRepository
 import io.clawdroid.core.domain.repository.TtsCatalogRepository
 import io.clawdroid.core.domain.repository.TtsSettingsRepository
 import io.clawdroid.feature.chat.voice.TextToSpeechWrapper
@@ -13,6 +14,7 @@ import kotlinx.coroutines.launch
 
 class SettingsViewModel(
     private val ttsSettingsRepository: TtsSettingsRepository,
+    private val sttSettingsRepository: SttSettingsRepository,
     private val ttsCatalogRepository: TtsCatalogRepository,
     private val ttsWrapper: TextToSpeechWrapper
 ) : ViewModel() {
@@ -24,6 +26,11 @@ class SettingsViewModel(
         viewModelScope.launch {
             ttsSettingsRepository.ttsConfig.collect { config ->
                 _uiState.update { it.copy(ttsConfig = config) }
+            }
+        }
+        viewModelScope.launch {
+            sttSettingsRepository.sttConfig.collect { config ->
+                _uiState.update { it.copy(sttConfig = config) }
             }
         }
         viewModelScope.launch {
@@ -52,6 +59,10 @@ class SettingsViewModel(
 
     fun onPitchChanged(pitch: Float) {
         viewModelScope.launch { ttsSettingsRepository.updatePitch(pitch) }
+    }
+
+    fun onListenBeepChanged(enabled: Boolean) {
+        viewModelScope.launch { sttSettingsRepository.updateListenBeepEnabled(enabled) }
     }
 
     fun onTestSpeak() {
