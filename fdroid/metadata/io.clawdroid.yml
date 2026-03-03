@@ -31,12 +31,11 @@ Builds:
       tar -C $HOME -xzf go${GO_VERSION}.linux-amd64.tar.gz\nrm go${GO_VERSION}.linux-amd64.tar.gz"
     gradle:
       - embedded
-    prebuild: "cd ../..\nexport PATH=$HOME/go/bin:$PATH\nexport GOPATH=$HOME/gopath\n
-      # Build Go backend for all Android architectures\nmake build-android"
-    scanignore:
-      - android/app/src/embedded/jniLibs/arm64-v8a/libclawdroid.so
-      - android/app/src/embedded/jniLibs/armeabi-v7a/libclawdroid.so
-      - android/app/src/embedded/jniLibs/x86_64/libclawdroid.so
+    build:
+      - cd ../..
+      - export PATH=$HOME/go/bin:$PATH
+      - export GOPATH=$HOME/gopath
+      - make build-android
     ndk: r27c
 
 AutoUpdateMode: Version %v
