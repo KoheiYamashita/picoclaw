@@ -3,23 +3,7 @@ name: Android Build
 on:
   push:
     branches: ["main"]
-    paths:
-      - "android/**"
-      - "cmd/**"
-      - "pkg/**"
-      - "go.mod"
-      - "go.sum"
-      - "Makefile"
-      - ".github/workflows/android-build.yml"
   pull_request:
-    paths:
-      - "android/**"
-      - "cmd/**"
-      - "pkg/**"
-      - "go.mod"
-      - "go.sum"
-      - "Makefile"
-      - ".github/workflows/android-build.yml"
   workflow_dispatch:
 
 jobs:
