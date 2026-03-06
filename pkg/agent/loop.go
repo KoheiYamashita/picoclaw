@@ -44,6 +44,7 @@ type AgentLoop struct {
 	state          *state.Manager
 	contextBuilder *ContextBuilder
 	tools          *tools.ToolRegistry
+	userStore      *UserStore
 	running        atomic.Bool
 	summarizing    sync.Map // Tracks which sessions are currently being summarized
 	channelManager *channels.Manager
@@ -75,6 +76,7 @@ type processOptions struct {
 	NoHistory       bool              // If true, don't load session history (for heartbeat)
 	InputMode       string            // "voice" or "text"
 	Metadata        map[string]string // Channel metadata (e.g. client_type)
+	ResolvedUser    *User             // Resolved user from user directory (nil if unknown)
 }
 
 // createToolRegistry creates a tool registry with common tools.
@@ -202,9 +204,18 @@ func NewAgentLoop(cfg *config.Config, msgBus *bus.MessageBus, provider providers
 		}
 	}
 
+	// Create user store
+	userStore := NewUserStore(dataDir)
+
 	// Create context builder and set tools registry
 	contextBuilder := NewContextBuilder(workspace, dataDir)
 	contextBuilder.SetToolsRegistry(toolsRegistry)
+	contextBuilder.SetUserStore(userStore)
+
+	// Register user tool
+	userTool := tools.NewUserTool(userStore.AsDirectory(), userStore.NeedsMigration())
+	toolsRegistry.Register(userTool)
+	subagentTools.Register(userTool)
 
 	// Register memory tool (conditionally based on config)
 	contextBuilder.SetMemoryToolEnabled(cfg.Tools.Memory.Enabled)
@@ -241,6 +252,7 @@ func NewAgentLoop(cfg *config.Config, msgBus *bus.MessageBus, provider providers
 		state:          stateManager,
 		contextBuilder: contextBuilder,
 		tools:          toolsRegistry,
+		userStore:      userStore,
 		summarizing:    sync.Map{},
 		rateLimiter:    newRateLimiter(cfg.RateLimits.MaxToolCallsPerMinute, cfg.RateLimits.MaxRequestsPerMinute),
 		mcpManager:     mcpManager,
@@ -254,6 +266,14 @@ func NewAgentLoop(cfg *config.Config, msgBus *bus.MessageBus, provider providers
 
 func (al *AgentLoop) Run(ctx context.Context) error {
 	al.running.Store(true)
+
+	// Send migration notice if USER.md exists but users.json does not
+	if al.userStore != nil && al.userStore.NeedsMigration() {
+		al.bus.PublishOutbound(bus.OutboundMessage{
+			Channel: "websocket",
+			Content: "USER.md が見つかりました。ユーザー管理が新しい形式（users.json）に変わりました。\nチャットで移行を依頼するか、手動で更新してください。\n\n手動更新の場合、以下の形式で ~/.clawdroid/data/users.json を作成:\n```json\n{\n  \"users\": [{\n    \"name\": \"あなたの名前\",\n    \"channels\": { \"websocket\": [\"default\"] },\n    \"memo\": [\"Preferred language: Japanese\"]\n  }]\n}\n```",
+		})
+	}
 
 	for al.running.Load() {
 		select {
@@ -463,18 +483,33 @@ func (al *AgentLoop) processMessage(ctx context.Context, msg bus.InboundMessage)
 		}
 	}
 
+	// Resolve sender name from user directory
+	userMessage := msg.Content
+	var resolvedUser *User
+	if al.userStore != nil {
+		resolvedUser = al.userStore.ResolveByChannelID(msg.Channel, msg.SenderID)
+		if resolvedUser != nil {
+			userMessage = fmt.Sprintf("[%s]: %s", resolvedUser.Name, msg.Content)
+		} else if msg.Channel != "websocket" {
+			// Unknown user: prefix with channel:senderID
+			userMessage = fmt.Sprintf("[%s:%s]: %s", msg.Channel, msg.SenderID, msg.Content)
+		}
+		// WebSocket with no linked user: no prefix
+	}
+
 	// Process as user message
 	return al.runAgentLoop(ctx, processOptions{
 		SessionKey:      msg.SessionKey,
 		Channel:         msg.Channel,
 		ChatID:          msg.ChatID,
-		UserMessage:     msg.Content,
+		UserMessage:     userMessage,
 		Media:           msg.Media,
 		DefaultResponse: "I've completed processing but have no response to give.",
 		EnableSummary:   true,
 		SendResponse:    false,
 		InputMode:       inputMode,
 		Metadata:        msg.Metadata,
+		ResolvedUser:    resolvedUser,
 	})
 }
 
@@ -576,6 +611,7 @@ func (al *AgentLoop) runAgentLoop(ctx context.Context, opts processOptions) (str
 		opts.Channel,
 		opts.ChatID,
 		opts.InputMode,
+		opts.ResolvedUser,
 	)
 
 	// 3. Save user message to session (with media if present)
@@ -803,6 +839,7 @@ func (al *AgentLoop) runLLMIteration(ctx context.Context, messages []providers.M
 					opts.Channel,
 					opts.ChatID,
 					opts.InputMode,
+					opts.ResolvedUser,
 				)
 
 				continue
