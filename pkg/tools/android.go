@@ -267,16 +267,7 @@ func (t *AndroidTool) isActionEnabled(action string) bool {
 	if cat != "" && !isCategoryEnabled(t.cfg, cat) {
 		return false
 	}
-	return !t.disabledSet()[action]
-}
-
-// disabledSet returns the DisabledActions as a set for O(1) lookup.
-func (t *AndroidTool) disabledSet() map[string]bool {
-	m := make(map[string]bool, len(t.cfg.DisabledActions))
-	for _, d := range t.cfg.DisabledActions {
-		m[d] = true
-	}
-	return m
+	return !isActionDisabledByConfig(t.cfg, action)
 }
 
 // isUIAction returns true if the action is a UI-interaction action.

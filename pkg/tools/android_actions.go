@@ -244,11 +244,6 @@ func actionCategory(action string) string {
 
 // enabledActions filters allActions by config and clientType.
 func enabledActions(cfg config.AndroidToolsConfig, clientType string) []androidAction {
-	disabled := make(map[string]bool, len(cfg.DisabledActions))
-	for _, d := range cfg.DisabledActions {
-		disabled[d] = true
-	}
-
 	out := make([]androidAction, 0, len(allActions))
 	for _, a := range allActions {
 		// Filter by client type (hide UI actions in chat mode)
@@ -259,13 +254,101 @@ func enabledActions(cfg config.AndroidToolsConfig, clientType string) []androidA
 		if a.Category != "" && !isCategoryEnabled(cfg, a.Category) {
 			continue
 		}
-		// Filter by individual action blacklist
-		if disabled[a.Name] {
+		// Filter by individual action toggle
+		if isActionDisabledByConfig(cfg, a.Name) {
 			continue
 		}
 		out = append(out, a)
 	}
 	return out
+}
+
+// isActionDisabledByConfig checks if a specific action is disabled via the Actions struct.
+// Core actions (no category) are always enabled.
+func isActionDisabledByConfig(cfg config.AndroidToolsConfig, action string) bool {
+	a := cfg.Actions
+	switch action {
+	// Alarm
+	case "set_alarm":
+		return !a.Alarm.SetAlarm
+	case "set_timer":
+		return !a.Alarm.SetTimer
+	case "dismiss_alarm":
+		return !a.Alarm.DismissAlarm
+	case "show_alarms":
+		return !a.Alarm.ShowAlarms
+	// Calendar
+	case "create_event":
+		return !a.Calendar.CreateEvent
+	case "query_events":
+		return !a.Calendar.QueryEvents
+	case "update_event":
+		return !a.Calendar.UpdateEvent
+	case "delete_event":
+		return !a.Calendar.DeleteEvent
+	case "list_calendars":
+		return !a.Calendar.ListCalendars
+	case "add_reminder":
+		return !a.Calendar.AddReminder
+	// Contacts
+	case "search_contacts":
+		return !a.Contacts.SearchContacts
+	case "get_contact_detail":
+		return !a.Contacts.GetContactDetail
+	case "add_contact":
+		return !a.Contacts.AddContact
+	// Communication
+	case "dial":
+		return !a.Communication.Dial
+	case "compose_sms":
+		return !a.Communication.ComposeSMS
+	case "compose_email":
+		return !a.Communication.ComposeEmail
+	// Media
+	case "media_play_pause":
+		return !a.Media.PlayPause
+	case "media_next":
+		return !a.Media.Next
+	case "media_previous":
+		return !a.Media.Previous
+	case "play_music_search":
+		return !a.Media.PlayMusicSearch
+	// Navigation
+	case "navigate":
+		return !a.Navigation.Navigate
+	case "search_nearby":
+		return !a.Navigation.SearchNearby
+	case "show_map":
+		return !a.Navigation.ShowMap
+	case "get_current_location":
+		return !a.Navigation.GetCurrentLocation
+	// Device Control
+	case "flashlight":
+		return !a.DeviceControl.Flashlight
+	case "set_volume":
+		return !a.DeviceControl.SetVolume
+	case "set_ringer_mode":
+		return !a.DeviceControl.SetRingerMode
+	case "set_dnd":
+		return !a.DeviceControl.SetDND
+	case "set_brightness":
+		return !a.DeviceControl.SetBrightness
+	// Settings
+	case "open_settings":
+		return !a.Settings.OpenSettings
+	// Web
+	case "open_url":
+		return !a.Web.OpenURL
+	case "web_search":
+		return !a.Web.WebSearch
+	// Clipboard
+	case "clipboard_copy":
+		return !a.Clipboard.ClipboardCopy
+	case "clipboard_read":
+		return !a.Clipboard.ClipboardRead
+	default:
+		return false // core actions are never disabled
+	}
 }
 
 // isCategoryEnabled checks if a given category is enabled in the config.

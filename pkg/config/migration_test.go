@@ -96,6 +96,7 @@ func TestMigrateConfig_FromV2ToV3(t *testing.T) {
 	if cfg.Version != ConfigVersion {
 		t.Errorf("Version = %d, want %d", cfg.Version, ConfigVersion)
 	}
+	// Categories
 	if !cfg.Tools.Android.Categories.Alarm {
 		t.Error("Alarm category should be true after v2->v3 migration")
 	}
@@ -110,6 +111,51 @@ func TestMigrateConfig_FromV2ToV3(t *testing.T) {
 	}
 	if !cfg.Tools.Android.Categories.Media {
 		t.Error("Media category should be true after v2->v3 migration")
+	}
+	// Actions should all be enabled by default
+	if !cfg.Tools.Android.Actions.Alarm.SetAlarm {
+		t.Error("SetAlarm action should be true after v2->v3 migration")
+	}
+	if !cfg.Tools.Android.Actions.Web.OpenURL {
+		t.Error("OpenURL action should be true after v2->v3 migration")
+	}
+	if cfg.Tools.Android.DisabledActions != nil {
+		t.Error("DisabledActions should be nil after v2->v3 migration")
+	}
+}
+
+func TestMigrateConfig_FromV2ToV3_WithDisabledActions(t *testing.T) {
+	cfg := &Config{
+		Version: 2,
+		Tools: ToolsConfig{
+			Android: AndroidToolsConfig{
+				DisabledActions: []string{"open_url", "flashlight", "set_alarm"},
+			},
+		},
+	}
+	if !migrateConfig(cfg) {
+		t.Error("migrateConfig should return true")
+	}
+	// Disabled actions should be converted to false
+	if cfg.Tools.Android.Actions.Web.OpenURL {
+		t.Error("OpenURL should be false (was in DisabledActions)")
+	}
+	if cfg.Tools.Android.Actions.DeviceControl.Flashlight {
+		t.Error("Flashlight should be false (was in DisabledActions)")
+	}
+	if cfg.Tools.Android.Actions.Alarm.SetAlarm {
+		t.Error("SetAlarm should be false (was in DisabledActions)")
+	}
+	// Other actions should remain true
+	if !cfg.Tools.Android.Actions.Alarm.SetTimer {
+		t.Error("SetTimer should be true (was not in DisabledActions)")
+	}
+	if !cfg.Tools.Android.Actions.Web.WebSearch {
+		t.Error("WebSearch should be true (was not in DisabledActions)")
+	}
+	// DisabledActions should be cleared
+	if cfg.Tools.Android.DisabledActions != nil {
+		t.Error("DisabledActions should be nil after migration")
 	}
 }
 

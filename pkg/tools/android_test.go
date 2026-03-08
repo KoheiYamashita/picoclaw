@@ -21,6 +21,7 @@ func allEnabledConfig() config.AndroidToolsConfig {
 			Web:           true,
 			Clipboard:     true,
 		},
+		Actions: config.DefaultAndroidActions(),
 	}
 }
 
@@ -60,12 +61,12 @@ func TestEnabledActions_FiltersDisabledCategory(t *testing.T) {
 
 func TestEnabledActions_FiltersDisabledActions(t *testing.T) {
 	cfg := allEnabledConfig()
-	cfg.DisabledActions = []string{"open_url"}
+	cfg.Actions.Web.OpenURL = false
 
 	actions := enabledActions(cfg, "overlay")
 	for _, a := range actions {
 		if a.Name == "open_url" {
-			t.Error("open_url should be filtered by DisabledActions")
+			t.Error("open_url should be filtered when action is disabled")
 		}
 	}
 }
@@ -99,10 +100,10 @@ func TestIsActionEnabled_DisabledCategory(t *testing.T) {
 
 func TestIsActionEnabled_IndividualDisable(t *testing.T) {
 	cfg := allEnabledConfig()
-	cfg.DisabledActions = []string{"flashlight"}
+	cfg.Actions.DeviceControl.Flashlight = false
 	tool := NewAndroidTool(cfg)
 	if tool.isActionEnabled("flashlight") {
-		t.Error("flashlight should be disabled via DisabledActions")
+		t.Error("flashlight should be disabled when action toggle is false")
 	}
 }
 

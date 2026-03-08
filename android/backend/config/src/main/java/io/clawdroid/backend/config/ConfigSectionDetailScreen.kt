@@ -155,16 +155,20 @@ fun ConfigSectionDetailScreen(
                 ) {
                     var lastGroup: String? = null
                     detail.fields.forEach { field ->
+                        val indent = (field.depth * 16).dp
                         if (field.group != lastGroup) {
                             lastGroup = field.group
                             if (field.group.isNotEmpty()) {
                                 Spacer(modifier = Modifier.height(8.dp))
-                                HorizontalDivider(color = GlassBorder)
+                                HorizontalDivider(
+                                    color = GlassBorder,
+                                    modifier = Modifier.padding(start = indent),
+                                )
                                 Text(
                                     text = field.group,
                                     style = MaterialTheme.typography.titleSmall,
                                     color = NeonCyan,
-                                    modifier = Modifier.padding(top = 8.dp),
+                                    modifier = Modifier.padding(start = indent, top = 8.dp),
                                 )
                             }
                         }
@@ -172,6 +176,7 @@ fun ConfigSectionDetailScreen(
                             field = field,
                             onValueChanged = { viewModel.onFieldValueChanged(field.key, it) },
                             snackbarHostState = snackbarHostState,
+                            modifier = Modifier.padding(start = indent),
                         )
                     }
                 }
@@ -194,15 +199,18 @@ private fun ConfigField(
     field: FieldState,
     onValueChanged: (String) -> Unit,
     snackbarHostState: SnackbarHostState? = null,
+    modifier: Modifier = Modifier,
 ) {
-    when (field.type) {
-        "bool" -> BoolField(field, onValueChanged)
-        "int" -> NumberField(field, onValueChanged, KeyboardType.Number)
-        "float" -> NumberField(field, onValueChanged, KeyboardType.Decimal)
-        "[]string" -> StringArrayField(field, onValueChanged)
-        "directory" -> DirectoryField(field, onValueChanged, snackbarHostState)
-        "map", "[]any" -> JsonField(field, onValueChanged)
-        else -> StringField(field, onValueChanged)
+    Box(modifier = modifier.fillMaxWidth()) {
+        when (field.type) {
+            "bool" -> BoolField(field, onValueChanged)
+            "int" -> NumberField(field, onValueChanged, KeyboardType.Number)
+            "float" -> NumberField(field, onValueChanged, KeyboardType.Decimal)
+            "[]string" -> StringArrayField(field, onValueChanged)
+            "directory" -> DirectoryField(field, onValueChanged, snackbarHostState)
+            "map", "[]any" -> JsonField(field, onValueChanged)
+            else -> StringField(field, onValueChanged)
+        }
     }
 }
 

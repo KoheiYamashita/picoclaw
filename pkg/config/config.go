@@ -194,10 +194,88 @@ type AndroidCategories struct {
 	Clipboard     bool `json:"clipboard"      label:"Clipboard"      env:"CLAWDROID_TOOLS_ANDROID_CLIPBOARD"`
 }
 
+type AlarmActions struct {
+	SetAlarm     bool `json:"set_alarm"      label:"Set Alarm"`
+	SetTimer     bool `json:"set_timer"      label:"Set Timer"`
+	DismissAlarm bool `json:"dismiss_alarm"  label:"Dismiss Alarm"`
+	ShowAlarms   bool `json:"show_alarms"    label:"Show Alarms"`
+}
+
+type CalendarActions struct {
+	CreateEvent   bool `json:"create_event"   label:"Create Event"`
+	QueryEvents   bool `json:"query_events"   label:"Query Events"`
+	UpdateEvent   bool `json:"update_event"   label:"Update Event"`
+	DeleteEvent   bool `json:"delete_event"   label:"Delete Event"`
+	ListCalendars bool `json:"list_calendars" label:"List Calendars"`
+	AddReminder   bool `json:"add_reminder"   label:"Add Reminder"`
+}
+
+type ContactsActions struct {
+	SearchContacts   bool `json:"search_contacts"    label:"Search Contacts"`
+	GetContactDetail bool `json:"get_contact_detail" label:"Get Contact Detail"`
+	AddContact       bool `json:"add_contact"        label:"Add Contact"`
+}
+
+type CommunicationActions struct {
+	Dial         bool `json:"dial"          label:"Dial"`
+	ComposeSMS   bool `json:"compose_sms"   label:"Compose SMS"`
+	ComposeEmail bool `json:"compose_email" label:"Compose Email"`
+}
+
+type MediaActions struct {
+	PlayPause       bool `json:"media_play_pause"  label:"Play/Pause"`
+	Next            bool `json:"media_next"        label:"Next"`
+	Previous        bool `json:"media_previous"    label:"Previous"`
+	PlayMusicSearch bool `json:"play_music_search" label:"Play Music Search"`
+}
+
+type NavigationActions struct {
+	Navigate           bool `json:"navigate"             label:"Navigate"`
+	SearchNearby       bool `json:"search_nearby"        label:"Search Nearby"`
+	ShowMap            bool `json:"show_map"             label:"Show Map"`
+	GetCurrentLocation bool `json:"get_current_location" label:"Get Current Location"`
+}
+
+type DeviceControlActions struct {
+	Flashlight    bool `json:"flashlight"      label:"Flashlight"`
+	SetVolume     bool `json:"set_volume"      label:"Set Volume"`
+	SetRingerMode bool `json:"set_ringer_mode" label:"Set Ringer Mode"`
+	SetDND        bool `json:"set_dnd"         label:"Set DND"`
+	SetBrightness bool `json:"set_brightness"  label:"Set Brightness"`
+}
+
+type SettingsActions struct {
+	OpenSettings bool `json:"open_settings" label:"Open Settings"`
+}
+
+type WebActions struct {
+	OpenURL   bool `json:"open_url"    label:"Open URL"`
+	WebSearch bool `json:"web_search"  label:"Web Search"`
+}
+
+type ClipboardActions struct {
+	ClipboardCopy bool `json:"clipboard_copy" label:"Copy"`
+	ClipboardRead bool `json:"clipboard_read" label:"Read"`
+}
+
+type AndroidActions struct {
+	Alarm         AlarmActions         `json:"alarm"          label:"Alarm"`
+	Calendar      CalendarActions      `json:"calendar"       label:"Calendar"`
+	Contacts      ContactsActions      `json:"contacts"       label:"Contacts"`
+	Communication CommunicationActions `json:"communication"  label:"Communication"`
+	Media         MediaActions         `json:"media"          label:"Media"`
+	Navigation    NavigationActions    `json:"navigation"     label:"Navigation"`
+	DeviceControl DeviceControlActions `json:"device_control" label:"Device Control"`
+	Settings      SettingsActions      `json:"settings"       label:"Settings"`
+	Web           WebActions           `json:"web"            label:"Web"`
+	Clipboard     ClipboardActions     `json:"clipboard"      label:"Clipboard"`
+}
+
 type AndroidToolsConfig struct {
-	Enabled         bool              `json:"enabled"          label:"Enabled"          env:"CLAWDROID_TOOLS_ANDROID_ENABLED"`
-	Categories      AndroidCategories `json:"categories"       label:"Categories"`
-	DisabledActions []string          `json:"disabled_actions" label:"Disabled Actions"`
+	Enabled         bool              `json:"enabled"                    label:"Enabled"    env:"CLAWDROID_TOOLS_ANDROID_ENABLED"`
+	Categories      AndroidCategories `json:"categories"                label:"Categories"`
+	Actions         AndroidActions    `json:"actions"                   label:"Actions"`
+	DisabledActions []string          `json:"disabled_actions,omitempty" label:""`
 }
 
 type MemoryToolsConfig struct {
@@ -291,6 +369,7 @@ func DefaultConfig() *Config {
 					Web:           true,
 					Clipboard:     true,
 				},
+				Actions: DefaultAndroidActions(),
 			},
 			Memory: MemoryToolsConfig{
 				Enabled: true,
@@ -399,6 +478,22 @@ func (c *Config) DataPath() string {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return expandHome(c.Agents.Defaults.DataDir)
+}
+
+// DefaultAndroidActions returns an AndroidActions with all actions enabled.
+func DefaultAndroidActions() AndroidActions {
+	return AndroidActions{
+		Alarm:         AlarmActions{SetAlarm: true, SetTimer: true, DismissAlarm: true, ShowAlarms: true},
+		Calendar:      CalendarActions{CreateEvent: true, QueryEvents: true, UpdateEvent: true, DeleteEvent: true, ListCalendars: true, AddReminder: true},
+		Contacts:      ContactsActions{SearchContacts: true, GetContactDetail: true, AddContact: true},
+		Communication: CommunicationActions{Dial: true, ComposeSMS: true, ComposeEmail: true},
+		Media:         MediaActions{PlayPause: true, Next: true, Previous: true, PlayMusicSearch: true},
+		Navigation:    NavigationActions{Navigate: true, SearchNearby: true, ShowMap: true, GetCurrentLocation: true},
+		DeviceControl: DeviceControlActions{Flashlight: true, SetVolume: true, SetRingerMode: true, SetDND: true, SetBrightness: true},
+		Settings:      SettingsActions{OpenSettings: true},
+		Web:           WebActions{OpenURL: true, WebSearch: true},
+		Clipboard:     ClipboardActions{ClipboardCopy: true, ClipboardRead: true},
+	}
 }
 
 func expandHome(path string) string {
