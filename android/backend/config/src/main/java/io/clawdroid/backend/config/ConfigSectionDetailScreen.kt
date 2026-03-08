@@ -455,7 +455,7 @@ private fun CalendarField(
             null
         }
     }
-    val displayText = if (field.value.isEmpty()) "Not set (auto-detect)"
+    val displayText = if (field.value.isEmpty()) "Pick each time"
         else resolvedName ?: field.value
 
     Row(
@@ -502,9 +502,9 @@ private fun CalendarField(
             title = { Text("Select Calendar") },
             text = {
                 Column {
-                    // "Auto-detect" option to clear the setting
+                    // "Pick each time" option to clear the fixed setting
                     Text(
-                        "Auto-detect (primary calendar)",
+                        "Pick each time",
                         style = MaterialTheme.typography.bodyMedium,
                         color = NeonCyan,
                         modifier = Modifier
