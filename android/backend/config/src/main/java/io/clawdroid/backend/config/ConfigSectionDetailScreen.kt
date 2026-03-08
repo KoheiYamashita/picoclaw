@@ -1,10 +1,15 @@
 package io.clawdroid.backend.config
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.provider.CalendarContract
 import android.provider.DocumentsContract
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -239,6 +244,7 @@ private fun ConfigField(
             "float" -> NumberField(field, onValueChanged, KeyboardType.Decimal)
             "[]string" -> StringArrayField(field, onValueChanged)
             "directory" -> DirectoryField(field, onValueChanged, snackbarHostState)
+            "calendar" -> CalendarField(field, onValueChanged, enabled)
             "map", "[]any" -> JsonField(field, onValueChanged)
             else -> StringField(field, onValueChanged)
         }
@@ -412,6 +418,145 @@ private fun DirectoryField(
             color = TextSecondary.copy(alpha = 0.6f),
             modifier = Modifier.padding(start = 16.dp, top = 2.dp),
         )
+    }
+}
+
+@Composable
+private fun CalendarField(
+    field: FieldState,
+    onValueChanged: (String) -> Unit,
+    enabled: Boolean,
+) {
+    val context = LocalContext.current
+    var showDialog by remember { mutableStateOf(false) }
+    var calendars by remember { mutableStateOf<List<Triple<Long, String, String>>>(emptyList()) }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            calendars = queryCalendars(context)
+            showDialog = true
+        }
+    }
+
+    val resolvedName = remember(field.value) {
+        if (field.value.isEmpty()) null
+        else try {
+            val cursor = context.contentResolver.query(
+                CalendarContract.Calendars.CONTENT_URI,
+                arrayOf(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME),
+                "${CalendarContract.Calendars._ID} = ?",
+                arrayOf(field.value),
+                null
+            )
+            cursor?.use { if (it.moveToFirst()) it.getString(0) else null }
+        } catch (_: SecurityException) {
+            null
+        }
+    }
+    val displayText = if (field.value.isEmpty()) "Not set (auto-detect)"
+        else resolvedName ?: field.value
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(enabled = enabled) {
+                if (ContextCompat.checkSelfPermission(
+                        context, Manifest.permission.READ_CALENDAR
+                    ) == PackageManager.PERMISSION_GRANTED
+                ) {
+                    calendars = queryCalendars(context)
+                    showDialog = true
+                } else {
+                    permissionLauncher.launch(Manifest.permission.READ_CALENDAR)
+                }
+            }
+            .padding(vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                field.label,
+                style = MaterialTheme.typography.bodyLarge,
+                color = if (enabled) TextPrimary else TextSecondary.copy(alpha = 0.5f),
+            )
+            Text(
+                displayText,
+                style = MaterialTheme.typography.bodySmall,
+                color = if (enabled) TextSecondary else TextSecondary.copy(alpha = 0.4f),
+            )
+        }
+        Icon(
+            painter = painterResource(LucideR.drawable.lucide_ic_chevron_right),
+            contentDescription = "Select",
+            tint = if (enabled) NeonCyan else NeonCyan.copy(alpha = 0.3f),
+            modifier = Modifier.size(20.dp),
+        )
+    }
+
+    if (showDialog && calendars.isNotEmpty()) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Select Calendar") },
+            text = {
+                Column {
+                    // "Auto-detect" option to clear the setting
+                    Text(
+                        "Auto-detect (primary calendar)",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = NeonCyan,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                onValueChanged("")
+                                showDialog = false
+                            }
+                            .padding(vertical = 12.dp),
+                    )
+                    HorizontalDivider(color = GlassBorder)
+                    calendars.forEach { (id, name, account) ->
+                        Text(
+                            "$name ($account)",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = TextPrimary,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onValueChanged(id.toString())
+                                    showDialog = false
+                                }
+                                .padding(vertical = 12.dp),
+                        )
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text("Cancel", color = TextSecondary)
+                }
+            },
+        )
+    }
+}
+
+private fun queryCalendars(context: android.content.Context): List<Triple<Long, String, String>> {
+    val projection = arrayOf(
+        CalendarContract.Calendars._ID,
+        CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,
+        CalendarContract.Calendars.ACCOUNT_NAME,
+    )
+    val cursor = context.contentResolver.query(
+        CalendarContract.Calendars.CONTENT_URI, projection, null, null, null
+    ) ?: return emptyList()
+    return cursor.use {
+        val result = mutableListOf<Triple<Long, String, String>>()
+        while (it.moveToNext()) {
+            result += Triple(it.getLong(0), it.getString(1) ?: "", it.getString(2) ?: "")
+        }
+        result
     }
 }
 

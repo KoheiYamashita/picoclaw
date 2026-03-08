@@ -1,15 +1,28 @@
 package io.clawdroid.assistant.actions
 
 import android.Manifest
+import android.content.BroadcastReceiver
 import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.provider.CalendarContract
+import android.util.Log
+import androidx.core.content.ContextCompat
+import io.clawdroid.CalendarPickerActivity
 import io.clawdroid.core.data.remote.dto.ToolRequest
 import io.clawdroid.core.data.remote.dto.ToolResponse
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import java.net.HttpURLConnection
+import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
+import kotlin.coroutines.resume
 
 class CalendarActionHandler : ActionHandler {
     override val supportedActions = setOf(
@@ -30,16 +43,82 @@ class CalendarActionHandler : ActionHandler {
             timeZone = TimeZone.getDefault()
         }
 
+    private val writeActions = setOf("create_event", "update_event", "add_reminder")
+
     override suspend fun handle(request: ToolRequest, context: Context): ToolResponse {
-        return when (request.action) {
-            "create_event" -> handleCreateEvent(request, context)
-            "query_events" -> handleQueryEvents(request, context)
-            "update_event" -> handleUpdateEvent(request, context)
-            "delete_event" -> handleDeleteEvent(request, context)
-            "list_calendars" -> handleListCalendars(request, context)
-            "add_reminder" -> handleAddReminder(request, context)
-            else -> ToolResponse(request.requestId, false, error = "Unknown calendar action")
+        // For write actions without calendar_id, launch picker and save to config
+        val resolvedRequest = if (request.action in writeActions && request.stringParam("calendar_id") == null) {
+            val picked = pickCalendar(context)
+                ?: return ToolResponse(request.requestId, false, error = "Calendar selection cancelled")
+            saveCalendarIdToConfig(picked.first)
+            request.withParam("calendar_id", picked.first)
+        } else {
+            request
         }
+
+        return when (resolvedRequest.action) {
+            "create_event" -> handleCreateEvent(resolvedRequest, context)
+            "query_events" -> handleQueryEvents(resolvedRequest, context)
+            "update_event" -> handleUpdateEvent(resolvedRequest, context)
+            "delete_event" -> handleDeleteEvent(resolvedRequest, context)
+            "list_calendars" -> handleListCalendars(resolvedRequest, context)
+            "add_reminder" -> handleAddReminder(resolvedRequest, context)
+            else -> ToolResponse(resolvedRequest.requestId, false, error = "Unknown calendar action")
+        }
+    }
+
+    private suspend fun pickCalendar(context: Context): Pair<String, String>? {
+        return withTimeoutOrNull(30_000L) {
+            suspendCancellableCoroutine { cont ->
+                val receiver = object : BroadcastReceiver() {
+                    override fun onReceive(ctx: Context, intent: Intent) {
+                        context.unregisterReceiver(this)
+                        val cancelled = intent.getBooleanExtra(CalendarPickerActivity.EXTRA_CANCELLED, false)
+                        if (cancelled) {
+                            if (cont.isActive) cont.resume(null)
+                        } else {
+                            val id = intent.getStringExtra(CalendarPickerActivity.EXTRA_CALENDAR_ID).orEmpty()
+                            val name = intent.getStringExtra(CalendarPickerActivity.EXTRA_CALENDAR_NAME).orEmpty()
+                            if (cont.isActive) cont.resume(id to name)
+                        }
+                    }
+                }
+
+                val filter = IntentFilter(CalendarPickerActivity.ACTION_RESULT)
+                ContextCompat.registerReceiver(
+                    context, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED
+                )
+
+                cont.invokeOnCancellation {
+                    try { context.unregisterReceiver(receiver) } catch (_: IllegalArgumentException) {}
+                }
+
+                context.startActivity(CalendarPickerActivity.intent(context))
+            }
+        }
+    }
+
+    private fun saveCalendarIdToConfig(calendarId: String) {
+        try {
+            val url = URL("http://127.0.0.1:18790/api/config")
+            val conn = url.openConnection() as HttpURLConnection
+            conn.requestMethod = "PUT"
+            conn.setRequestProperty("Content-Type", "application/json")
+            conn.doOutput = true
+            // Patch only the calendar_id field
+            val body = """{"tools":{"android":{"calendar":{"calendar_id":"$calendarId"}}}}"""
+            conn.outputStream.use { it.write(body.toByteArray()) }
+            conn.responseCode // trigger the request
+            conn.disconnect()
+        } catch (e: Exception) {
+            Log.w("CalendarActionHandler", "Failed to save calendar_id to config", e)
+        }
+    }
+
+    private fun ToolRequest.withParam(key: String, value: String): ToolRequest {
+        val currentParams = params ?: JsonObject(emptyMap())
+        val newParams = JsonObject(currentParams + (key to JsonPrimitive(value)))
+        return ToolRequest(requestId = requestId, action = action, params = newParams)
     }
 
     private fun handleCreateEvent(request: ToolRequest, context: Context): ToolResponse {

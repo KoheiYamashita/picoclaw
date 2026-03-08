@@ -48,6 +48,11 @@ var directoryKeys = map[string]bool{
 	"defaults.data_dir":  true,
 }
 
+// calendarKeys lists JSON keys that represent calendar account selectors.
+var calendarKeys = map[string]bool{
+	"calendar_id": true,
+}
+
 // BuildSchema generates a SchemaResponse by reflecting over a default Config.
 func BuildSchema(defaultCfg *config.Config) SchemaResponse {
 	var sections []SchemaSection
@@ -176,6 +181,11 @@ func buildFields(t reflect.Type, v reflect.Value, prefix string, group string, d
 		// Override type for directory-path fields
 		if schemaType == "string" && directoryKeys[fullKey] {
 			schemaType = "directory"
+		}
+
+		// Override type for calendar-account fields
+		if schemaType == "string" && calendarKeys[jk] {
+			schemaType = "calendar"
 		}
 
 		fields = append(fields, SchemaField{

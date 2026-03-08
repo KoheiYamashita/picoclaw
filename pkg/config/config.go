@@ -255,8 +255,9 @@ type AlarmCategory struct {
 }
 
 type CalendarCategory struct {
-	Enabled bool            `json:"enabled" label:"Calendar"`
-	Actions CalendarActions `json:"actions" label:""`
+	Enabled    bool            `json:"enabled"     label:"Calendar"`
+	CalendarID string          `json:"calendar_id" label:"Calendar Account"`
+	Actions    CalendarActions `json:"actions"      label:""`
 }
 
 type ContactsCategory struct {

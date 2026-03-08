@@ -242,7 +242,17 @@ func (t *AndroidTool) validateAndBuildParams(action string, args map[string]inte
 
 	default:
 		if fn, ok := categoryValidators[action]; ok {
-			return fn(action, args)
+			params, err := fn(action, args)
+			if err != nil {
+				return nil, err
+			}
+			// Inject calendar_id from config for calendar actions
+			if t.cfg.Calendar.CalendarID != "" && actionCategory(action) == "calendar" {
+				if _, exists := params["calendar_id"]; !exists {
+					params["calendar_id"] = t.cfg.Calendar.CalendarID
+				}
+			}
+			return params, nil
 		}
 		return nil, fmt.Errorf("unknown action: %s", action)
 	}
