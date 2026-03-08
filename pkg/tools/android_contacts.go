@@ -32,9 +32,15 @@ func validateContactsParams(action string, args map[string]interface{}) (map[str
 		}
 		params["name"] = name
 		if v := toString(args["phone"]); v != "" {
+			if !phoneNumberRe.MatchString(v) {
+				return nil, fmt.Errorf("invalid phone number: only digits, +, -, (), spaces, #, * are allowed")
+			}
 			params["phone"] = v
 		}
 		if v := toString(args["email"]); v != "" {
+			if !emailRe.MatchString(v) {
+				return nil, fmt.Errorf("invalid email address: %s", v)
+			}
 			params["email"] = v
 		}
 	}

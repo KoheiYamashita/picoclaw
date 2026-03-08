@@ -212,6 +212,9 @@ func (t *AndroidTool) validateAndBuildParams(action string, args map[string]inte
 		}
 		params["intent_action"] = intentAction
 		if extras, ok := args["intent_extras"].(map[string]interface{}); ok {
+			if err := validateIntentExtras(extras); err != nil {
+				return nil, err
+			}
 			params["intent_extras"] = extras
 		}
 
@@ -237,6 +240,9 @@ func (t *AndroidTool) validateAndBuildParams(action string, args map[string]inte
 			params["intent_type"] = mimeType
 		}
 		if extras, ok := args["intent_extras"].(map[string]interface{}); ok {
+			if err := validateIntentExtras(extras); err != nil {
+				return nil, err
+			}
 			params["intent_extras"] = extras
 		}
 
@@ -360,6 +366,20 @@ func (t *AndroidTool) sendAndWait(ctx context.Context, action string, params map
 		DeviceResponseWaiter.Cleanup(requestID)
 		return ErrorResult("android tool request cancelled")
 	}
+}
+
+// validateIntentExtras ensures all values in intent extras are primitive types
+// (string, number, boolean). Nested maps and arrays are rejected.
+func validateIntentExtras(extras map[string]interface{}) error {
+	for k, v := range extras {
+		switch v.(type) {
+		case string, float64, int, int64, bool, nil:
+			// allowed primitive types
+		default:
+			return fmt.Errorf("intent_extras key %q has unsupported type: only string, number, and boolean values are allowed", k)
+		}
+	}
+	return nil
 }
 
 // toFloat64 extracts a float64 from an interface{} (handles both float64 and int from JSON).

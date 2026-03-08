@@ -9,6 +9,7 @@ import androidx.core.content.ContextCompat
 import io.clawdroid.PermissionRequestActivity
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.resume
 
 class PermissionRequester(private val context: Context) {
@@ -22,10 +23,12 @@ class PermissionRequester(private val context: Context) {
 
         return withTimeoutOrNull(12_000L) {
             suspendCancellableCoroutine { cont ->
+                val unregistered = AtomicBoolean(false)
                 val receiver = object : BroadcastReceiver() {
                     override fun onReceive(ctx: Context, intent: Intent) {
                         val perm = intent.getStringExtra(PermissionRequestActivity.EXTRA_PERMISSION)
                         if (perm == permission) {
+                            if (!unregistered.compareAndSet(false, true)) return
                             context.unregisterReceiver(this)
                             val granted = intent.getBooleanExtra(
                                 PermissionRequestActivity.EXTRA_GRANTED, false
@@ -41,10 +44,12 @@ class PermissionRequester(private val context: Context) {
                 )
 
                 cont.invokeOnCancellation {
-                    try {
-                        context.unregisterReceiver(receiver)
-                    } catch (_: IllegalArgumentException) {
-                        // already unregistered
+                    if (unregistered.compareAndSet(false, true)) {
+                        try {
+                            context.unregisterReceiver(receiver)
+                        } catch (_: IllegalArgumentException) {
+                            // already unregistered
+                        }
                     }
                 }
 

@@ -334,15 +334,12 @@ func TestValidateSettingsParams_DefaultsToMain(t *testing.T) {
 	}
 }
 
-func TestValidateSettingsParams_InvalidFallsBackToMain(t *testing.T) {
-	params, err := validateSettingsParams("open_settings", map[string]interface{}{
+func TestValidateSettingsParams_InvalidReturnsError(t *testing.T) {
+	_, err := validateSettingsParams("open_settings", map[string]interface{}{
 		"section": "nonexistent",
 	})
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if params["section"] != "main" {
-		t.Errorf("section = %v, want main", params["section"])
+	if err == nil {
+		t.Error("expected error for invalid settings section")
 	}
 }
 
@@ -360,6 +357,108 @@ func TestIsUIAction(t *testing.T) {
 		if isUIAction(a) {
 			t.Errorf("%q should not be a UI action", a)
 		}
+	}
+}
+
+// --- phone/email validation ---
+
+func TestValidatePhoneNumber_Valid(t *testing.T) {
+	valid := []string{"+81-90-1234-5678", "090 1234 5678", "(03) 1234-5678", "#110", "*123#"}
+	for _, phone := range valid {
+		if err := validatePhoneNumber(phone); err != nil {
+			t.Errorf("validatePhoneNumber(%q) unexpected error: %v", phone, err)
+		}
+	}
+}
+
+func TestValidatePhoneNumber_Invalid(t *testing.T) {
+	invalid := []string{"abc", "090;rm -rf /", "tel:123", "123\n456"}
+	for _, phone := range invalid {
+		if err := validatePhoneNumber(phone); err == nil {
+			t.Errorf("validatePhoneNumber(%q) expected error", phone)
+		}
+	}
+}
+
+func TestValidateEmail_Valid(t *testing.T) {
+	if err := validateEmail("user@example.com"); err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+}
+
+func TestValidateEmail_Invalid(t *testing.T) {
+	invalid := []string{"notanemail", "user@", "@example.com", "user@example"}
+	for _, email := range invalid {
+		if err := validateEmail(email); err == nil {
+			t.Errorf("validateEmail(%q) expected error", email)
+		}
+	}
+}
+
+func TestValidateCommunicationParams_DialInvalidPhone(t *testing.T) {
+	_, err := validateCommunicationParams("dial", map[string]interface{}{
+		"phone_number": "abc;evil",
+	})
+	if err == nil {
+		t.Error("expected error for invalid phone number")
+	}
+}
+
+func TestValidateCommunicationParams_ComposeEmailInvalidEmail(t *testing.T) {
+	_, err := validateCommunicationParams("compose_email", map[string]interface{}{
+		"to": "not-an-email",
+	})
+	if err == nil {
+		t.Error("expected error for invalid email")
+	}
+}
+
+func TestValidateContactsParams_AddContactInvalidPhone(t *testing.T) {
+	_, err := validateContactsParams("add_contact", map[string]interface{}{
+		"name":  "Test",
+		"phone": "abc;evil",
+	})
+	if err == nil {
+		t.Error("expected error for invalid phone in add_contact")
+	}
+}
+
+func TestValidateContactsParams_AddContactInvalidEmail(t *testing.T) {
+	_, err := validateContactsParams("add_contact", map[string]interface{}{
+		"name":  "Test",
+		"email": "not-valid",
+	})
+	if err == nil {
+		t.Error("expected error for invalid email in add_contact")
+	}
+}
+
+// --- intent extras validation ---
+
+func TestValidateIntentExtras_PrimitivesAllowed(t *testing.T) {
+	extras := map[string]interface{}{
+		"str": "hello", "num": float64(42), "flag": true,
+	}
+	if err := validateIntentExtras(extras); err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+}
+
+func TestValidateIntentExtras_NestedMapRejected(t *testing.T) {
+	extras := map[string]interface{}{
+		"nested": map[string]interface{}{"key": "val"},
+	}
+	if err := validateIntentExtras(extras); err == nil {
+		t.Error("expected error for nested map in intent extras")
+	}
+}
+
+func TestValidateIntentExtras_ArrayRejected(t *testing.T) {
+	extras := map[string]interface{}{
+		"list": []interface{}{"a", "b"},
+	}
+	if err := validateIntentExtras(extras); err == nil {
+		t.Error("expected error for array in intent extras")
 	}
 }
 

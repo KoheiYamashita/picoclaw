@@ -22,6 +22,11 @@ class WebActionHandler : ActionHandler {
         val url = request.stringParam("url")
             ?: return ToolResponse(request.requestId, false, error = "url required")
 
+        val scheme = Uri.parse(url).scheme?.lowercase()
+        if (scheme != "http" && scheme != "https") {
+            return ToolResponse(request.requestId, false, error = "Only http and https URLs are allowed, got: $scheme")
+        }
+
         val intent = Intent(Intent.ACTION_VIEW).apply {
             data = Uri.parse(url)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

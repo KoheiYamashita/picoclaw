@@ -1,5 +1,11 @@
 package tools
 
+import (
+	"fmt"
+	"sort"
+	"strings"
+)
+
 func init() {
 	registerCategoryValidator(validateSettingsParams, "open_settings")
 }
@@ -21,7 +27,12 @@ func validateSettingsParams(action string, args map[string]interface{}) (map[str
 		section = "main"
 	}
 	if !validSettingsSections[section] {
-		section = "main"
+		valid := make([]string, 0, len(validSettingsSections))
+		for k := range validSettingsSections {
+			valid = append(valid, k)
+		}
+		sort.Strings(valid)
+		return nil, fmt.Errorf("invalid settings section %q: valid sections are %s", section, strings.Join(valid, ", "))
 	}
 	params["section"] = section
 

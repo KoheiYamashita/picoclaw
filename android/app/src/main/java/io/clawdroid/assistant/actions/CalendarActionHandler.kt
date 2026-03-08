@@ -19,6 +19,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.resume
 
 class CalendarActionHandler : ActionHandler {
@@ -66,8 +67,10 @@ class CalendarActionHandler : ActionHandler {
     private suspend fun pickCalendar(context: Context): Pair<String, String>? {
         return withTimeoutOrNull(30_000L) {
             suspendCancellableCoroutine { cont ->
+                val unregistered = AtomicBoolean(false)
                 val receiver = object : BroadcastReceiver() {
                     override fun onReceive(ctx: Context, intent: Intent) {
+                        if (!unregistered.compareAndSet(false, true)) return
                         context.unregisterReceiver(this)
                         val cancelled = intent.getBooleanExtra(CalendarPickerActivity.EXTRA_CANCELLED, false)
                         if (cancelled) {
@@ -86,7 +89,9 @@ class CalendarActionHandler : ActionHandler {
                 )
 
                 cont.invokeOnCancellation {
-                    try { context.unregisterReceiver(receiver) } catch (_: IllegalArgumentException) {}
+                    if (unregistered.compareAndSet(false, true)) {
+                        try { context.unregisterReceiver(receiver) } catch (_: IllegalArgumentException) {}
+                    }
                 }
 
                 context.startActivity(CalendarPickerActivity.intent(context))
