@@ -22,6 +22,7 @@ import (
 	"github.com/KarakuriAgent/clawdroid/pkg/channels"
 	"github.com/KarakuriAgent/clawdroid/pkg/config"
 	"github.com/KarakuriAgent/clawdroid/pkg/constants"
+	"github.com/KarakuriAgent/clawdroid/pkg/i18n"
 	"github.com/KarakuriAgent/clawdroid/pkg/logger"
 	"github.com/KarakuriAgent/clawdroid/pkg/mcp"
 	"github.com/KarakuriAgent/clawdroid/pkg/providers"
@@ -78,6 +79,7 @@ type processOptions struct {
 	InputMode       string            // "voice" or "text"
 	Metadata        map[string]string // Channel metadata (e.g. client_type)
 	ResolvedUser    *User             // Resolved user from user directory (nil if unknown)
+	Locale          string            // Normalized locale code (e.g. "en", "ja")
 }
 
 // createToolRegistry creates a tool registry with common tools.
@@ -468,11 +470,15 @@ func (al *AgentLoop) processMessage(ctx context.Context, msg bus.InboundMessage)
 		return response, nil
 	}
 
-	// Extract input_mode from metadata
+	// Extract input_mode and locale from metadata
 	inputMode := "text"
+	locale := "en"
 	if msg.Metadata != nil {
 		if mode, ok := msg.Metadata["input_mode"]; ok && mode != "" {
 			inputMode = mode
+		}
+		if l, ok := msg.Metadata["locale"]; ok && l != "" {
+			locale = i18n.NormalizeLocale(l)
 		}
 	}
 
@@ -482,7 +488,7 @@ func (al *AgentLoop) processMessage(ctx context.Context, msg bus.InboundMessage)
 			al.bus.PublishOutbound(bus.OutboundMessage{
 				Channel: msg.Channel,
 				ChatID:  msg.ChatID,
-				Content: "USER.md が見つかりました。ユーザー管理が新しい形式（users.json）に変わりました。\nチャットで移行を依頼するか、手動で更新してください。\n\n手動更新の場合、以下の形式で ~/.clawdroid/data/users.json を作成:\n```json\n{\n  \"users\": [{\n    \"name\": \"あなたの名前\",\n    \"channels\": { \"websocket\": [\"default\"] },\n    \"memo\": [\"Preferred language: Japanese\"]\n  }]\n}\n```",
+				Content: i18n.T(locale, "agent.migration_notice"),
 			})
 		}
 	})
@@ -514,6 +520,7 @@ func (al *AgentLoop) processMessage(ctx context.Context, msg bus.InboundMessage)
 		InputMode:       inputMode,
 		Metadata:        msg.Metadata,
 		ResolvedUser:    resolvedUser,
+		Locale:          locale,
 	})
 }
 
@@ -597,6 +604,12 @@ func (al *AgentLoop) runAgentLoop(ctx context.Context, opts processOptions) (str
 		}
 	}
 
+	// Use locale from opts (set by processMessage), default to "en"
+	locale := opts.Locale
+	if locale == "" {
+		locale = "en"
+	}
+
 	// 1. Update tool contexts
 	al.updateToolContexts(opts.Channel, opts.ChatID, opts.Metadata)
 
@@ -633,18 +646,19 @@ func (al *AgentLoop) runAgentLoop(ctx context.Context, opts processOptions) (str
 	})
 
 	// 4. Emit thinking status
+	thinkingLabel := i18n.T(locale, "status.thinking")
 	if !constants.IsInternalChannel(opts.Channel) {
 		al.bus.PublishOutbound(bus.OutboundMessage{
 			Channel: opts.Channel,
 			ChatID:  opts.ChatID,
-			Content: "思考中...",
+			Content: thinkingLabel,
 			Type:    "status",
 		})
 	}
 
 	// Start heartbeat goroutine - resend current status every 10s
 	var currentStatus atomic.Value
-	currentStatus.Store("思考中...")
+	currentStatus.Store(thinkingLabel)
 	heartbeatCtx, heartbeatCancel := context.WithCancel(ctx)
 	defer heartbeatCancel()
 
@@ -675,7 +689,7 @@ func (al *AgentLoop) runAgentLoop(ctx context.Context, opts processOptions) (str
 
 	if ctx.Err() != nil {
 		if !al.queueMessages {
-			al.sessions.AddMessage(opts.SessionKey, "assistant", "[応答は中断されました]")
+			al.sessions.AddMessage(opts.SessionKey, "assistant", i18n.T(locale, "status.interrupted"))
 			_ = al.sessions.Save(opts.SessionKey)
 		}
 		return "", nil
@@ -690,7 +704,7 @@ func (al *AgentLoop) runAgentLoop(ctx context.Context, opts processOptions) (str
 		al.sessions.AddMessage(opts.SessionKey, "assistant", "[silent]")
 		_ = al.sessions.Save(opts.SessionKey)
 		if opts.EnableSummary {
-			al.maybeSummarize(opts.SessionKey, opts.Channel, opts.ChatID)
+			al.maybeSummarize(opts.SessionKey, opts.Channel, opts.ChatID, locale)
 		}
 		return "", nil
 	}
@@ -706,7 +720,7 @@ func (al *AgentLoop) runAgentLoop(ctx context.Context, opts processOptions) (str
 
 	// 7. Optional: summarization
 	if opts.EnableSummary {
-		al.maybeSummarize(opts.SessionKey, opts.Channel, opts.ChatID)
+		al.maybeSummarize(opts.SessionKey, opts.Channel, opts.ChatID, locale)
 	}
 
 	// 8. Optional: send response via bus
@@ -735,6 +749,12 @@ func (al *AgentLoop) runAgentLoop(ctx context.Context, opts processOptions) (str
 func (al *AgentLoop) runLLMIteration(ctx context.Context, messages []providers.Message, opts processOptions, currentStatus *atomic.Value) (string, int, error) {
 	iteration := 0
 	var finalContent string
+
+	// Use locale from opts (set by processMessage), default to "en"
+	locale := opts.Locale
+	if locale == "" {
+		locale = "en"
+	}
 
 	for iteration < al.maxIterations {
 		iteration++
@@ -819,7 +839,7 @@ func (al *AgentLoop) runLLMIteration(ctx context.Context, messages []providers.M
 					al.bus.PublishOutbound(bus.OutboundMessage{
 						Channel: opts.Channel,
 						ChatID:  opts.ChatID,
-						Content: "⚠️ Context window exceeded. Compressing history and retrying...",
+						Content: i18n.T(locale, "agent.context_window_warning"),
 						Type:    "warning",
 					})
 				}
@@ -952,7 +972,7 @@ func (al *AgentLoop) runLLMIteration(ctx context.Context, messages []providers.M
 
 			// Emit tool use status indicator
 			if !constants.IsInternalChannel(opts.Channel) {
-				if label := statusLabel(tc.Name, tc.Arguments); label != "" {
+				if label := statusLabel(tc.Name, tc.Arguments, locale); label != "" {
 					currentStatus.Store(label)
 					al.bus.PublishOutbound(bus.OutboundMessage{
 						Channel: opts.Channel,
@@ -1059,7 +1079,7 @@ func (al *AgentLoop) updateToolContexts(channel, chatID string, metadata map[str
 }
 
 // maybeSummarize triggers summarization if the session history exceeds thresholds.
-func (al *AgentLoop) maybeSummarize(sessionKey, channel, chatID string) {
+func (al *AgentLoop) maybeSummarize(sessionKey, channel, chatID, locale string) {
 	newHistory := al.sessions.GetHistory(sessionKey)
 	tokenEstimate := al.estimateTokens(newHistory)
 	threshold := al.contextWindow * 75 / 100
@@ -1073,7 +1093,7 @@ func (al *AgentLoop) maybeSummarize(sessionKey, channel, chatID string) {
 					al.bus.PublishOutbound(bus.OutboundMessage{
 						Channel: channel,
 						ChatID:  chatID,
-						Content: "⚠️ Memory threshold reached. Optimizing conversation history...",
+						Content: i18n.T(locale, "agent.memory_threshold_warning"),
 						Type:    "warning",
 					})
 				}

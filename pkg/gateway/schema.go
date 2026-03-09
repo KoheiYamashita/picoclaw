@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/KarakuriAgent/clawdroid/pkg/config"
+	"github.com/KarakuriAgent/clawdroid/pkg/i18n"
 )
 
 // SchemaField describes a single configuration field.
@@ -54,7 +55,8 @@ var calendarKeys = map[string]bool{
 }
 
 // BuildSchema generates a SchemaResponse by reflecting over a default Config.
-func BuildSchema(defaultCfg *config.Config) SchemaResponse {
+// The locale parameter controls label translation (e.g. "en", "ja").
+func BuildSchema(defaultCfg *config.Config, locale string) SchemaResponse {
 	var sections []SchemaSection
 
 	cfgType := reflect.TypeOf(defaultCfg).Elem()
@@ -83,11 +85,11 @@ func BuildSchema(defaultCfg *config.Config) SchemaResponse {
 
 		section := SchemaSection{
 			Key:   jsonTag,
-			Label: labelTag(field),
+			Label: i18n.T(locale, "config."+labelTag(field)),
 		}
 
 		fieldVal := cfgVal.Field(i)
-		section.Fields = buildFields(field.Type, fieldVal, "", "", 0)
+		section.Fields = buildFields(field.Type, fieldVal, "", "", 0, locale)
 
 		// If every field shares the same single group, the header is redundant — clear it.
 		groups := map[string]bool{}
@@ -113,7 +115,7 @@ func BuildSchema(defaultCfg *config.Config) SchemaResponse {
 // with dot-separated key prefixes. The group parameter propagates the label of the
 // enclosing struct so that leaf fields can be grouped under a header in the UI.
 // The depth parameter tracks the nesting level for hierarchical rendering.
-func buildFields(t reflect.Type, v reflect.Value, prefix string, group string, depth int) []SchemaField {
+func buildFields(t reflect.Type, v reflect.Value, prefix string, group string, depth int, locale string) []SchemaField {
 	var fields []SchemaField
 
 	if t.Kind() == reflect.Ptr {
@@ -138,7 +140,8 @@ func buildFields(t reflect.Type, v reflect.Value, prefix string, group string, d
 			continue
 		}
 
-		label := labelTag(sf)
+		rawLabel := labelTag(sf)
+		label := i18n.T(locale, "config."+rawLabel)
 
 		fullKey := jk
 		if prefix != "" {
@@ -159,17 +162,18 @@ func buildFields(t reflect.Type, v reflect.Value, prefix string, group string, d
 		schemaType := goTypeToSchema(ft)
 		if schemaType == "object" {
 			// Nested struct: recurse and flatten.
-			// Use the nested struct's label tag as group; fall back to current group.
-			childGroup := label
+			// Use the raw (untranslated) label as group key for stable grouping;
+			// fall back to current group.
+			childGroup := rawLabel
 			if childGroup == "" {
 				childGroup = group
 			}
-			fields = append(fields, buildFields(ft, fieldVal, fullKey, childGroup, depth+1)...)
+			fields = append(fields, buildFields(ft, fieldVal, fullKey, childGroup, depth+1, locale)...)
 			continue
 		}
 
 		// Skip fields with empty label (hidden from UI)
-		if label == "" {
+		if rawLabel == "" {
 			continue
 		}
 

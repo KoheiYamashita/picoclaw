@@ -25,10 +25,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import io.clawdroid.R
 import io.clawdroid.core.ui.theme.DeepBlack
 import io.clawdroid.core.ui.theme.NeonCyan
 import io.clawdroid.core.ui.theme.TextPrimary
@@ -49,18 +51,17 @@ fun SetupStep1GatewayScreen(viewModel: SetupViewModel) {
         Spacer(Modifier.height(32.dp))
 
         Text(
-            "Step 1 of 4",
+            stringResource(R.string.setup_step_1_of_4),
             style = MaterialTheme.typography.labelMedium,
             color = TextSecondary,
         )
         Text(
-            "Gateway Connection",
+            stringResource(R.string.setup_gateway_title),
             style = MaterialTheme.typography.headlineMedium,
             color = TextPrimary,
         )
         Text(
-            "The gateway handles communication between this app and the Go backend running locally. " +
-                "An API key is required to authenticate requests between them.",
+            stringResource(R.string.setup_gateway_description),
             style = MaterialTheme.typography.bodyMedium,
             color = TextSecondary,
         )
@@ -70,14 +71,14 @@ fun SetupStep1GatewayScreen(viewModel: SetupViewModel) {
         OutlinedTextField(
             value = uiState.gatewayPort,
             onValueChange = viewModel::onGatewayPortChange,
-            label = { Text("Port", color = TextSecondary) },
+            label = { Text(stringResource(R.string.setup_gateway_port_label), color = TextSecondary) },
             placeholder = { Text("18790", color = TextSecondary.copy(alpha = 0.5f)) },
             singleLine = true,
             isError = uiState.gatewayPortError != null,
             supportingText = {
                 Text(
                     uiState.gatewayPortError
-                        ?: "Local port for backend communication (default: 18790)",
+                        ?: stringResource(R.string.setup_gateway_port_hint),
                 )
             },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -88,16 +89,16 @@ fun SetupStep1GatewayScreen(viewModel: SetupViewModel) {
         OutlinedTextField(
             value = uiState.gatewayApiKey,
             onValueChange = viewModel::onGatewayApiKeyChange,
-            label = { Text("API Key", color = TextSecondary) },
+            label = { Text(stringResource(R.string.setup_gateway_api_key_label), color = TextSecondary) },
             singleLine = true,
             supportingText = {
-                Text("Secures communication between this app and the backend. Use 'Generate' to create one automatically.")
+                Text(stringResource(R.string.setup_gateway_api_key_hint))
             },
             visualTransformation = if (apiKeyHidden) PasswordVisualTransformation() else VisualTransformation.None,
             trailingIcon = {
                 TextButton(onClick = { apiKeyHidden = !apiKeyHidden }) {
                     Text(
-                        if (apiKeyHidden) "Show" else "Hide",
+                        if (apiKeyHidden) stringResource(R.string.btn_show) else stringResource(R.string.btn_hide),
                         color = NeonCyan,
                         style = MaterialTheme.typography.labelSmall,
                     )
@@ -111,7 +112,7 @@ fun SetupStep1GatewayScreen(viewModel: SetupViewModel) {
             onClick = viewModel::generateApiKey,
             colors = ButtonDefaults.outlinedButtonColors(contentColor = NeonCyan),
         ) {
-            Text("Generate API Key")
+            Text(stringResource(R.string.setup_generate_api_key))
         }
 
         uiState.error?.let { error ->
@@ -136,7 +137,7 @@ fun SetupStep1GatewayScreen(viewModel: SetupViewModel) {
                     contentColor = DeepBlack,
                 ),
             ) {
-                Text("Next")
+                Text(stringResource(R.string.btn_next))
             }
         }
     }

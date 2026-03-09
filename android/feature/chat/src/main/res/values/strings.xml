@@ -1,0 +1,24 @@
+<resources>
+    <!-- Connection Banner -->
+    <string name="connection_connecting">Connecting…</string>
+    <string name="connection_reconnecting">Reconnecting…</string>
+    <string name="connection_disconnected">Disconnected</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_tts_section">Text-to-Speech</string>
+    <string name="settings_tts_speed">Speed</string>
+    <string name="settings_tts_pitch">Pitch</string>
+    <string name="settings_tts_speaking">Speaking…</string>
+    <string name="settings_tts_test">Test Voice</string>
+    <string name="settings_other_section">Other Settings</string>
+    <string name="settings_backend_config">Backend Config</string>
+    <string name="settings_backend_config_desc">Configure backend server settings</string>
+    <string name="settings_app_settings">App Settings</string>
+    <string name="settings_app_settings_desc">Gateway connection settings</string>
+    <string name="settings_system_default">System Default</string>
+    <string name="settings_engine_label">Engine</string>
+    <string name="settings_voice_label">Voice</string>
+    <string name="settings_open">Open</string>
+    <string name="btn_back">Back</string>
+</resources>

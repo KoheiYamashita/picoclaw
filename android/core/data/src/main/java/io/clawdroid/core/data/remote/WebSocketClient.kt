@@ -22,6 +22,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.util.Locale
 
 
 class WebSocketClient(
@@ -56,7 +57,8 @@ class WebSocketClient(
                     _setupRequired.value = false
                     val currentWsUrl = wsUrl
                     val separator = if ('?' in currentWsUrl) '&' else '?'
-                    val url = "${currentWsUrl}${separator}client_id=$clientId&client_type=$clientType"
+                    val locale = Locale.getDefault().language
+                    val url = "${currentWsUrl}${separator}client_id=$clientId&client_type=$clientType&locale=$locale"
                     client.webSocket(url) {
                         session = this
                         _connectionState.value = ConnectionState.CONNECTED

@@ -20,6 +20,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import java.io.Closeable
 import java.io.IOException
+import java.util.Locale
 
 @Serializable
 data class ConfigSchema(val sections: List<SchemaSection>)
@@ -63,6 +64,7 @@ class ConfigApiClient(private val settingsStore: GatewaySettingsStore) : Closeab
     suspend fun getSchema(): ConfigSchema {
         return client.get("$baseUrl/api/config/schema") {
             if (apiKey.isNotEmpty()) header("Authorization", "Bearer $apiKey")
+            header("Accept-Language", Locale.getDefault().language)
         }.ensureSuccess().body()
     }
 

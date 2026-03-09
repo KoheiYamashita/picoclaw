@@ -47,6 +47,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.clawdroid.core.domain.model.TtsEngineInfo
 import io.clawdroid.core.domain.model.TtsVoiceInfo
@@ -59,6 +60,7 @@ import io.clawdroid.core.ui.theme.NeonCyan
 import io.clawdroid.core.ui.theme.TextPrimary
 import io.clawdroid.core.ui.theme.TextSecondary
 import com.composables.icons.lucide.R as LucideR
+import io.clawdroid.feature.chat.R
 import io.clawdroid.feature.chat.SettingsViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -103,7 +105,7 @@ fun SettingsScreen(
             containerColor = Color.Transparent,
             topBar = {
                 TopAppBar(
-                    title = { Text("Settings") },
+                    title = { Text(stringResource(R.string.settings_title)) },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent
                     ),
@@ -111,7 +113,7 @@ fun SettingsScreen(
                         IconButton(onClick = onNavigateBack) {
                             Icon(
                                 painter = painterResource(LucideR.drawable.lucide_ic_arrow_left),
-                                contentDescription = "Back",
+                                contentDescription = stringResource(R.string.btn_back),
                                 tint = TextSecondary
                             )
                         }
@@ -128,7 +130,7 @@ fun SettingsScreen(
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 Text(
-                    "Text-to-Speech",
+                    stringResource(R.string.settings_tts_section),
                     style = MaterialTheme.typography.titleMedium,
                     color = NeonCyan
                 )
@@ -146,14 +148,14 @@ fun SettingsScreen(
                 )
 
                 SliderSetting(
-                    label = "Speed",
+                    label = stringResource(R.string.settings_tts_speed),
                     value = uiState.ttsConfig.speechRate,
                     valueRange = 0.5f..2.0f,
                     onValueChangeFinished = viewModel::onSpeechRateChanged
                 )
 
                 SliderSetting(
-                    label = "Pitch",
+                    label = stringResource(R.string.settings_tts_pitch),
                     value = uiState.ttsConfig.pitch,
                     valueRange = 0.5f..2.0f,
                     onValueChangeFinished = viewModel::onPitchChanged
@@ -167,26 +169,26 @@ fun SettingsScreen(
                         contentColor = DeepBlack
                     )
                 ) {
-                    Text(if (uiState.isTesting) "Speaking..." else "Test Voice")
+                    Text(if (uiState.isTesting) stringResource(R.string.settings_tts_speaking) else stringResource(R.string.settings_tts_test))
                 }
 
                 Spacer(Modifier.height(8.dp))
 
                 Text(
-                    "Other Settings",
+                    stringResource(R.string.settings_other_section),
                     style = MaterialTheme.typography.titleMedium,
                     color = NeonCyan
                 )
 
                 NavigationCard(
-                    title = "Backend Config",
-                    subtitle = "Configure backend server settings",
+                    title = stringResource(R.string.settings_backend_config),
+                    subtitle = stringResource(R.string.settings_backend_config_desc),
                     onClick = onNavigateToBackendSettings,
                 )
 
                 NavigationCard(
-                    title = "App Settings",
-                    subtitle = "Gateway connection settings",
+                    title = stringResource(R.string.settings_app_settings),
+                    subtitle = stringResource(R.string.settings_app_settings_desc),
                     onClick = onNavigateToAppSettings,
                 )
             }
@@ -202,8 +204,9 @@ private fun EngineSelector(
     onEngineSelected: (String?) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val systemDefault = stringResource(R.string.settings_system_default)
     val displayText = if (selectedEngine == null) {
-        "System Default"
+        systemDefault
     } else {
         engines.find { it.packageName == selectedEngine }?.label ?: selectedEngine
     }
@@ -216,7 +219,7 @@ private fun EngineSelector(
             value = displayText,
             onValueChange = {},
             readOnly = true,
-            label = { Text("Engine", color = TextSecondary) },
+            label = { Text(stringResource(R.string.settings_engine_label), color = TextSecondary) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = NeonCyan.copy(alpha = 0.5f),
@@ -235,7 +238,7 @@ private fun EngineSelector(
             onDismissRequest = { expanded = false }
         ) {
             DropdownMenuItem(
-                text = { Text("System Default") },
+                text = { Text(systemDefault) },
                 onClick = {
                     onEngineSelected(null)
                     expanded = false
@@ -262,8 +265,9 @@ private fun VoiceSelector(
     onVoiceSelected: (String?) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val systemDefault = stringResource(R.string.settings_system_default)
     val displayText = if (selectedVoiceName == null) {
-        "System Default"
+        systemDefault
     } else {
         voices.find { it.name == selectedVoiceName }?.displayLabel ?: selectedVoiceName
     }
@@ -276,7 +280,7 @@ private fun VoiceSelector(
             value = displayText,
             onValueChange = {},
             readOnly = true,
-            label = { Text("Voice", color = TextSecondary) },
+            label = { Text(stringResource(R.string.settings_voice_label), color = TextSecondary) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = NeonCyan.copy(alpha = 0.5f),
@@ -295,7 +299,7 @@ private fun VoiceSelector(
             onDismissRequest = { expanded = false }
         ) {
             DropdownMenuItem(
-                text = { Text("System Default") },
+                text = { Text(systemDefault) },
                 onClick = {
                     onVoiceSelected(null)
                     expanded = false
@@ -380,7 +384,7 @@ private fun NavigationCard(
         }
         Icon(
             painter = painterResource(LucideR.drawable.lucide_ic_chevron_right),
-            contentDescription = "Open",
+            contentDescription = stringResource(R.string.settings_open),
             tint = TextSecondary,
         )
     }

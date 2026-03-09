@@ -1,4 +1,66 @@
 <resources>
     <string name="app_name">ClawDroid</string>
     <string name="accessibility_service_description">Allows ClawDroid to capture screenshots during voice assistant conversations.</string>
+
+    <!-- Setup Step 1: Gateway -->
+    <string name="setup_step_1_of_4">Step 1 of 4</string>
+    <string name="setup_gateway_title">Gateway Connection</string>
+    <string name="setup_gateway_description">The gateway handles communication between this app and the Go backend running locally. An API key is required to authenticate requests between them.</string>
+    <string name="setup_gateway_port_label">Port</string>
+    <string name="setup_gateway_port_hint">Local port for backend communication (default: 18790)</string>
+    <string name="setup_gateway_api_key_label">API Key</string>
+    <string name="setup_gateway_api_key_hint">Secures communication between this app and the backend. Use \'Generate\' to create one automatically.</string>
+    <string name="setup_generate_api_key">Generate API Key</string>
+
+    <!-- Setup Step 2: LLM -->
+    <string name="setup_step_2_of_4">Step 2 of 4</string>
+    <string name="setup_llm_title">LLM Settings</string>
+    <string name="setup_llm_description">Choose which AI model powers the agent. Supported providers are OpenAI, Anthropic, and Gemini. Enter the model name in provider/model format.</string>
+    <string name="setup_llm_model_label">Model</string>
+    <string name="setup_llm_model_placeholder">provider/model</string>
+    <string name="setup_llm_model_hint">Format: provider/model (e.g. openai/gpt-5, anthropic/claude-sonnet-4-6, gemini/gemini-3.1-flash)</string>
+    <string name="setup_llm_api_key_label">API Key</string>
+    <string name="setup_llm_api_key_hint">API key from your LLM provider (OpenAI, Anthropic, or Gemini)</string>
+    <string name="setup_llm_base_url_label">Base URL</string>
+    <string name="setup_llm_base_url_hint">Custom API endpoint. Leave empty to use the provider\'s default.</string>
+    <string name="setup_set_up_later">Set up later</string>
+
+    <!-- Setup Step 3: Workspace -->
+    <string name="setup_step_3_of_4">Step 3 of 4</string>
+    <string name="setup_workspace_title">Workspace &amp; Data</string>
+    <string name="setup_workspace_description">The workspace is where the agent reads and writes your files. The data directory stores internal data such as memory and logs.</string>
+    <string name="setup_workspace_label">Workspace</string>
+    <string name="setup_workspace_hint">Directory where the agent reads and writes files</string>
+    <string name="setup_data_dir_label">Data Directory</string>
+    <string name="setup_data_dir_hint">Directory for internal data such as memory and logs</string>
+
+    <!-- Setup Step 4: Complete -->
+    <string name="setup_step_4_of_4">Step 4 of 4</string>
+    <string name="setup_complete_title">Setup Complete!</string>
+    <string name="setup_complete_description">You can change these settings anytime from the Settings screen, where you\'ll also find additional options such as channel configuration and tool management.</string>
+
+    <!-- Common buttons -->
+    <string name="btn_next">Next</string>
+    <string name="btn_done">Done</string>
+    <string name="btn_save">Save</string>
+    <string name="btn_saving">Saving…</string>
+    <string name="btn_show">Show</string>
+    <string name="btn_hide">Hide</string>
+    <string name="btn_back">Back</string>
+    <string name="btn_browse">Browse</string>
+
+    <!-- App Settings -->
+    <string name="app_settings_title">Connection</string>
+    <string name="app_settings_gateway_section">Gateway Connection</string>
+    <string name="app_settings_port_label">Port</string>
+    <string name="app_settings_api_key_label">API Key</string>
+
+    <!-- Notification -->
+    <string name="notification_channel_messages">Agent Messages</string>
+    <string name="notification_channel_messages_desc">Messages from ClawDroid agent</string>
+    <string name="notification_channel_assistant">Assistant</string>
+    <string name="notification_channel_assistant_desc">Assistant overlay service</string>
+    <string name="notification_channel_gateway">Gateway</string>
+    <string name="notification_channel_gateway_desc">Gateway backend service</string>
+    <string name="notification_title">ClawDroid</string>
 </resources>

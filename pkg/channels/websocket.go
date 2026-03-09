@@ -227,6 +227,11 @@ func (c *WebSocketChannel) handleWS(w http.ResponseWriter, r *http.Request) {
 		clientType = "main" // Default for backward compatibility
 	}
 
+	locale := r.URL.Query().Get("locale")
+	if locale == "" {
+		locale = "en"
+	}
+
 	logger.InfoCF("websocket", "New WebSocket connection", map[string]interface{}{
 		"client_id":   clientID,
 		"client_type": clientType,
@@ -263,7 +268,7 @@ func (c *WebSocketChannel) handleWS(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	go c.readPump(conn, clientID, chatID, clientType)
+	go c.readPump(conn, clientID, chatID, clientType, locale)
 }
 
 // GetClientType returns the client type for a given chatID.
@@ -275,7 +280,7 @@ func (c *WebSocketChannel) GetClientType(chatID string) string {
 	return c.clientTypes[chatID]
 }
 
-func (c *WebSocketChannel) readPump(conn *websocket.Conn, clientID, chatID, clientType string) {
+func (c *WebSocketChannel) readPump(conn *websocket.Conn, clientID, chatID, clientType, locale string) {
 	defer func() {
 		c.mu.Lock()
 		delete(c.clients, conn)
@@ -350,6 +355,7 @@ func (c *WebSocketChannel) readPump(conn *websocket.Conn, clientID, chatID, clie
 			"input_mode":  inputMode,
 			"client_type": clientType,
 			"sender_name": "",
+			"locale":      locale,
 		}
 		c.HandleMessage(senderID, chatID, content, media, metadata)
 	}

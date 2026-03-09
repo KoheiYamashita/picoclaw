@@ -36,11 +36,13 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.R as LucideR
+import io.clawdroid.R
 import io.clawdroid.core.ui.theme.DeepBlack
 import io.clawdroid.core.ui.theme.GlassBorder
 import io.clawdroid.core.ui.theme.GlassWhite
@@ -92,7 +94,7 @@ fun AppSettingsScreen(
             containerColor = Color.Transparent,
             topBar = {
                 TopAppBar(
-                    title = { Text("Connection") },
+                    title = { Text(stringResource(R.string.app_settings_title)) },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
                     ),
@@ -100,7 +102,7 @@ fun AppSettingsScreen(
                         IconButton(onClick = onNavigateBack) {
                             Icon(
                                 painter = painterResource(LucideR.drawable.lucide_ic_arrow_left),
-                                contentDescription = "Back",
+                                contentDescription = stringResource(R.string.btn_back),
                                 tint = TextSecondary,
                             )
                         }
@@ -115,7 +117,7 @@ fun AppSettingsScreen(
                             ),
                             modifier = Modifier.padding(end = 8.dp),
                         ) {
-                            Text(if (uiState.saving) "Saving…" else "Save")
+                            Text(if (uiState.saving) stringResource(R.string.btn_saving) else stringResource(R.string.btn_save))
                         }
                     },
                 )
@@ -130,7 +132,7 @@ fun AppSettingsScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Text(
-                    "Gateway Connection",
+                    stringResource(R.string.app_settings_gateway_section),
                     style = MaterialTheme.typography.titleMedium,
                     color = NeonCyan,
                 )
@@ -138,7 +140,7 @@ fun AppSettingsScreen(
                 OutlinedTextField(
                     value = uiState.httpPort,
                     onValueChange = { viewModel.onHttpPortChange(it) },
-                    label = { Text("Port", color = TextSecondary) },
+                    label = { Text(stringResource(R.string.app_settings_port_label), color = TextSecondary) },
                     placeholder = { Text("18790", color = TextSecondary.copy(alpha = 0.5f)) },
                     singleLine = true,
                     isError = uiState.httpPortError != null,
@@ -151,13 +153,13 @@ fun AppSettingsScreen(
                 OutlinedTextField(
                     value = uiState.apiKey,
                     onValueChange = { viewModel.onApiKeyChange(it) },
-                    label = { Text("API Key", color = TextSecondary) },
+                    label = { Text(stringResource(R.string.app_settings_api_key_label), color = TextSecondary) },
                     singleLine = true,
                     visualTransformation = if (apiKeyHidden) PasswordVisualTransformation() else VisualTransformation.None,
                     trailingIcon = {
                         TextButton(onClick = { apiKeyHidden = !apiKeyHidden }) {
                             Text(
-                                if (apiKeyHidden) "Show" else "Hide",
+                                if (apiKeyHidden) stringResource(R.string.btn_show) else stringResource(R.string.btn_hide),
                                 color = NeonCyan,
                                 style = MaterialTheme.typography.labelSmall,
                             )
