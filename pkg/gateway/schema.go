@@ -85,7 +85,7 @@ func BuildSchema(defaultCfg *config.Config, locale string) SchemaResponse {
 
 		section := SchemaSection{
 			Key:   jsonTag,
-			Label: i18n.T(locale, labelTag(field)),
+			Label: i18n.T(locale, "config."+labelTag(field)),
 		}
 
 		fieldVal := cfgVal.Field(i)
@@ -141,7 +141,7 @@ func buildFields(t reflect.Type, v reflect.Value, prefix string, group string, d
 		}
 
 		rawLabel := labelTag(sf)
-		label := i18n.T(locale, rawLabel)
+		label := i18n.T(locale, "config."+rawLabel)
 
 		fullKey := jk
 		if prefix != "" {
@@ -162,8 +162,9 @@ func buildFields(t reflect.Type, v reflect.Value, prefix string, group string, d
 		schemaType := goTypeToSchema(ft)
 		if schemaType == "object" {
 			// Nested struct: recurse and flatten.
-			// Use the nested struct's label tag as group; fall back to current group.
-			childGroup := label
+			// Use the raw (untranslated) label as group key for stable grouping;
+			// fall back to current group.
+			childGroup := rawLabel
 			if childGroup == "" {
 				childGroup = group
 			}

@@ -2,7 +2,7 @@
     <!-- Connection Banner -->
     <string name="connection_connecting">接続中…</string>
     <string name="connection_reconnecting">再接続中…</string>
-    <string name="connection_disconnected">切断</string>
+    <string name="connection_disconnected">切断済み</string>
 
     <!-- Settings Screen -->
     <string name="settings_title">設定</string>

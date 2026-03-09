@@ -20,11 +20,20 @@ func register(locale string, m map[string]string) {
 }
 
 // NormalizeLocale extracts a two-letter language code from a locale string.
-// Examples: "ja-JP" -> "ja", "en_US" -> "en", "ja" -> "ja", "" -> "en".
+// Handles Accept-Language headers ("ja, en;q=0.9"), locale tags ("ja-JP", "en_US"),
+// and plain codes ("ja"). Returns "en" for empty input.
 func NormalizeLocale(locale string) string {
 	locale = strings.TrimSpace(locale)
 	if locale == "" {
 		return "en"
+	}
+	// Accept-Language may contain comma-separated values; take the first one.
+	if idx := strings.Index(locale, ","); idx > 0 {
+		locale = strings.TrimSpace(locale[:idx])
+	}
+	// Strip quality value (";q=0.9")
+	if idx := strings.Index(locale, ";"); idx > 0 {
+		locale = strings.TrimSpace(locale[:idx])
 	}
 	// Handle both "ja-JP" and "ja_JP" forms
 	for _, sep := range []string{"-", "_"} {

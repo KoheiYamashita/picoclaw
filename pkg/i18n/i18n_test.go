@@ -1,6 +1,9 @@
 package i18n
 
-import "testing"
+import (
+	"regexp"
+	"testing"
+)
 
 func TestNormalizeLocale(t *testing.T) {
 	tests := []struct {
@@ -14,6 +17,11 @@ func TestNormalizeLocale(t *testing.T) {
 		{"en_US", "en"},
 		{"EN", "en"},
 		{"  ja  ", "ja"},
+		// Accept-Language header formats
+		{"ja, en;q=0.9", "ja"},
+		{"en-US,en;q=0.5", "en"},
+		{"ja-JP, en-US;q=0.8, fr;q=0.5", "ja"},
+		{"en;q=1.0", "en"},
 	}
 	for _, tt := range tests {
 		got := NormalizeLocale(tt.input)
@@ -62,16 +70,16 @@ func TestTf(t *testing.T) {
 }
 
 func TestConfigLabels(t *testing.T) {
-	// Japanese config label
-	got := T("ja", "Model")
+	// Japanese config label (namespaced with "config." prefix)
+	got := T("ja", "config.Model")
 	if got != "モデル" {
-		t.Errorf("T(ja, Model) = %q, want モデル", got)
+		t.Errorf("T(ja, config.Model) = %q, want モデル", got)
 	}
 
-	// English config label falls back to key (since English labels match struct tags)
-	got = T("en", "Model")
+	// English config label returns the struct tag value
+	got = T("en", "config.Model")
 	if got != "Model" {
-		t.Errorf("T(en, Model) = %q, want Model", got)
+		t.Errorf("T(en, config.Model) = %q, want Model", got)
 	}
 }
 
@@ -84,5 +92,29 @@ func TestAgentMessages(t *testing.T) {
 	got = T("ja", "agent.context_window_warning")
 	if got == "agent.context_window_warning" {
 		t.Error("expected Japanese warning message, got key itself")
+	}
+}
+
+// TestFormatSpecifierConsistency verifies that en and ja translations have
+// matching format specifiers (%s, %d, etc.) to prevent runtime panics in Tf().
+func TestFormatSpecifierConsistency(t *testing.T) {
+	re := regexp.MustCompile(`%[sdvfgqxobt]`)
+
+	enMessages := messages["en"]
+	jaMessages := messages["ja"]
+
+	for key, enVal := range enMessages {
+		jaVal, ok := jaMessages[key]
+		if !ok {
+			continue // ja doesn't have this key; fallback to en is fine
+		}
+
+		enSpecs := re.FindAllString(enVal, -1)
+		jaSpecs := re.FindAllString(jaVal, -1)
+
+		if len(enSpecs) != len(jaSpecs) {
+			t.Errorf("format specifier count mismatch for key %q: en has %d (%v), ja has %d (%v)",
+				key, len(enSpecs), enSpecs, len(jaSpecs), jaSpecs)
+		}
 	}
 }

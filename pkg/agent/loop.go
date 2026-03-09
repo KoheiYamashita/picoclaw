@@ -79,6 +79,7 @@ type processOptions struct {
 	InputMode       string            // "voice" or "text"
 	Metadata        map[string]string // Channel metadata (e.g. client_type)
 	ResolvedUser    *User             // Resolved user from user directory (nil if unknown)
+	Locale          string            // Normalized locale code (e.g. "en", "ja")
 }
 
 // createToolRegistry creates a tool registry with common tools.
@@ -519,6 +520,7 @@ func (al *AgentLoop) processMessage(ctx context.Context, msg bus.InboundMessage)
 		InputMode:       inputMode,
 		Metadata:        msg.Metadata,
 		ResolvedUser:    resolvedUser,
+		Locale:          locale,
 	})
 }
 
@@ -602,12 +604,10 @@ func (al *AgentLoop) runAgentLoop(ctx context.Context, opts processOptions) (str
 		}
 	}
 
-	// Extract locale from metadata (default "en")
-	locale := "en"
-	if opts.Metadata != nil {
-		if l := opts.Metadata["locale"]; l != "" {
-			locale = i18n.NormalizeLocale(l)
-		}
+	// Use locale from opts (set by processMessage), default to "en"
+	locale := opts.Locale
+	if locale == "" {
+		locale = "en"
 	}
 
 	// 1. Update tool contexts
@@ -750,12 +750,10 @@ func (al *AgentLoop) runLLMIteration(ctx context.Context, messages []providers.M
 	iteration := 0
 	var finalContent string
 
-	// Extract locale from metadata
-	locale := "en"
-	if opts.Metadata != nil {
-		if l := opts.Metadata["locale"]; l != "" {
-			locale = i18n.NormalizeLocale(l)
-		}
+	// Use locale from opts (set by processMessage), default to "en"
+	locale := opts.Locale
+	if locale == "" {
+		locale = "en"
 	}
 
 	for iteration < al.maxIterations {

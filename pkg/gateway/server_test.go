@@ -215,6 +215,27 @@ func TestBuildSchema_Labels(t *testing.T) {
 	}
 }
 
+func TestBuildSchema_LabelsJapanese(t *testing.T) {
+	schema := BuildSchema(config.DefaultConfig(), "ja")
+
+	wantLabels := map[string]string{
+		"api_key":             "APIキー",
+		"base_url":            "ベースURL",
+		"defaults.max_tokens": "最大トークン数",
+		"slack.bot_token":     "ボットトークン",
+	}
+
+	for _, sec := range schema.Sections {
+		for _, f := range sec.Fields {
+			if want, ok := wantLabels[f.Key]; ok {
+				if f.Label != want {
+					t.Errorf("field %q label = %q, want %q", f.Key, f.Label, want)
+				}
+			}
+		}
+	}
+}
+
 func TestBuildSchema_MapType(t *testing.T) {
 	schema := BuildSchema(config.DefaultConfig(), "en")
 
