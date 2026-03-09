@@ -133,6 +133,10 @@ jobs:
         working-directory: android
         run: ./gradlew assembleEmbeddedRelease -PenableAbiSplit
 
+      - name: Build release AAB
+        working-directory: android
+        run: ./gradlew bundleEmbeddedRelease
+
       - name: Upload APKs to release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -148,3 +152,12 @@ jobs:
             clawdroid-"$RELEASE_TAG"-armeabi-v7a.apk \
             clawdroid-"$RELEASE_TAG"-x86_64.apk \
             clawdroid-"$RELEASE_TAG"-universal.apk
+
+      - name: Upload AAB to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        working-directory: android/app/build/outputs/bundle/embeddedRelease
+        run: |
+          mv app-embedded-release.aab clawdroid-"$RELEASE_TAG".aab
+          gh release upload "$RELEASE_TAG" clawdroid-"$RELEASE_TAG".aab
