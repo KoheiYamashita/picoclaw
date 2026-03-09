@@ -28,7 +28,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import io.clawdroid.R
 import io.clawdroid.core.ui.theme.DeepBlack
 import io.clawdroid.core.ui.theme.NeonCyan
 import io.clawdroid.core.ui.theme.TextPrimary
@@ -59,11 +61,10 @@ fun SetupStep3WorkspaceScreen(viewModel: SetupViewModel) {
     ) {
         Spacer(Modifier.height(32.dp))
 
-        Text("Step 3 of 4", style = MaterialTheme.typography.labelMedium, color = TextSecondary)
-        Text("Workspace & Data", style = MaterialTheme.typography.headlineMedium, color = TextPrimary)
+        Text(stringResource(R.string.setup_step_3_of_4), style = MaterialTheme.typography.labelMedium, color = TextSecondary)
+        Text(stringResource(R.string.setup_workspace_title), style = MaterialTheme.typography.headlineMedium, color = TextPrimary)
         Text(
-            "The workspace is where the agent reads and writes your files. " +
-                "The data directory stores internal data such as memory and logs.",
+            stringResource(R.string.setup_workspace_description),
             style = MaterialTheme.typography.bodyMedium,
             color = TextSecondary,
         )
@@ -73,18 +74,18 @@ fun SetupStep3WorkspaceScreen(viewModel: SetupViewModel) {
         DirectoryField(
             value = uiState.workspace,
             onValueChange = viewModel::onWorkspaceChange,
-            label = "Workspace",
-            placeholder = "~/.clawdroid/workspace",
-            supportingText = "Directory where the agent reads and writes files",
+            label = stringResource(R.string.setup_workspace_label),
+            placeholder = stringResource(R.string.setup_workspace_placeholder),
+            supportingText = stringResource(R.string.setup_workspace_hint),
             onBrowse = { workspacePicker.launch(null) },
         )
 
         DirectoryField(
             value = uiState.dataDir,
             onValueChange = viewModel::onDataDirChange,
-            label = "Data Directory",
-            placeholder = "~/.clawdroid/data",
-            supportingText = "Directory for internal data such as memory and logs",
+            label = stringResource(R.string.setup_data_dir_label),
+            placeholder = stringResource(R.string.setup_data_dir_placeholder),
+            supportingText = stringResource(R.string.setup_data_dir_hint),
             onBrowse = { dataDirPicker.launch(null) },
         )
 
@@ -95,7 +96,7 @@ fun SetupStep3WorkspaceScreen(viewModel: SetupViewModel) {
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             TextButton(onClick = { viewModel.skipStep(3) }) {
-                Text("Set up later", color = TextSecondary)
+                Text(stringResource(R.string.setup_set_up_later), color = TextSecondary)
             }
             Button(
                 onClick = { viewModel.nextStep(3) },
@@ -104,7 +105,7 @@ fun SetupStep3WorkspaceScreen(viewModel: SetupViewModel) {
                     contentColor = DeepBlack,
                 ),
             ) {
-                Text("Next")
+                Text(stringResource(R.string.btn_next))
             }
         }
     }
@@ -137,7 +138,7 @@ private fun DirectoryField(
             ) {
                 Icon(
                     painter = painterResource(android.R.drawable.ic_menu_agenda),
-                    contentDescription = "Browse",
+                    contentDescription = stringResource(R.string.btn_browse),
                     modifier = Modifier.size(20.dp),
                 )
             }

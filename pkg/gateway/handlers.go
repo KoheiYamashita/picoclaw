@@ -6,12 +6,14 @@ import (
 	"time"
 
 	"github.com/KarakuriAgent/clawdroid/pkg/config"
+	"github.com/KarakuriAgent/clawdroid/pkg/i18n"
 	"github.com/KarakuriAgent/clawdroid/pkg/logger"
 )
 
 // handleGetSchema returns the configuration schema.
 func (s *Server) handleGetSchema(w http.ResponseWriter, r *http.Request) {
-	schema := BuildSchema(config.DefaultConfig())
+	locale := i18n.NormalizeLocale(r.Header.Get("Accept-Language"))
+	schema := BuildSchema(config.DefaultConfig(), locale)
 	writeJSON(w, http.StatusOK, schema)
 }
 

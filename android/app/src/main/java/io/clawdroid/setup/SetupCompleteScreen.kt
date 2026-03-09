@@ -17,7 +17,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import io.clawdroid.R
 import io.clawdroid.core.ui.theme.DeepBlack
 import io.clawdroid.core.ui.theme.NeonCyan
 import io.clawdroid.core.ui.theme.TextPrimary
@@ -37,12 +39,12 @@ fun SetupCompleteScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Text("Step 4 of 4", style = MaterialTheme.typography.labelMedium, color = TextSecondary)
+        Text(stringResource(R.string.setup_step_4_of_4), style = MaterialTheme.typography.labelMedium, color = TextSecondary)
 
         Spacer(Modifier.height(16.dp))
 
         Text(
-            "Setup Complete!",
+            stringResource(R.string.setup_complete_title),
             style = MaterialTheme.typography.headlineMedium,
             color = TextPrimary,
         )
@@ -50,8 +52,7 @@ fun SetupCompleteScreen(
         Spacer(Modifier.height(12.dp))
 
         Text(
-            "You can change these settings anytime from the Settings screen, " +
-                "where you'll also find additional options such as channel configuration and tool management.",
+            stringResource(R.string.setup_complete_description),
             style = MaterialTheme.typography.bodyMedium,
             color = TextSecondary,
         )
@@ -78,7 +79,7 @@ fun SetupCompleteScreen(
                 ),
                 modifier = Modifier.fillMaxWidth(0.6f),
             ) {
-                Text("Done")
+                Text(stringResource(R.string.btn_done))
             }
         }
     }

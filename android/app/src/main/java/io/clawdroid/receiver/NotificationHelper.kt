@@ -10,43 +10,40 @@ import io.clawdroid.backend.api.R
 object NotificationHelper {
 
     private const val CHANNEL_ID = "clawdroid_messages"
-    private const val CHANNEL_NAME = "Agent Messages"
     private const val NOTIFICATION_ID = 1001
 
     const val ASSISTANT_CHANNEL_ID = "clawdroid_assistant"
-    private const val ASSISTANT_CHANNEL_NAME = "Assistant"
 
     const val GATEWAY_CHANNEL_ID = "clawdroid_gateway"
-    private const val GATEWAY_CHANNEL_NAME = "Gateway"
 
     fun createNotificationChannel(context: Context) {
         val manager = context.getSystemService(NotificationManager::class.java)
 
         val messageChannel = NotificationChannel(
             CHANNEL_ID,
-            CHANNEL_NAME,
+            context.getString(io.clawdroid.R.string.notification_channel_messages),
             NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
-            description = "Messages from ClawDroid agent"
+            description = context.getString(io.clawdroid.R.string.notification_channel_messages_desc)
         }
         manager.createNotificationChannel(messageChannel)
 
         val assistantChannel = NotificationChannel(
             ASSISTANT_CHANNEL_ID,
-            ASSISTANT_CHANNEL_NAME,
+            context.getString(io.clawdroid.R.string.notification_channel_assistant),
             NotificationManager.IMPORTANCE_LOW
         ).apply {
-            description = "Assistant overlay service"
+            description = context.getString(io.clawdroid.R.string.notification_channel_assistant_desc)
             setShowBadge(false)
         }
         manager.createNotificationChannel(assistantChannel)
 
         val gatewayChannel = NotificationChannel(
             GATEWAY_CHANNEL_ID,
-            GATEWAY_CHANNEL_NAME,
+            context.getString(io.clawdroid.R.string.notification_channel_gateway),
             NotificationManager.IMPORTANCE_LOW
         ).apply {
-            description = "Gateway backend service"
+            description = context.getString(io.clawdroid.R.string.notification_channel_gateway_desc)
             setShowBadge(false)
         }
         manager.createNotificationChannel(gatewayChannel)
@@ -61,7 +58,7 @@ object NotificationHelper {
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle("ClawDroid")
+            .setContentTitle(context.getString(io.clawdroid.R.string.notification_title))
             .setContentText(content.take(200))
             .setStyle(NotificationCompat.BigTextStyle().bigText(content.take(1000)))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)

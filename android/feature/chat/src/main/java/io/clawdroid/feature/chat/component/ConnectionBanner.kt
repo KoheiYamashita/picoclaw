@@ -13,10 +13,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import io.clawdroid.core.domain.model.ConnectionState
 import io.clawdroid.core.ui.theme.DisconnectedRed
 import io.clawdroid.core.ui.theme.ReconnectingYellow
+import io.clawdroid.feature.chat.R
 
 @Composable
 fun ConnectionBanner(
@@ -25,9 +27,9 @@ fun ConnectionBanner(
 ) {
     AnimatedVisibility(visible = connectionState != ConnectionState.CONNECTED) {
         val (accentColor, text) = when (connectionState) {
-            ConnectionState.CONNECTING -> ReconnectingYellow to "Connecting..."
-            ConnectionState.RECONNECTING -> ReconnectingYellow to "Reconnecting..."
-            ConnectionState.DISCONNECTED -> DisconnectedRed to "Disconnected"
+            ConnectionState.CONNECTING -> ReconnectingYellow to stringResource(R.string.connection_connecting)
+            ConnectionState.RECONNECTING -> ReconnectingYellow to stringResource(R.string.connection_reconnecting)
+            ConnectionState.DISCONNECTED -> DisconnectedRed to stringResource(R.string.connection_disconnected)
             ConnectionState.CONNECTED -> Color.Transparent to ""
         }
         Box(

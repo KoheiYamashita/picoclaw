@@ -23,9 +23,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import io.clawdroid.R
 import io.clawdroid.core.ui.theme.DeepBlack
 import io.clawdroid.core.ui.theme.NeonCyan
 import io.clawdroid.core.ui.theme.TextPrimary
@@ -45,12 +47,10 @@ fun SetupStep2LlmScreen(viewModel: SetupViewModel) {
     ) {
         Spacer(Modifier.height(32.dp))
 
-        Text("Step 2 of 4", style = MaterialTheme.typography.labelMedium, color = TextSecondary)
-        Text("LLM Settings", style = MaterialTheme.typography.headlineMedium, color = TextPrimary)
+        Text(stringResource(R.string.setup_step_2_of_4), style = MaterialTheme.typography.labelMedium, color = TextSecondary)
+        Text(stringResource(R.string.setup_llm_title), style = MaterialTheme.typography.headlineMedium, color = TextPrimary)
         Text(
-            "Choose which AI model powers the agent. " +
-                "Supported providers are OpenAI, Anthropic, and Gemini. " +
-                "Enter the model name in provider/model format.",
+            stringResource(R.string.setup_llm_description),
             style = MaterialTheme.typography.bodyMedium,
             color = TextSecondary,
         )
@@ -60,10 +60,10 @@ fun SetupStep2LlmScreen(viewModel: SetupViewModel) {
         OutlinedTextField(
             value = uiState.llmModel,
             onValueChange = viewModel::onLlmModelChange,
-            label = { Text("Model", color = TextSecondary) },
-            placeholder = { Text("provider/model", color = TextSecondary.copy(alpha = 0.5f)) },
+            label = { Text(stringResource(R.string.setup_llm_model_label), color = TextSecondary) },
+            placeholder = { Text(stringResource(R.string.setup_llm_model_placeholder), color = TextSecondary.copy(alpha = 0.5f)) },
             supportingText = {
-                Text("Format: provider/model (e.g. openai/gpt-5, anthropic/claude-sonnet-4-6, gemini/gemini-3.1-flash)")
+                Text(stringResource(R.string.setup_llm_model_hint))
             },
             singleLine = true,
             colors = setupFieldColors(),
@@ -73,16 +73,16 @@ fun SetupStep2LlmScreen(viewModel: SetupViewModel) {
         OutlinedTextField(
             value = uiState.llmApiKey,
             onValueChange = viewModel::onLlmApiKeyChange,
-            label = { Text("API Key", color = TextSecondary) },
+            label = { Text(stringResource(R.string.setup_llm_api_key_label), color = TextSecondary) },
             supportingText = {
-                Text("API key from your LLM provider (OpenAI, Anthropic, or Gemini)")
+                Text(stringResource(R.string.setup_llm_api_key_hint))
             },
             singleLine = true,
             visualTransformation = if (apiKeyHidden) PasswordVisualTransformation() else VisualTransformation.None,
             trailingIcon = {
                 TextButton(onClick = { apiKeyHidden = !apiKeyHidden }) {
                     Text(
-                        if (apiKeyHidden) "Show" else "Hide",
+                        if (apiKeyHidden) stringResource(R.string.btn_show) else stringResource(R.string.btn_hide),
                         color = NeonCyan,
                         style = MaterialTheme.typography.labelSmall,
                     )
@@ -95,9 +95,9 @@ fun SetupStep2LlmScreen(viewModel: SetupViewModel) {
         OutlinedTextField(
             value = uiState.llmBaseUrl,
             onValueChange = viewModel::onLlmBaseUrlChange,
-            label = { Text("Base URL", color = TextSecondary) },
+            label = { Text(stringResource(R.string.setup_llm_base_url_label), color = TextSecondary) },
             supportingText = {
-                Text("Custom API endpoint. Leave empty to use the provider's default.")
+                Text(stringResource(R.string.setup_llm_base_url_hint))
             },
             singleLine = true,
             colors = setupFieldColors(),
@@ -111,7 +111,7 @@ fun SetupStep2LlmScreen(viewModel: SetupViewModel) {
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             TextButton(onClick = { viewModel.skipStep(2) }) {
-                Text("Set up later", color = TextSecondary)
+                Text(stringResource(R.string.setup_set_up_later), color = TextSecondary)
             }
             Button(
                 onClick = { viewModel.nextStep(2) },
@@ -120,7 +120,7 @@ fun SetupStep2LlmScreen(viewModel: SetupViewModel) {
                     contentColor = DeepBlack,
                 ),
             ) {
-                Text("Next")
+                Text(stringResource(R.string.btn_next))
             }
         }
     }

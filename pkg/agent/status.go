@@ -1,178 +1,179 @@
 package agent
 
 import (
-	"fmt"
 	"net/url"
 	"path/filepath"
 	"unicode/utf8"
+
+	"github.com/KarakuriAgent/clawdroid/pkg/i18n"
 )
 
-// statusLabel generates a human-readable Japanese status label for a tool call.
-func statusLabel(toolName string, args map[string]interface{}) string {
+// statusLabel generates a human-readable localized status label for a tool call.
+func statusLabel(toolName string, args map[string]interface{}, locale string) string {
 	switch toolName {
 	case "web_search":
 		if q := strArg(args, "query"); q != "" {
-			return fmt.Sprintf("検索中...（%s）", truncLabel(q, 20))
+			return i18n.Tf(locale, "status.searching_q", truncLabel(q, 20))
 		}
-		return "検索中..."
+		return i18n.T(locale, "status.searching")
 	case "web_fetch":
 		if u := strArg(args, "url"); u != "" {
-			return fmt.Sprintf("ページ取得中...（%s）", hostFromURL(u))
+			return i18n.Tf(locale, "status.fetching_q", hostFromURL(u))
 		}
-		return "ページ取得中..."
+		return i18n.T(locale, "status.fetching_page")
 	case "read_file":
-		return fileStatusLabel("ファイル読み取り中...", args)
+		return fileStatusLabel(locale, "status.reading_file", "status.reading_file_q", args)
 	case "write_file":
-		return fileStatusLabel("ファイル書き込み中...", args)
+		return fileStatusLabel(locale, "status.writing_file", "status.writing_file_q", args)
 	case "edit_file":
-		return fileStatusLabel("ファイル編集中...", args)
+		return fileStatusLabel(locale, "status.editing_file", "status.editing_file_q", args)
 	case "append_file":
-		return fileStatusLabel("ファイル追記中...", args)
+		return fileStatusLabel(locale, "status.appending_file", "status.appending_file_q", args)
 	case "list_dir":
 		if p := strArg(args, "path"); p != "" {
-			return fmt.Sprintf("フォルダ確認中...（%s）", filepath.Base(p)+"/")
+			return i18n.Tf(locale, "status.listing_dir_q", filepath.Base(p)+"/")
 		}
-		return "フォルダ確認中..."
+		return i18n.T(locale, "status.listing_dir")
 	case "exec":
 		if c := strArg(args, "command"); c != "" {
-			return fmt.Sprintf("コマンド実行中...（%s）", truncLabel(c, 30))
+			return i18n.Tf(locale, "status.running_command_q", truncLabel(c, 30))
 		}
-		return "コマンド実行中..."
+		return i18n.T(locale, "status.running_command")
 	case "memory":
-		return memoryStatusLabel(args)
+		return memoryStatusLabel(args, locale)
 	case "skill":
-		return skillStatusLabel(args)
+		return skillStatusLabel(args, locale)
 	case "cron":
-		return cronStatusLabel(args)
+		return cronStatusLabel(args, locale)
 	case "message":
-		return "メッセージ送信中..."
+		return i18n.T(locale, "status.sending_message")
 	case "spawn":
 		if l := strArg(args, "label"); l != "" {
-			return fmt.Sprintf("サブタスク開始中...（%s）", truncLabel(l, 20))
+			return i18n.Tf(locale, "status.spawn_q", truncLabel(l, 20))
 		}
-		return "サブタスク開始中..."
+		return i18n.T(locale, "status.spawn")
 	case "subagent":
 		if l := strArg(args, "label"); l != "" {
-			return fmt.Sprintf("サブタスク実行中...（%s）", truncLabel(l, 20))
+			return i18n.Tf(locale, "status.subagent_q", truncLabel(l, 20))
 		}
-		return "サブタスク実行中..."
+		return i18n.T(locale, "status.subagent")
 	case "android":
-		return androidStatusLabel(args)
+		return androidStatusLabel(args, locale)
 	case "exit":
-		return "アシスタント終了中..."
+		return i18n.T(locale, "status.exit")
 	case "mcp":
-		return mcpStatusLabel(args)
+		return mcpStatusLabel(args, locale)
 	default:
-		return "処理中..."
+		return i18n.T(locale, "status.processing")
 	}
 }
 
-func fileStatusLabel(base string, args map[string]interface{}) string {
+func fileStatusLabel(locale, baseKey, fmtKey string, args map[string]interface{}) string {
 	if p := strArg(args, "path"); p != "" {
-		return fmt.Sprintf("%s（%s）", base, filepath.Base(p))
+		return i18n.Tf(locale, fmtKey, filepath.Base(p))
 	}
-	return base
+	return i18n.T(locale, baseKey)
 }
 
-func memoryStatusLabel(args map[string]interface{}) string {
+func memoryStatusLabel(args map[string]interface{}, locale string) string {
 	switch strArg(args, "action") {
 	case "read_long_term":
-		return "メモリ読み込み中..."
+		return i18n.T(locale, "status.memory_read")
 	case "read_daily":
-		return "今日のメモ読み込み中..."
+		return i18n.T(locale, "status.memory_read_daily")
 	case "write_long_term":
-		return "メモリ書き込み中..."
+		return i18n.T(locale, "status.memory_write")
 	case "append_daily":
-		return "今日のメモ追記中..."
+		return i18n.T(locale, "status.memory_append_daily")
 	default:
-		return "メモリ操作中..."
+		return i18n.T(locale, "status.memory_default")
 	}
 }
 
-func skillStatusLabel(args map[string]interface{}) string {
+func skillStatusLabel(args map[string]interface{}, locale string) string {
 	switch strArg(args, "action") {
 	case "skill_list":
-		return "スキル一覧取得中..."
+		return i18n.T(locale, "status.skill_list")
 	case "skill_read":
 		if n := strArg(args, "name"); n != "" {
-			return fmt.Sprintf("スキル読み込み中...（%s）", n)
+			return i18n.Tf(locale, "status.skill_read_q", n)
 		}
-		return "スキル読み込み中..."
+		return i18n.T(locale, "status.skill_read")
 	default:
-		return "スキル操作中..."
+		return i18n.T(locale, "status.skill_default")
 	}
 }
 
-func cronStatusLabel(args map[string]interface{}) string {
+func cronStatusLabel(args map[string]interface{}, locale string) string {
 	switch strArg(args, "action") {
 	case "add":
-		return "リマインダー設定中..."
+		return i18n.T(locale, "status.cron_add")
 	case "list":
-		return "スケジュール一覧取得中..."
+		return i18n.T(locale, "status.cron_list")
 	case "remove":
-		return "スケジュール削除中..."
+		return i18n.T(locale, "status.cron_remove")
 	default:
-		return "スケジュール変更中..."
+		return i18n.T(locale, "status.cron_default")
 	}
 }
 
-func androidStatusLabel(args map[string]interface{}) string {
+func androidStatusLabel(args map[string]interface{}, locale string) string {
 	switch strArg(args, "action") {
 	case "search_apps":
-		return "アプリ検索中..."
+		return i18n.T(locale, "status.android_search_apps")
 	case "app_info":
 		if p := strArg(args, "package_name"); p != "" {
-			return fmt.Sprintf("アプリ情報取得中...（%s）", truncLabel(p, 25))
+			return i18n.Tf(locale, "status.android_app_info_q", truncLabel(p, 25))
 		}
-		return "アプリ情報取得中..."
+		return i18n.T(locale, "status.android_app_info")
 	case "launch_app":
 		if p := strArg(args, "package_name"); p != "" {
-			return fmt.Sprintf("アプリ起動中...（%s）", truncLabel(p, 25))
+			return i18n.Tf(locale, "status.android_launch_app_q", truncLabel(p, 25))
 		}
-		return "アプリ起動中..."
+		return i18n.T(locale, "status.android_launch_app")
 	case "screenshot":
-		return "スクリーンショット撮影中..."
+		return i18n.T(locale, "status.android_screenshot")
 	case "get_ui_tree":
-		return "UI要素取得中..."
+		return i18n.T(locale, "status.android_get_ui_tree")
 	case "tap":
-		return "タップ中..."
+		return i18n.T(locale, "status.android_tap")
 	case "swipe":
-		return "スワイプ中..."
+		return i18n.T(locale, "status.android_swipe")
 	case "text":
-		return "テキスト入力中..."
+		return i18n.T(locale, "status.android_text")
 	case "keyevent":
 		if k := strArg(args, "key"); k != "" {
-			return fmt.Sprintf("キー操作中...（%s）", k)
+			return i18n.Tf(locale, "status.android_keyevent_q", k)
 		}
-		return "キー操作中..."
+		return i18n.T(locale, "status.android_keyevent")
 	case "broadcast":
-		return "ブロードキャスト送信中..."
+		return i18n.T(locale, "status.android_broadcast")
 	case "intent":
-		return "インテント送信中..."
+		return i18n.T(locale, "status.android_intent")
 	default:
-		return "デバイス操作中..."
+		return i18n.T(locale, "status.android_default")
 	}
 }
 
-func mcpStatusLabel(args map[string]interface{}) string {
+func mcpStatusLabel(args map[string]interface{}, locale string) string {
 	switch strArg(args, "action") {
 	case "mcp_list":
-		return "MCPサーバー一覧取得中..."
+		return i18n.T(locale, "status.mcp_list")
 	case "mcp_tools":
 		if s := strArg(args, "server"); s != "" {
-			return fmt.Sprintf("MCPツール取得中...（%s）", s)
+			return i18n.Tf(locale, "status.mcp_tools_q", s)
 		}
-		return "MCPツール取得中..."
+		return i18n.T(locale, "status.mcp_tools")
 	case "mcp_call":
 		if t := strArg(args, "tool"); t != "" {
 			if s := strArg(args, "server"); s != "" {
-				return fmt.Sprintf("MCPツール実行中...（%s/%s）", s, t)
+				return i18n.Tf(locale, "status.mcp_call_sq", s, t)
 			}
-			return fmt.Sprintf("MCPツール実行中...（%s）", t)
+			return i18n.Tf(locale, "status.mcp_call_q", t)
 		}
-		return "MCPツール実行中..."
+		return i18n.T(locale, "status.mcp_call")
 	default:
-		return "MCP操作中..."
+		return i18n.T(locale, "status.mcp_default")
 	}
 }
 

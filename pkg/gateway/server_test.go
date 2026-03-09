@@ -104,7 +104,7 @@ func TestServerStart_RegistersRoutesAndAuth(t *testing.T) {
 // --- Schema tests ---
 
 func TestBuildSchema_SectionCount(t *testing.T) {
-	schema := BuildSchema(config.DefaultConfig())
+	schema := BuildSchema(config.DefaultConfig(), "en")
 	// Config has exported fields: LLM, Agents, Channels, Tools, Heartbeat, RateLimits (gateway excluded)
 	if len(schema.Sections) < 6 {
 		t.Errorf("expected at least 6 sections, got %d", len(schema.Sections))
@@ -112,7 +112,7 @@ func TestBuildSchema_SectionCount(t *testing.T) {
 }
 
 func TestBuildSchema_FieldKeys(t *testing.T) {
-	schema := BuildSchema(config.DefaultConfig())
+	schema := BuildSchema(config.DefaultConfig(), "en")
 
 	// Find LLM section
 	var llm *SchemaSection
@@ -139,7 +139,7 @@ func TestBuildSchema_FieldKeys(t *testing.T) {
 }
 
 func TestBuildSchema_Types(t *testing.T) {
-	schema := BuildSchema(config.DefaultConfig())
+	schema := BuildSchema(config.DefaultConfig(), "en")
 
 	fieldMap := allFields(schema)
 
@@ -168,7 +168,7 @@ func TestBuildSchema_Types(t *testing.T) {
 }
 
 func TestBuildSchema_SecretFlag(t *testing.T) {
-	schema := BuildSchema(config.DefaultConfig())
+	schema := BuildSchema(config.DefaultConfig(), "en")
 	fieldMap := allFields(schema)
 
 	secrets := []string{"api_key", "token", "bot_token", "app_token", "channel_secret", "channel_access_token"}
@@ -195,7 +195,7 @@ func TestBuildSchema_SecretFlag(t *testing.T) {
 }
 
 func TestBuildSchema_Labels(t *testing.T) {
-	schema := BuildSchema(config.DefaultConfig())
+	schema := BuildSchema(config.DefaultConfig(), "en")
 
 	wantLabels := map[string]string{
 		"api_key":             "API Key",
@@ -216,7 +216,7 @@ func TestBuildSchema_Labels(t *testing.T) {
 }
 
 func TestBuildSchema_MapType(t *testing.T) {
-	schema := BuildSchema(config.DefaultConfig())
+	schema := BuildSchema(config.DefaultConfig(), "en")
 
 	// Tools section should have an mcp field of type "map"
 	var toolsSection *SchemaSection
@@ -247,7 +247,7 @@ func TestBuildSchema_MapType(t *testing.T) {
 // --- Schema: unexported fields and omitempty ---
 
 func TestBuildSchema_UnexportedFieldsSkipped(t *testing.T) {
-	schema := BuildSchema(config.DefaultConfig())
+	schema := BuildSchema(config.DefaultConfig(), "en")
 
 	// Config has an unexported field `mu sync.RWMutex` — it must not appear
 	for _, sec := range schema.Sections {
@@ -273,7 +273,7 @@ func TestBuildSchema_OmitemptyTagHandled(t *testing.T) {
 // --- Schema: nested keys and defaults ---
 
 func TestBuildSchema_NestedDotKeys(t *testing.T) {
-	schema := BuildSchema(config.DefaultConfig())
+	schema := BuildSchema(config.DefaultConfig(), "en")
 
 	// Find channels section
 	var channels *SchemaSection
@@ -310,7 +310,7 @@ func TestBuildSchema_NestedDotKeys(t *testing.T) {
 }
 
 func TestBuildSchema_DefaultValues(t *testing.T) {
-	schema := BuildSchema(config.DefaultConfig())
+	schema := BuildSchema(config.DefaultConfig(), "en")
 
 	// Collect all fields with full keys (section.field)
 	type fullField struct {
@@ -1090,7 +1090,7 @@ func TestHandlePutConfig_ContentType(t *testing.T) {
 // --- Schema: goTypeToSchema edge cases ---
 
 func TestBuildSchema_BoolDefaultValues(t *testing.T) {
-	schema := BuildSchema(config.DefaultConfig())
+	schema := BuildSchema(config.DefaultConfig(), "en")
 
 	// Find heartbeat section
 	var heartbeat *SchemaSection
@@ -1164,7 +1164,7 @@ func TestAuthMiddleware_EmptyBearerToken_403(t *testing.T) {
 // --- Schema: section labels ---
 
 func TestBuildSchema_SectionLabels(t *testing.T) {
-	schema := BuildSchema(config.DefaultConfig())
+	schema := BuildSchema(config.DefaultConfig(), "en")
 
 	wantLabels := map[string]string{
 		"llm":         "LLM",
@@ -1355,7 +1355,7 @@ func TestHandleGetConfig_DiscordTokenReturnedAsIs(t *testing.T) {
 // --- Schema: every section has at least one field ---
 
 func TestBuildSchema_AllSectionsHaveFields(t *testing.T) {
-	schema := BuildSchema(config.DefaultConfig())
+	schema := BuildSchema(config.DefaultConfig(), "en")
 
 	for _, sec := range schema.Sections {
 		if len(sec.Fields) == 0 {
@@ -1367,7 +1367,7 @@ func TestBuildSchema_AllSectionsHaveFields(t *testing.T) {
 // --- Schema: deeply nested fields (3+ levels) ---
 
 func TestBuildSchema_DeeplyNestedFields(t *testing.T) {
-	schema := BuildSchema(config.DefaultConfig())
+	schema := BuildSchema(config.DefaultConfig(), "en")
 
 	// tools section has web.brave.api_key, web.duckduckgo.enabled, etc.
 	var toolsSection *SchemaSection
@@ -1402,7 +1402,7 @@ func TestBuildSchema_DeeplyNestedFields(t *testing.T) {
 }
 
 func TestBuildSchema_DeeplyNestedSecretFlag(t *testing.T) {
-	schema := BuildSchema(config.DefaultConfig())
+	schema := BuildSchema(config.DefaultConfig(), "en")
 
 	// tools.web.brave.api_key should be marked as secret
 	var toolsSection *SchemaSection
@@ -1430,7 +1430,7 @@ func TestBuildSchema_DeeplyNestedSecretFlag(t *testing.T) {
 // --- Schema: []string default value ---
 
 func TestBuildSchema_StringSliceDefault(t *testing.T) {
-	schema := BuildSchema(config.DefaultConfig())
+	schema := BuildSchema(config.DefaultConfig(), "en")
 
 	// Find a []string field (e.g., channels.telegram.allow_from)
 	var channels *SchemaSection
@@ -2222,7 +2222,7 @@ func TestHandleGetConfig_AllSectionsPresent(t *testing.T) {
 // --- #28: agents section all fields in schema ---
 
 func TestBuildSchema_AgentsSectionFields(t *testing.T) {
-	schema := BuildSchema(config.DefaultConfig())
+	schema := BuildSchema(config.DefaultConfig(), "en")
 
 	var agents *SchemaSection
 	for i := range schema.Sections {
@@ -2259,7 +2259,7 @@ func TestBuildSchema_AgentsSectionFields(t *testing.T) {
 // --- #28b: directory type override ---
 
 func TestBuildSchema_DirectoryType(t *testing.T) {
-	schema := BuildSchema(config.DefaultConfig())
+	schema := BuildSchema(config.DefaultConfig(), "en")
 
 	// Find the agents section which contains the defaults sub-fields
 	var agentsFields []SchemaField
@@ -2294,7 +2294,7 @@ func TestBuildSchema_DirectoryType(t *testing.T) {
 // --- #29: rate_limits section fields in schema ---
 
 func TestBuildSchema_RateLimitsSectionFields(t *testing.T) {
-	schema := BuildSchema(config.DefaultConfig())
+	schema := BuildSchema(config.DefaultConfig(), "en")
 
 	var rl *SchemaSection
 	for i := range schema.Sections {
@@ -2323,7 +2323,7 @@ func TestBuildSchema_RateLimitsSectionFields(t *testing.T) {
 // --- #30: gateway section excluded from schema ---
 
 func TestBuildSchema_GatewaySectionExcluded(t *testing.T) {
-	schema := BuildSchema(config.DefaultConfig())
+	schema := BuildSchema(config.DefaultConfig(), "en")
 
 	for _, sec := range schema.Sections {
 		if sec.Key == "gateway" {
@@ -2396,7 +2396,7 @@ func lastDot(s string) int {
 }
 
 func TestBuildSchema_FieldGroups(t *testing.T) {
-	schema := BuildSchema(config.DefaultConfig())
+	schema := BuildSchema(config.DefaultConfig(), "en")
 
 	// Build a map from "section.fieldKey" → group
 	fieldGroup := map[string]string{}

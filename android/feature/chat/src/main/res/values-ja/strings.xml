@@ -1,0 +1,24 @@
+<resources>
+    <!-- Connection Banner -->
+    <string name="connection_connecting">接続中…</string>
+    <string name="connection_reconnecting">再接続中…</string>
+    <string name="connection_disconnected">切断</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">設定</string>
+    <string name="settings_tts_section">テキスト読み上げ</string>
+    <string name="settings_tts_speed">速度</string>
+    <string name="settings_tts_pitch">ピッチ</string>
+    <string name="settings_tts_speaking">再生中…</string>
+    <string name="settings_tts_test">音声テスト</string>
+    <string name="settings_other_section">その他の設定</string>
+    <string name="settings_backend_config">バックエンド設定</string>
+    <string name="settings_backend_config_desc">バックエンドサーバーの設定</string>
+    <string name="settings_app_settings">アプリ設定</string>
+    <string name="settings_app_settings_desc">ゲートウェイ接続設定</string>
+    <string name="settings_system_default">システムデフォルト</string>
+    <string name="settings_engine_label">エンジン</string>
+    <string name="settings_voice_label">音声</string>
+    <string name="settings_open">開く</string>
+    <string name="btn_back">戻る</string>
+</resources>

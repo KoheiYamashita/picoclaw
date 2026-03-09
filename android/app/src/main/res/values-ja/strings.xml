@@ -1,0 +1,64 @@
+<resources>
+    <string name="accessibility_service_description">音声アシスタントの会話中にスクリーンショットを撮影できるようにします。</string>
+
+    <!-- Setup Step 1: Gateway -->
+    <string name="setup_step_1_of_4">ステップ 1/4</string>
+    <string name="setup_gateway_title">ゲートウェイ接続</string>
+    <string name="setup_gateway_description">ゲートウェイは、このアプリとローカルで動作する Go バックエンド間の通信を処理します。API キーによる認証が必要です。</string>
+    <string name="setup_gateway_port_label">ポート</string>
+    <string name="setup_gateway_port_hint">バックエンド通信用のローカルポート（デフォルト: 18790）</string>
+    <string name="setup_gateway_api_key_label">API キー</string>
+    <string name="setup_gateway_api_key_hint">アプリとバックエンド間の通信を保護します。「生成」で自動作成できます。</string>
+    <string name="setup_generate_api_key">API キーを生成</string>
+
+    <!-- Setup Step 2: LLM -->
+    <string name="setup_step_2_of_4">ステップ 2/4</string>
+    <string name="setup_llm_title">LLM 設定</string>
+    <string name="setup_llm_description">エージェントを動かす AI モデルを選択します。対応プロバイダーは OpenAI、Anthropic、Gemini です。プロバイダー/モデル形式で入力してください。</string>
+    <string name="setup_llm_model_label">モデル</string>
+    <string name="setup_llm_model_placeholder">プロバイダー/モデル</string>
+    <string name="setup_llm_model_hint">形式: プロバイダー/モデル（例: openai/gpt-5、anthropic/claude-sonnet-4-6、gemini/gemini-3.1-flash）</string>
+    <string name="setup_llm_api_key_label">API キー</string>
+    <string name="setup_llm_api_key_hint">LLM プロバイダー（OpenAI、Anthropic、Gemini）の API キー</string>
+    <string name="setup_llm_base_url_label">ベース URL</string>
+    <string name="setup_llm_base_url_hint">カスタム API エンドポイント。空欄でプロバイダーのデフォルトを使用します。</string>
+    <string name="setup_set_up_later">後で設定</string>
+
+    <!-- Setup Step 3: Workspace -->
+    <string name="setup_step_3_of_4">ステップ 3/4</string>
+    <string name="setup_workspace_title">ワークスペースとデータ</string>
+    <string name="setup_workspace_description">ワークスペースはエージェントがファイルを読み書きする場所です。データディレクトリにはメモリやログなどの内部データが保存されます。</string>
+    <string name="setup_workspace_label">ワークスペース</string>
+    <string name="setup_workspace_hint">エージェントがファイルを読み書きするディレクトリ</string>
+    <string name="setup_data_dir_label">データディレクトリ</string>
+    <string name="setup_data_dir_hint">メモリやログなどの内部データ用ディレクトリ</string>
+
+    <!-- Setup Step 4: Complete -->
+    <string name="setup_step_4_of_4">ステップ 4/4</string>
+    <string name="setup_complete_title">セットアップ完了！</string>
+    <string name="setup_complete_description">これらの設定は設定画面からいつでも変更できます。チャンネル設定やツール管理などの追加オプションもそちらにあります。</string>
+
+    <!-- Common buttons -->
+    <string name="btn_next">次へ</string>
+    <string name="btn_done">完了</string>
+    <string name="btn_save">保存</string>
+    <string name="btn_saving">保存中…</string>
+    <string name="btn_show">表示</string>
+    <string name="btn_hide">非表示</string>
+    <string name="btn_back">戻る</string>
+    <string name="btn_browse">参照</string>
+
+    <!-- App Settings -->
+    <string name="app_settings_title">接続設定</string>
+    <string name="app_settings_gateway_section">ゲートウェイ接続</string>
+    <string name="app_settings_port_label">ポート</string>
+    <string name="app_settings_api_key_label">API キー</string>
+
+    <!-- Notification -->
+    <string name="notification_channel_messages">エージェントメッセージ</string>
+    <string name="notification_channel_messages_desc">ClawDroid エージェントからのメッセージ</string>
+    <string name="notification_channel_assistant">アシスタント</string>
+    <string name="notification_channel_assistant_desc">アシスタントオーバーレイサービス</string>
+    <string name="notification_channel_gateway">ゲートウェイ</string>
+    <string name="notification_channel_gateway_desc">ゲートウェイバックエンドサービス</string>
+</resources>

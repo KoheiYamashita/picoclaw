@@ -2,6 +2,8 @@ package agent
 
 import (
 	"testing"
+
+	_ "github.com/KarakuriAgent/clawdroid/pkg/i18n"
 )
 
 // --- strArg ---
@@ -79,7 +81,7 @@ func TestHostFromURL(t *testing.T) {
 	}
 }
 
-// --- statusLabel ---
+// --- statusLabel (Japanese locale, preserving original test expectations) ---
 
 func TestStatusLabel(t *testing.T) {
 	tests := []struct {
@@ -116,12 +118,38 @@ func TestStatusLabel(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := statusLabel(tt.toolName, tt.args)
+			got := statusLabel(tt.toolName, tt.args, "ja")
 			if got == "" {
 				t.Error("statusLabel returned empty string")
 			}
 			if !containsStr(got, tt.contains) {
-				t.Errorf("statusLabel(%q, %v) = %q, want to contain %q", tt.toolName, tt.args, got, tt.contains)
+				t.Errorf("statusLabel(%q, %v, ja) = %q, want to contain %q", tt.toolName, tt.args, got, tt.contains)
+			}
+		})
+	}
+}
+
+// --- statusLabel (English locale) ---
+
+func TestStatusLabelEnglish(t *testing.T) {
+	tests := []struct {
+		name     string
+		toolName string
+		args     map[string]interface{}
+		contains string
+	}{
+		{"web_search", "web_search", map[string]interface{}{}, "Searching..."},
+		{"read_file", "read_file", map[string]interface{}{}, "Reading file..."},
+		{"exec", "exec", map[string]interface{}{}, "Running command..."},
+		{"memory", "memory", map[string]interface{}{"action": "read_long_term"}, "Loading memory..."},
+		{"exit", "exit", map[string]interface{}{}, "Shutting down assistant..."},
+		{"unknown", "unknown_tool", map[string]interface{}{}, "Processing..."},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := statusLabel(tt.toolName, tt.args, "en")
+			if !containsStr(got, tt.contains) {
+				t.Errorf("statusLabel(%q, %v, en) = %q, want to contain %q", tt.toolName, tt.args, got, tt.contains)
 			}
 		})
 	}
@@ -130,12 +158,12 @@ func TestStatusLabel(t *testing.T) {
 // --- fileStatusLabel ---
 
 func TestFileStatusLabel(t *testing.T) {
-	got := fileStatusLabel("ファイル読み取り中...", map[string]interface{}{"path": "/home/user/test.go"})
+	got := fileStatusLabel("ja", "status.reading_file", "status.reading_file_q", map[string]interface{}{"path": "/home/user/test.go"})
 	if got != "ファイル読み取り中...（test.go）" {
 		t.Errorf("got %q", got)
 	}
 
-	got = fileStatusLabel("ファイル読み取り中...", map[string]interface{}{})
+	got = fileStatusLabel("ja", "status.reading_file", "status.reading_file_q", map[string]interface{}{})
 	if got != "ファイル読み取り中..." {
 		t.Errorf("got %q", got)
 	}
@@ -156,7 +184,7 @@ func TestMemoryStatusLabel(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.action, func(t *testing.T) {
-			got := memoryStatusLabel(map[string]interface{}{"action": tt.action})
+			got := memoryStatusLabel(map[string]interface{}{"action": tt.action}, "ja")
 			if got != tt.want {
 				t.Errorf("memoryStatusLabel(%q) = %q, want %q", tt.action, got, tt.want)
 			}
@@ -179,7 +207,7 @@ func TestSkillStatusLabel(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := skillStatusLabel(tt.args)
+			got := skillStatusLabel(tt.args, "ja")
 			if got != tt.want {
 				t.Errorf("got %q, want %q", got, tt.want)
 			}
@@ -201,7 +229,7 @@ func TestCronStatusLabel(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.action, func(t *testing.T) {
-			got := cronStatusLabel(map[string]interface{}{"action": tt.action})
+			got := cronStatusLabel(map[string]interface{}{"action": tt.action}, "ja")
 			if got != tt.want {
 				t.Errorf("got %q, want %q", got, tt.want)
 			}
@@ -235,7 +263,7 @@ func TestAndroidStatusLabel(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := androidStatusLabel(tt.args)
+			got := androidStatusLabel(tt.args, "ja")
 			if got != tt.want {
 				t.Errorf("got %q, want %q", got, tt.want)
 			}
@@ -261,7 +289,7 @@ func TestMcpStatusLabel(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := mcpStatusLabel(tt.args)
+			got := mcpStatusLabel(tt.args, "ja")
 			if got != tt.want {
 				t.Errorf("got %q, want %q", got, tt.want)
 			}
