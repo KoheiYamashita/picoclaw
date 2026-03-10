@@ -495,7 +495,7 @@ private fun CalendarField(
         }
         Icon(
             painter = painterResource(LucideR.drawable.lucide_ic_chevron_right),
-            contentDescription = "Select",
+            contentDescription = stringResource(R.string.config_select),
             tint = if (enabled) NeonCyan else NeonCyan.copy(alpha = 0.3f),
             modifier = Modifier.size(20.dp),
         )

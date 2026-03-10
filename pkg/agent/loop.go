@@ -455,16 +455,6 @@ func (al *AgentLoop) processMessage(ctx context.Context, msg bus.InboundMessage)
 		return al.processSystemMessage(ctx, msg)
 	}
 
-	// Check request rate limit
-	if err := al.rateLimiter.checkRequest(); err != nil {
-		logger.WarnCF("agent", "Request rate limited",
-			map[string]interface{}{
-				"channel":   msg.Channel,
-				"sender_id": msg.SenderID,
-			})
-		return fmt.Sprintf("Rate limited: %v. Please try again later.", err), nil
-	}
-
 	// Extract input_mode and locale from metadata
 	inputMode := "text"
 	locale := "en"
@@ -475,6 +465,16 @@ func (al *AgentLoop) processMessage(ctx context.Context, msg bus.InboundMessage)
 		if l, ok := msg.Metadata["locale"]; ok && l != "" {
 			locale = i18n.NormalizeLocale(l)
 		}
+	}
+
+	// Check request rate limit
+	if err := al.rateLimiter.checkRequest(); err != nil {
+		logger.WarnCF("agent", "Request rate limited",
+			map[string]interface{}{
+				"channel":   msg.Channel,
+				"sender_id": msg.SenderID,
+			})
+		return i18n.Tf(locale, "agent.rate_limited", err), nil
 	}
 
 	// Check for commands
@@ -937,7 +937,7 @@ func (al *AgentLoop) runLLMIteration(ctx context.Context, messages []providers.M
 					})
 				toolResultMsg := providers.Message{
 					Role:       "tool",
-					Content:    fmt.Sprintf("Rate limited: %v", err),
+					Content:    i18n.Tf(locale, "agent.rate_limited_tool", err),
 					ToolCallID: tc.ID,
 				}
 				messages = append(messages, toolResultMsg)

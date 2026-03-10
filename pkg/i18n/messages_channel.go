@@ -13,7 +13,7 @@ func init() {
 /help - Show this help message
 /show [model|channel] - Show current configuration
 /list [models|channels] - List available options
-	`,
+`,
 		"cmd.start":         "Hello! I am ClawDroid 🦞",
 		"cmd.show.usage":    "Usage: /show [model|channel]",
 		"cmd.show.model":    "Current Model: %s",
@@ -53,7 +53,7 @@ func init() {
 /help - このヘルプメッセージを表示
 /show [model|channel] - 現在の設定を表示
 /list [models|channels] - 利用可能なオプションを一覧表示
-	`,
+`,
 		"cmd.start":         "こんにちは！ClawDroid です 🦞",
 		"cmd.show.usage":    "使い方: /show [model|channel]",
 		"cmd.show.model":    "現在のモデル: %s",

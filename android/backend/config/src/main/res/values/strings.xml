@@ -18,4 +18,5 @@
     <string name="config_connection_settings">Connection Settings</string>
     <string name="config_open">Open</string>
     <string name="config_fields_count">%1$d fields</string>
+    <string name="config_select">Select</string>
 </resources>
