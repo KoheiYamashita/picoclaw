@@ -12,7 +12,7 @@
     <string name="config_browse">参照</string>
     <string name="config_saved">保存しました。</string>
     <string name="config_saved_restarting">保存しました。サーバーを再起動中…</string>
-    <string name="config_error">エラー: %1$s</string>
+    <string name="config_error_prefix">エラー: </string>
     <string name="config_backend_config">バックエンド設定</string>
     <string name="config_retry">リトライ</string>
     <string name="config_connection_settings">接続設定</string>

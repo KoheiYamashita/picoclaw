@@ -83,20 +83,22 @@ fun ConfigSectionDetailScreen(
         viewModel.onSectionSelected(sectionKey)
     }
 
-    val context = LocalContext.current
     val detail = uiState.detailState
     val isDirty = detail?.fields?.any { it.value != it.originalValue } == true
     val isSaving = uiState.saveState is SaveState.Saving
+    val savedMsg = stringResource(R.string.config_saved)
+    val savedRestartingMsg = stringResource(R.string.config_saved_restarting)
+    val errorPrefix = stringResource(R.string.config_error_prefix)
 
     LaunchedEffect(uiState.saveState) {
         when (val state = uiState.saveState) {
             is SaveState.Success -> {
-                val msg = if (state.restart) context.getString(R.string.config_saved_restarting) else context.getString(R.string.config_saved)
+                val msg = if (state.restart) savedRestartingMsg else savedMsg
                 snackbarHostState.showSnackbar(msg)
                 viewModel.dismissSaveResult()
             }
             is SaveState.Error -> {
-                snackbarHostState.showSnackbar(context.getString(R.string.config_error, state.message))
+                snackbarHostState.showSnackbar("$errorPrefix${state.message}")
                 viewModel.dismissSaveResult()
             }
             else -> {}

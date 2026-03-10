@@ -12,7 +12,7 @@
     <string name="config_browse">Browse</string>
     <string name="config_saved">Saved.</string>
     <string name="config_saved_restarting">Saved. Server restarting…</string>
-    <string name="config_error">Error: %1$s</string>
+    <string name="config_error_prefix">Error: </string>
     <string name="config_backend_config">Backend Config</string>
     <string name="config_retry">Retry</string>
     <string name="config_connection_settings">Connection Settings</string>
