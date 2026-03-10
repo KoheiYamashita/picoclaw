@@ -55,6 +55,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -82,6 +83,7 @@ fun ConfigSectionDetailScreen(
         viewModel.onSectionSelected(sectionKey)
     }
 
+    val context = LocalContext.current
     val detail = uiState.detailState
     val isDirty = detail?.fields?.any { it.value != it.originalValue } == true
     val isSaving = uiState.saveState is SaveState.Saving
@@ -89,12 +91,12 @@ fun ConfigSectionDetailScreen(
     LaunchedEffect(uiState.saveState) {
         when (val state = uiState.saveState) {
             is SaveState.Success -> {
-                val msg = if (state.restart) "Saved. Server restarting..." else "Saved."
+                val msg = if (state.restart) context.getString(R.string.config_saved_restarting) else context.getString(R.string.config_saved)
                 snackbarHostState.showSnackbar(msg)
                 viewModel.dismissSaveResult()
             }
             is SaveState.Error -> {
-                snackbarHostState.showSnackbar("Error: ${state.message}")
+                snackbarHostState.showSnackbar(context.getString(R.string.config_error, state.message))
                 viewModel.dismissSaveResult()
             }
             else -> {}
@@ -118,7 +120,7 @@ fun ConfigSectionDetailScreen(
                         }) {
                             Icon(
                                 painter = painterResource(LucideR.drawable.lucide_ic_arrow_left),
-                                contentDescription = "Back",
+                                contentDescription = stringResource(R.string.config_back),
                                 tint = TextSecondary,
                             )
                         }
@@ -142,7 +144,7 @@ fun ConfigSectionDetailScreen(
                                     strokeWidth = 2.dp,
                                 )
                             } else {
-                                Text("Save")
+                                Text(stringResource(R.string.config_save))
                             }
                         }
                     },
@@ -265,7 +267,7 @@ private fun StringField(field: FieldState, onValueChanged: (String) -> Unit) {
             {
                 TextButton(onClick = { hidden = !hidden }) {
                     Text(
-                        if (hidden) "Show" else "Hide",
+                        stringResource(if (hidden) R.string.config_show else R.string.config_hide),
                         color = NeonCyan,
                         style = MaterialTheme.typography.labelSmall,
                     )
@@ -334,7 +336,7 @@ private fun StringArrayField(field: FieldState, onValueChanged: (String) -> Unit
         value = field.value,
         onValueChange = onValueChanged,
         label = { Text(field.label, color = TextSecondary) },
-        placeholder = { Text("Comma-separated values", color = TextSecondary.copy(alpha = 0.5f)) },
+        placeholder = { Text(stringResource(R.string.config_comma_separated), color = TextSecondary.copy(alpha = 0.5f)) },
         singleLine = true,
         colors = configFieldColors(),
         modifier = Modifier.fillMaxWidth(),
@@ -389,7 +391,7 @@ private fun DirectoryField(
             onValueChanged(path)
         } else {
             scope.launch {
-                snackbarHostState?.showSnackbar("Internal storage only")
+                snackbarHostState?.showSnackbar(context.getString(R.string.config_internal_storage_only))
             }
         }
     }
@@ -404,7 +406,7 @@ private fun DirectoryField(
                 IconButton(onClick = { launcher.launch(null) }) {
                     Icon(
                         painter = painterResource(LucideR.drawable.lucide_ic_folder_open),
-                        contentDescription = "Browse",
+                        contentDescription = stringResource(R.string.config_browse),
                         tint = NeonCyan,
                     )
                 }
@@ -413,7 +415,7 @@ private fun DirectoryField(
             modifier = Modifier.fillMaxWidth(),
         )
         Text(
-            "Internal storage only for SAF picker",
+            stringResource(R.string.config_internal_storage_saf),
             style = MaterialTheme.typography.labelSmall,
             color = TextSecondary.copy(alpha = 0.6f),
             modifier = Modifier.padding(start = 16.dp, top = 2.dp),
@@ -455,7 +457,7 @@ private fun CalendarField(
             null
         }
     }
-    val displayText = if (field.value.isEmpty()) "Pick each time"
+    val displayText = if (field.value.isEmpty()) stringResource(R.string.config_pick_each_time)
         else resolvedName ?: field.value
 
     Row(
@@ -499,12 +501,12 @@ private fun CalendarField(
     if (showDialog && calendars.isNotEmpty()) {
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { Text("Select Calendar") },
+            title = { Text(stringResource(R.string.config_select_calendar)) },
             text = {
                 Column {
                     // "Pick each time" option to clear the fixed setting
                     Text(
-                        "Pick each time",
+                        stringResource(R.string.config_pick_each_time),
                         style = MaterialTheme.typography.bodyMedium,
                         color = NeonCyan,
                         modifier = Modifier
@@ -535,7 +537,7 @@ private fun CalendarField(
             confirmButton = {},
             dismissButton = {
                 TextButton(onClick = { showDialog = false }) {
-                    Text("Cancel", color = TextSecondary)
+                    Text(stringResource(R.string.config_cancel), color = TextSecondary)
                 }
             },
         )
