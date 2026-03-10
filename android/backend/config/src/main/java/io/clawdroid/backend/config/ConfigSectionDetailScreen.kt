@@ -379,6 +379,7 @@ private fun DirectoryField(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val internalStorageOnlyMsg = stringResource(R.string.config_internal_storage_only)
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocumentTree()
@@ -393,7 +394,7 @@ private fun DirectoryField(
             onValueChanged(path)
         } else {
             scope.launch {
-                snackbarHostState?.showSnackbar(context.getString(R.string.config_internal_storage_only))
+                snackbarHostState?.showSnackbar(internalStorageOnlyMsg)
             }
         }
     }
