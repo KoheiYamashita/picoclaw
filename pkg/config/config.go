@@ -167,6 +167,28 @@ type ExecToolsConfig struct {
 	Enabled bool `json:"enabled" label:"Enabled" env:"CLAWDROID_TOOLS_EXEC_ENABLED"`
 }
 
+// HTTPParam describes a parameter accepted by a user-defined API endpoint.
+type HTTPParam struct {
+	Name        string `json:"name"`
+	In          string `json:"in"`          // "query", "body", or "path"
+	Description string `json:"description"` // shown to the LLM
+	Required    bool   `json:"required"`
+}
+
+// APIEndpointConfig defines a single pre-approved HTTP API endpoint.
+// The LLM can only call endpoints registered here; it cannot reach
+// arbitrary URLs.  Headers (e.g. auth tokens) are stored in config
+// and are never exposed to the LLM.
+type APIEndpointConfig struct {
+	Name        string            `json:"name"`
+	Description string            `json:"description"`
+	URL         string            `json:"url"`
+	Method      string            `json:"method"`           // GET, POST, PUT, DELETE, PATCH
+	Headers     map[string]string `json:"headers,omitempty"` // fixed request headers (invisible to LLM)
+	Params      []HTTPParam       `json:"params,omitempty"`  // parameter schema exposed to LLM
+	Timeout     int               `json:"timeout,omitempty"` // seconds; 0 → 30 s default
+}
+
 type MCPServerConfig struct {
 	// Stdio transport
 	Command string            `json:"command,omitempty"`
@@ -363,6 +385,7 @@ type ToolsConfig struct {
 	Android AndroidToolsConfig         `json:"android" label:"Android"`
 	Memory  MemoryToolsConfig          `json:"memory" label:"Memory"`
 	MCP     map[string]MCPServerConfig `json:"mcp,omitempty" label:"MCP Servers"`
+	APIs    []APIEndpointConfig        `json:"apis,omitempty" label:"Custom APIs"`
 }
 
 func DefaultConfig() *Config {

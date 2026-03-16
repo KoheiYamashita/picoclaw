@@ -242,6 +242,13 @@ func NewAgentLoop(cfg *config.Config, msgBus *bus.MessageBus, provider providers
 		contextBuilder.SetMCPManager(mcpManager)
 	}
 
+	// Config-defined API endpoints (safe HTTP allowlist)
+	if len(cfg.Tools.APIs) > 0 {
+		apiCallTool := tools.NewAPICallTool(cfg.Tools.APIs)
+		toolsRegistry.Register(apiCallTool)
+		subagentTools.Register(apiCallTool)
+	}
+
 	return &AgentLoop{
 		bus:            msgBus,
 		provider:       provider,
