@@ -108,7 +108,7 @@ androidComponents {
     beforeVariants(
         selector()
             .withFlavor("variant" to "termux")
-            .withFlavor("distribution" to "googleplay")
+            .withFlavor("distribution" to "googleplay"),
     ) { variantBuilder ->
         variantBuilder.enable = false
     }
